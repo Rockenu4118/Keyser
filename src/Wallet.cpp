@@ -8,17 +8,12 @@
 
 // Constructors
 Keyser::Wallet::Wallet()
-{
-    std::cout << "Initialized wallet." << std::endl;
-    
+{    
     // Generate EC keys and assign them to the corresponding member variables.
     cryptography::ecKeys(_privateKey, _uPublicKey, _cPublicKey);
 
     // Calculate the public address with the previously generated uncompressed public key.
     calcAddress();
-
-    printAddress();
-    printKeys();
 }
 
 // Accessors

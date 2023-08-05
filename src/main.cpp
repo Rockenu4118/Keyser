@@ -16,16 +16,16 @@
 
 int main()
 {
+    Keyser::Chain chain = Keyser::Chain(4, 100);
+    std::cout << "Chain initialized." << std::endl;
+
     Keyser::Wallet wallet = Keyser::Wallet();
-
-    // wallet.printKeys();
-    // Keyser::Chain chain = Keyser::Chain(4, 100);
-    // std::cout << "Chain initialized." << std::endl;
-
+    // wallet.printAddress();
+    
     // chain.createGenesisBlock();
 
     // chain.mineBlock("theguy");
-    // chain.createTransaction(Keyser::Transaction(100, "aj", "him"));
+    // chain.createTransaction(Keyser::Transaction(100, "aj", "theguy"));
     // chain.mineBlock("theguy");
     // chain.getAddressBalance("theguy");
 

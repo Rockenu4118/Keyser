@@ -17,11 +17,16 @@ namespace Keyser
             uint        getAmount();
             std::string getPayer();
             std::string getPayee();
+            std::string getHash();
+
+            // Modifiers
+            void calcHash();
 
         private:
             uint        _amount;
             std::string _payer;
             std::string _payee;
+            std::string _hash;
 
     };
 }
