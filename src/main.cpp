@@ -1,3 +1,10 @@
+//
+//  Keyser Blockchain Protocol
+//
+//  Created by AJ Hermosillo on July 13, 2023.
+//  Copyright (c) 2015 AJ Hermosillo. All rights reserved.
+//
+
 #include <iostream>
 #include <string>
 #include <ctime>
@@ -9,24 +16,20 @@
 
 int main()
 {
-    Keyser::Chain chain = Keyser::Chain(4, 100);
-    std::cout << "Chain initialized." << std::endl;
+    Keyser::Wallet wallet = Keyser::Wallet();
 
-    chain.createGenesisBlock();
+    // wallet.printKeys();
+    // Keyser::Chain chain = Keyser::Chain(4, 100);
+    // std::cout << "Chain initialized." << std::endl;
 
-    chain.createTransaction(Keyser::Transaction(100, "aj", "him"));
+    // chain.createGenesisBlock();
 
-    chain.mineBlock("theguy");
+    // chain.mineBlock("theguy");
+    // chain.createTransaction(Keyser::Transaction(100, "aj", "him"));
+    // chain.mineBlock("theguy");
+    // chain.getAddressBalance("theguy");
 
-    chain.createTransaction(Keyser::Transaction(100, "aj", "him"));
-
-    chain.mineBlock("theguy");
-
-    chain.createTransaction(Keyser::Transaction(50, "him", "aj"));
-
-    chain.mineBlock("theguy");
-
-    chain.getAddressBalance("theguy");
+    
 
     return 0;
 }

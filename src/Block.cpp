@@ -5,7 +5,7 @@
 
 #include "./include/Block.hpp"
 #include "./include/Transaction.hpp"
-#include "./include/hash.hpp"
+#include "./include/cryptography.hpp"
 #include "./include/util.hpp"
 
 
@@ -63,7 +63,7 @@ void Keyser::Block::calcHash()
     std::string unhashed = _prevHash + std::to_string(_time) + std::to_string(_nonce);
     std::string hashed = "";
 
-    hash::sha256(unhashed, hashed);
+    cryptography::sha256(unhashed, hashed);
 
     _hash = hashed;
 }
