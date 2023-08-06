@@ -44,3 +44,8 @@ void Keyser::Transaction::calcHash()
 
     _hash = hashed;
 }
+
+void Keyser::Transaction::signTransaction()
+{
+    
+}

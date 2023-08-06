@@ -2,6 +2,7 @@
 #define WALLET_H
 
 #include <string>
+#include <openssl/ec.h>
 
 
 namespace Keyser
@@ -20,6 +21,8 @@ namespace Keyser
 
             // Modifiers
             void calcAddress();
+            bool genKeyPairObj();
+            bool extractKeys();
 
             // Other
             void printAddress();
@@ -27,6 +30,7 @@ namespace Keyser
 
         private:
             std::string _publicAddress;
+            EC_KEY*     _keyPairObj;
             std::string _privateKey;
             std::string _uPublicKey;
             std::string _cPublicKey;

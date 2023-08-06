@@ -21,13 +21,14 @@ namespace Keyser
 
             // Modifiers
             void calcHash();
+            void signTransaction();
 
         private:
             uint        _amount;
             std::string _payer;
             std::string _payee;
             std::string _hash;
-
+            uint        _signature;
     };
 }
 

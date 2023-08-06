@@ -14,6 +14,8 @@ Keyser::Chain::Chain(uint8_t difficulty, uint8_t miningReward)
     _currBlock  = NULL;
     _difficulty = difficulty;
     _miningReward = miningReward;
+
+    createGenesisBlock();
 }
 
 // Accessors
@@ -32,7 +34,6 @@ void Keyser::Chain::createGenesisBlock()
 {
     Keyser::Block* genesisBlock = new Keyser::Block(0, NULL, "None", _pendingTransactions);
     genesisBlock->calcHash();
-    genesisBlock->printBlock();
 
     _currBlock = genesisBlock;
 }
@@ -40,9 +41,7 @@ void Keyser::Chain::createGenesisBlock()
 void Keyser::Chain::mineBlock(std::string rewardAddress)
 {
     Keyser::Block* newBlock = new Keyser::Block(_currBlock->getIndex() + 1, _currBlock, _currBlock->getHash(), _pendingTransactions);
-    std::cout << std::endl << "Mining block..." << std::endl;
     newBlock->calcValidHash(_difficulty);
-    newBlock->printBlock();
 
     _currBlock = newBlock;
 
