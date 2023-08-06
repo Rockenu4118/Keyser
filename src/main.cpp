@@ -20,6 +20,8 @@ int main()
     Keyser::Chain chain = Keyser::Chain(4, 100);
     chain.getCurrBlock()->printBlock();
 
+    std::cout << std::endl;
+
     Keyser::Wallet wallet = Keyser::Wallet();
     wallet.printAddress();
     

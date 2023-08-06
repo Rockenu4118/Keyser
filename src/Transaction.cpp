@@ -1,8 +1,11 @@
 #include <iostream>
 #include <string>
 
+#include <openssl/ec.h>
+
 #include "./include/Transaction.hpp"
 #include "./include/cryptography.hpp"
+#include "./include/Wallet.hpp"
 
 
 // Constructors
@@ -45,7 +48,9 @@ void Keyser::Transaction::calcHash()
     _hash = hashed;
 }
 
-void Keyser::Transaction::signTransaction()
-{
-    
+void Keyser::Transaction::signTransaction(EC_KEY* signingKey)
+{   
+    calcHash();
+
+    _signature = ECDSA_do_sign((const unsigned char *)_hash.c_str(), strlen(_hash.c_str()), signingKey);
 }

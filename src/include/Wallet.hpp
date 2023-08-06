@@ -4,6 +4,8 @@
 #include <string>
 #include <openssl/ec.h>
 
+#include "./ECKeyPair.hpp"
+
 
 namespace Keyser
 {
@@ -15,25 +17,16 @@ namespace Keyser
 
             // Accessors
             std::string getPublicAddress();
-            std::string getPrivateKey();
-            std::string getUPublicKey();
-            std::string getCPublicKey();
-
+            
             // Modifiers
             void calcAddress();
-            bool genKeyPairObj();
-            bool extractKeys();
-
+            
             // Other
             void printAddress();
-            void printKeys();
 
         private:
             std::string _publicAddress;
-            EC_KEY*     _keyPairObj;
-            std::string _privateKey;
-            std::string _uPublicKey;
-            std::string _cPublicKey;
+            ECKeyPair   _keyPair = ECKeyPair();
     };
 }
 

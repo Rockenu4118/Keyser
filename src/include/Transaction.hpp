@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include <openssl/ec.h>
+
 
 namespace Keyser
 {
@@ -21,14 +23,14 @@ namespace Keyser
 
             // Modifiers
             void calcHash();
-            void signTransaction();
+            void signTransaction(EC_KEY* signingKey);
 
         private:
             uint        _amount;
             std::string _payer;
             std::string _payee;
             std::string _hash;
-            uint        _signature;
+            ECDSA_SIG*  _signature;
     };
 }
 
