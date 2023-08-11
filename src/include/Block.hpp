@@ -10,37 +10,39 @@ namespace Keyser
 {
     class Block
     {
-    public:
-        // Constructors
-        Block(uint index, Block* prevBlock, std::string prevHash, std::vector<Transaction> transactions);
+        // IO Stream operators
+        friend std::ostream& operator<<(std::ostream& out, Block& data);
 
-        // Accessors
-        uint        getIndex();
-        Block*      getPrevBlock();
-        std::string getPrevHash();
-        time_t      getTime();
-        uint32_t    getNonce();
-        std::string getHash();
+        public:
+            // Constructors
+            Block(uint index, Block* prevBlock, std::string prevHash, std::vector<Transaction> transactions);
 
-        std::vector<Transaction> getTransactions();
+            // Accessors
+            uint        getIndex();
+            Block*      getPrevBlock();
+            std::string getPrevHash();
+            time_t      getTime();
+            uint32_t    getNonce();
+            std::string getHash();
 
-        // Modifiers
-        void calcHash();
-        void calcValidHash(uint8_t difficulty);
+            std::vector<Transaction> getTransactions();
 
-        // Other
-        void printBlock();
-        void printTransactions();
+            // Modifiers
+            void calcHash();
+            void calcValidHash(uint8_t difficulty);
+
+            // Other
+            void printTransactions();
         
-    private:
-        Block*      _prevBlock;
-        uint        _index;
-        time_t      _time;
-        uint32_t    _nonce;
-        std::string _prevHash;
-        std::string _hash;
+        private:
+            Block*      _prevBlock;
+            uint        _index;
+            time_t      _time;
+            uint32_t    _nonce;
+            std::string _prevHash;
+            std::string _hash;
 
-        std::vector<Transaction> _transactions;
+            std::vector<Transaction> _transactions;
         
     };
 }

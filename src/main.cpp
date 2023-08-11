@@ -16,24 +16,30 @@
 
 int main()
 {
-    std::cout << "Chain initialized." << std::endl;
+    // Begin program and print initialized wallets
+    std::cout << "Program running, wallets shown below.\n" << std::endl;
+
+    Keyser::Wallet ajWallet = Keyser::Wallet("AJ");
+    std::cout << ajWallet << std::endl;
+    Keyser::Wallet himWallet = Keyser::Wallet("Him");
+    std::cout << himWallet << std::endl;
+
+    // Initialize chain
+    std::cout << "\nInitializing chain...\n" << std::endl;
     Keyser::Chain chain = Keyser::Chain(4, 100);
-    chain.getCurrBlock()->printBlock();
+    std::cout << *chain.getCurrBlock() << std::endl;
 
-    std::cout << std::endl;
+    chain.mineBlock("AJ");
+    std::cout << *chain.getCurrBlock() << std::endl;
 
-    Keyser::Wallet wallet = Keyser::Wallet();
-    wallet.printAddress();
-    
+    Keyser::Transaction tx = Keyser::Transaction(100, "AJ", "none");
+    chain.createTransaction(tx);
 
-    // chain.mineBlock("theguy");
-    // chain.getCurrBlock()->printBlock();
-    // // chain.createTransaction(Keyser::Transaction(100, "aj", "theguy"));
-    // chain.mineBlock("theguy");
-    // chain.getCurrBlock()->printBlock();
+    chain.mineBlock("AJ");
+    std::cout << *chain.getCurrBlock() << std::endl;
 
-    // chain.getAddressBalance("theguy");
 
+    // chain.getAddressBalance("AJ");
     
 
     return 0;

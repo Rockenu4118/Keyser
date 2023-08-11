@@ -10,7 +10,8 @@ namespace cryptography
     // Hashing
     bool sha256(const std::string& unhashed, std::string& hashed);
 
-    // Other
+    // Conversions
+    std::string pubKeytoAddress(const std::string& uPublicKey);
     std::string hexToString(const std::string& input);
 }
 

@@ -13,6 +13,7 @@ namespace Keyser
             ECKeyPair();
 
             // Accessors
+            EC_KEY*     getKeyPairObj();
             std::string getPrivateKey();
             std::string getUPublicKey();
             std::string getCPublicKey();

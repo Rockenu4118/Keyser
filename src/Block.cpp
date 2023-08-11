@@ -93,17 +93,6 @@ void Keyser::Block::calcValidHash(uint8_t difficulty)
 }
 
 // Other
-void Keyser::Block::printBlock()
-{
-    std::cout << std::endl;
-    std::cout << "Index:        " << _index               << std::endl;
-    std::cout << "Time:         " << _time                << std::endl;
-    std::cout << "Nonce:        " << _nonce               << std::endl;
-    std::cout << "Prev Hash:    " << _prevHash            << std::endl;
-    std::cout << "Hash:         " << _hash                << std::endl;
-    std::cout << "Transactions: " << _transactions.size() << std::endl;
-}
-
 void Keyser::Block::printTransactions()
 {
     std::cout << std::endl;
@@ -114,9 +103,23 @@ void Keyser::Block::printTransactions()
         std::cout << "Transaction # " << std::to_string(i + 1) << std::endl;
 
         std::cout << "Amount: " << _transactions.at(i).getAmount();
-        std::cout << ", Payer: " << _transactions.at(i).getPayer();
-        std::cout << ", Payee: " << _transactions.at(i).getPayee();
+        std::cout << ", Payer: " << _transactions.at(i).getSender();
+        std::cout << ", Payee: " << _transactions.at(i).getReciever();
 
         std::cout << std::endl;     
+    }
+}
+
+namespace Keyser
+{
+    std::ostream& operator<<(std::ostream& out, Block& data) {
+        out << "Index:        " << data.getIndex()               << std::endl;
+        out << "Time:         " << data.getTime()                << std::endl;
+        out << "Nonce:        " << data.getNonce()               << std::endl;
+        out << "Prev Hash:    " << data.getPrevHash()            << std::endl;
+        out << "Hash:         " << data.getHash()                << std::endl;
+        out << "Transactions: " << data.getTransactions().size() << std::endl;
+
+        return out;
     }
 }

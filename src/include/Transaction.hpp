@@ -2,14 +2,19 @@
 #define TRANSACTION_H
 
 #include <string>
+#include <iostream>
 
 #include <openssl/ec.h>
 
+#include "./ECKeyPair.hpp"
 
 namespace Keyser
 {
     class Transaction
     {
+        // IO Stream operators
+        friend std::ostream& operator<<(std::ostream& out, Transaction& data);
+
         public:
             // Constructors
             Transaction(int amount, std::string payer, std::string payee);
@@ -17,18 +22,18 @@ namespace Keyser
 
             // Accessors
             uint        getAmount();
-            std::string getPayer();
-            std::string getPayee();
+            std::string getReciever();
+            std::string getSender();
             std::string getHash();
 
             // Modifiers
             void calcHash();
-            void signTransaction(EC_KEY* signingKey);
+            void signTransaction(ECKeyPair* signingKey);
 
         private:
             uint        _amount;
-            std::string _payer;
-            std::string _payee;
+            std::string _reciever;
+            std::string _sender;
             std::string _hash;
             ECDSA_SIG*  _signature;
     };

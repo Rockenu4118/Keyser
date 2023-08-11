@@ -65,7 +65,7 @@ void Keyser::Chain::printChain()
 
     while (temp != NULL) 
     {
-        temp->printBlock();
+        std::cout << *temp << std::endl;
         temp = temp->getPrevBlock();
         count++;
     }
@@ -85,10 +85,10 @@ void Keyser::Chain::getAddressBalance(std::string address)
 
         for (uint i = 0 ; i < transactions.size() ; i++)
         {
-            if (transactions.at(i).getPayee() == address)
+            if (transactions.at(i).getReciever() == address)
                 balance += transactions.at(i).getAmount();
 
-            if (transactions.at(i).getPayer() == address)
+            if (transactions.at(i).getSender() == address)
                 balance -= transactions.at(i).getAmount();
         }
         temp = temp->getPrevBlock();

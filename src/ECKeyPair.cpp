@@ -15,6 +15,11 @@ Keyser::ECKeyPair::ECKeyPair()
 }
 
 // Accessors
+EC_KEY* Keyser::ECKeyPair::getKeyPairObj()
+{
+    return _keyPairObj;
+}
+
 std::string Keyser::ECKeyPair::getPrivateKey()
 {
     return _privateKey;
