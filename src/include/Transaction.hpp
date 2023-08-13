@@ -3,7 +3,6 @@
 
 #include <string>
 #include <iostream>
-
 #include <openssl/ec.h>
 
 #include "./ECKeyPair.hpp"
@@ -17,7 +16,7 @@ namespace Keyser
 
         public:
             // Constructors
-            Transaction(int amount, std::string payer, std::string payee);
+            Transaction(int amount, std::string reciever, std::string sender);
             Transaction() = default;
 
             // Accessors

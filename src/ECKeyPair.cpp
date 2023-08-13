@@ -14,6 +14,12 @@ Keyser::ECKeyPair::ECKeyPair()
     extractKeys();
 }
 
+Keyser::ECKeyPair::ECKeyPair(std::string privateKey)
+{
+    insertPrivateKey(privateKey);
+    extractKeys();
+}
+
 // Accessors
 EC_KEY* Keyser::ECKeyPair::getKeyPairObj()
 {
@@ -55,10 +61,46 @@ bool Keyser::ECKeyPair::genKeyPairObj()
     return true;
 }
 
+bool Keyser::ECKeyPair::insertPrivateKey(std::string privateKey)
+{
+    if (privateKey.length() != 64) {
+        std::cout << "Invalid private key length." << std::endl;
+        return false;
+    }
+
+    EC_GROUP* secp256k1_group = EC_GROUP_new_by_curve_name(NID_secp256k1);
+    EC_KEY*   keyPair         = EC_KEY_new();
+    BIGNUM*   privKey         = BN_new();
+    EC_POINT* pubKey          = EC_POINT_new(secp256k1_group);
+    
+    // Convert private key string into BIGNUM
+    BN_hex2bn(&privKey, privateKey.c_str());
+
+    // Insert private key into EC_KEY object
+    EC_KEY_set_group(keyPair, secp256k1_group);
+    EC_KEY_set_private_key(keyPair, privKey);
+
+    // Compute public key from previously inserted private key
+    EC_POINT_mul(secp256k1_group, pubKey, privKey, NULL, NULL, NULL);
+
+    // Insert public key into EC KEY object
+    EC_KEY_set_public_key(keyPair, pubKey);
+
+    // Free memory
+    EC_GROUP_free(secp256k1_group);
+
+    _keyPairObj = keyPair;
+
+    return true;
+}
+
 bool Keyser::ECKeyPair::extractKeys()
 {
     // Check to see if wallet object contains a generated EC Key object
-    if (_keyPairObj == NULL) { return false; }
+    if (_keyPairObj == nullptr) {
+        std::cout << "No key pair object to extract from." << std::endl;
+        return false;
+    }
 
     const BIGNUM*   privKey;
     const EC_POINT* pubKey;
@@ -90,10 +132,14 @@ bool Keyser::ECKeyPair::extractKeys()
     return true;
 }
 
-// Other
-void Keyser::ECKeyPair::printKeys()
+// IO Stream operators
+namespace Keyser
 {
-    std::cout << "Private key: " << _privateKey << std::endl;
-    std::cout << "UPublic key: " << _uPublicKey << std::endl;
-    std::cout << "CPublic key: " << _cPublicKey << std::endl;
+    std::ostream& operator<<(std::ostream& out, ECKeyPair& data) {
+        out << "Private key: " << data.getPrivateKey() << std::endl;
+        out << "UPublic key: " << data.getUPublicKey() << std::endl;
+        out << "CPublic key: " << data.getCPublicKey() << std::endl;
+
+        return out;
+    }
 }

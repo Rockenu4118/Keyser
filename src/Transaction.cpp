@@ -55,6 +55,7 @@ void Keyser::Transaction::signTransaction(ECKeyPair* signingKey)
         std::cout << "Cannot sign transactions for other wallets." << std::endl;
         return;
     }
+    std::cout << "Signed trans." << std::endl;
 
     calcHash();
 
@@ -64,7 +65,7 @@ void Keyser::Transaction::signTransaction(ECKeyPair* signingKey)
 // Operator overloading
 namespace Keyser
 {
-    std::ostream& operator<<(std::ostream &out, Transaction& data) {
+    std::ostream& operator<<(std::ostream& out, Transaction& data) {
         out << "Amount: "   << data.getAmount()   << ", ";
         out << "Reciever: " << data.getReciever() << ", ";
         out << "Sender: "   << data.getSender();
