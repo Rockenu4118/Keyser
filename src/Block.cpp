@@ -102,11 +102,11 @@ void Keyser::Block::printTransactions()
     {
         std::cout << "Transaction # " << std::to_string(i + 1) << std::endl;
 
-        std::cout << "Amount: " << _transactions.at(i).getAmount();
-        std::cout << ", Payer: " << _transactions.at(i).getSender();
-        std::cout << ", Payee: " << _transactions.at(i).getReciever();
-
-        std::cout << std::endl;     
+        std::cout << "Amount: "     << _transactions.at(i).getAmount();
+        std::cout << ", Reciever: " << _transactions.at(i).getRecieverAddress();
+        std::cout << ", Sender: "   << _transactions.at(i).getSenderAddress();
+    
+        std::cout << std::endl;
     }
 }
 

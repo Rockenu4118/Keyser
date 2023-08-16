@@ -14,10 +14,14 @@ Keyser::ECKeyPair::ECKeyPair()
     extractKeys();
 }
 
-Keyser::ECKeyPair::ECKeyPair(std::string privateKey)
+Keyser::ECKeyPair::ECKeyPair(std::string keyType, std::string key)
 {
-    insertPrivateKey(privateKey);
-    extractKeys();
+    if (keyType == "private") {
+        insertPrivateKey(key);
+        extractKeys();
+    } else if (keyType == "public") {
+        insertPublicKey(key);
+    }
 }
 
 // Accessors
@@ -94,6 +98,32 @@ bool Keyser::ECKeyPair::insertPrivateKey(std::string privateKey)
     return true;
 }
 
+bool Keyser::ECKeyPair::insertPublicKey(std::string publicKey)
+{
+    if (publicKey.length() != 130) {
+        std::cout << "Invalid public key length." << std::endl;
+        return false;
+    }
+
+    EC_GROUP* secp256k1_group = EC_GROUP_new_by_curve_name(NID_secp256k1);
+    EC_KEY*   keyPair         = EC_KEY_new();
+    EC_POINT* pubKey          = EC_POINT_new(secp256k1_group);
+
+    // Convert public key string into EC POINT
+    EC_POINT_hex2point(secp256k1_group, publicKey.c_str(), pubKey, nullptr);
+
+    // Insert public key into EC KEY object
+    EC_KEY_set_group(keyPair, secp256k1_group);
+    EC_KEY_set_public_key(keyPair, pubKey);
+
+    // Free memory
+    EC_GROUP_free(secp256k1_group);
+
+    _keyPairObj = keyPair;
+
+    return true;
+}
+
 bool Keyser::ECKeyPair::extractKeys()
 {
     // Check to see if wallet object contains a generated EC Key object
@@ -138,7 +168,6 @@ namespace Keyser
     std::ostream& operator<<(std::ostream& out, ECKeyPair& data) {
         out << "Private key: " << data.getPrivateKey() << std::endl;
         out << "UPublic key: " << data.getUPublicKey() << std::endl;
-        out << "CPublic key: " << data.getCPublicKey() << std::endl;
 
         return out;
     }

@@ -16,23 +16,29 @@ namespace Keyser
 
         public:
             // Constructors
-            Transaction(int amount, std::string reciever, std::string sender);
+            Transaction(int amount, std::string recievingAddress, std::string sendingPublicKey);
             Transaction() = default;
 
             // Accessors
             uint        getAmount();
-            std::string getReciever();
-            std::string getSender();
+            std::string getRecieverAddress();
+            std::string getSenderAddress();
+            std::string getSenderPublicKey();
             std::string getHash();
+            ECDSA_SIG*  getSignature();
 
             // Modifiers
             void calcHash();
-            void signTransaction(ECKeyPair* signingKey);
+            void sign(ECKeyPair* signingKey);
+
+            // Other
+            bool isValid();
 
         private:
             uint        _amount;
-            std::string _reciever;
-            std::string _sender;
+            std::string _recieverAddress;
+            std::string _senderAddress;
+            std::string _senderPublicKey;
             std::string _hash;
             ECDSA_SIG*  _signature;
     };

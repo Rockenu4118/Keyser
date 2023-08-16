@@ -14,7 +14,7 @@ namespace Keyser
         public:
             // Constructors
             ECKeyPair();
-            ECKeyPair(std::string privateKey);
+            ECKeyPair(std::string keyType, std::string privateKey);
 
             // Accessors
             EC_KEY*     getKeyPairObj();
@@ -25,6 +25,7 @@ namespace Keyser
             // Modifiers
             bool genKeyPairObj();
             bool insertPrivateKey(std::string privateKey);
+            bool insertPublicKey(std::string publicKey);
             bool extractKeys();
 
         private:

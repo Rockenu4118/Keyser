@@ -25,7 +25,7 @@ Keyser::Wallet::Wallet(std::string owner, std::string privateKey)
     _owner = owner;
 
     // Insert provided private key
-    _keyPair = new ECKeyPair(privateKey);
+    _keyPair = new ECKeyPair("private", privateKey);
 
     // Calculate public address with previously provided private key
     _publicAddress = cryptography::pubKeytoAddress(_keyPair->getUPublicKey());

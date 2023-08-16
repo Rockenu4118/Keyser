@@ -10,11 +10,14 @@
 
 
 // Constructors
-Keyser::Transaction::Transaction(int amount, std::string reciever, std::string sender)
+Keyser::Transaction::Transaction(int amount, std::string recievingAddress, std::string sendingPubKey)
 {
-    _amount = amount;
-    _reciever = reciever;
-    _sender = sender;
+    _amount          = amount;
+    _recieverAddress = recievingAddress;
+    _senderAddress   = cryptography::pubKeytoAddress(sendingPubKey);
+    _senderPublicKey = sendingPubKey;
+    _hash            = "";
+    _signature       = nullptr;
 }
 
 // Accessors
@@ -23,14 +26,19 @@ uint Keyser::Transaction::getAmount()
     return _amount;
 }
 
-std::string Keyser::Transaction::getReciever()
+std::string Keyser::Transaction::getRecieverAddress()
 {
-    return _reciever;
+    return _recieverAddress;
 }
 
-std::string Keyser::Transaction::getSender()
+std::string Keyser::Transaction::getSenderAddress()
 {
-    return _sender;
+    return _senderAddress;
+}
+
+std::string Keyser::Transaction::getSenderPublicKey()
+{
+    return _senderPublicKey;
 }
 
 std::string Keyser::Transaction::getHash()
@@ -38,10 +46,15 @@ std::string Keyser::Transaction::getHash()
     return _hash;
 }
 
+ECDSA_SIG* Keyser::Transaction::getSignature()
+{
+    return _signature;
+}
+
 // Modifiers
 void Keyser::Transaction::calcHash()
 {
-    std::string unhashed = std::to_string(_amount) + _reciever + _sender;
+    std::string unhashed = std::to_string(_amount) + _recieverAddress + _senderAddress + _senderPublicKey;
     std::string hashed = "";
 
     cryptography::sha256(unhashed, hashed);
@@ -49,26 +62,49 @@ void Keyser::Transaction::calcHash()
     _hash = hashed;
 }
 
-void Keyser::Transaction::signTransaction(ECKeyPair* signingKey)
+void Keyser::Transaction::sign(ECKeyPair* signingKey)
 {   
-    if (cryptography::pubKeytoAddress(signingKey->getUPublicKey()) != _sender) {
+    if (signingKey->getUPublicKey() != _senderPublicKey) {
         std::cout << "Cannot sign transactions for other wallets." << std::endl;
         return;
     }
-    std::cout << "Signed trans." << std::endl;
 
     calcHash();
 
     _signature = ECDSA_do_sign((const unsigned char *)_hash.c_str(), strlen(_hash.c_str()), signingKey->getKeyPairObj());
 }
 
+bool Keyser::Transaction::isValid()
+{
+    if (_senderAddress == "None") { 
+        std::cout << "Mining reward valid." << std::endl;
+        return true;
+    }
+
+    if (_signature == nullptr) {
+        std::cout << "No signature found." << std::endl;
+        return false;
+    }
+
+    ECKeyPair keyPair = ECKeyPair("public", _senderPublicKey);
+
+    // TODO finish this, last param
+    if (!ECDSA_do_verify((const unsigned char *)_hash.c_str(), strlen(_hash.c_str()), _signature, keyPair.getKeyPairObj())) {
+        std::cout << "Invalid transaction." << std::endl;
+        return false;
+    }
+
+    std::cout << "Valid transaction." << std::endl;
+    return true;
+}
+
 // Operator overloading
 namespace Keyser
 {
     std::ostream& operator<<(std::ostream& out, Transaction& data) {
-        out << "Amount: "   << data.getAmount()   << ", ";
-        out << "Reciever: " << data.getReciever() << ", ";
-        out << "Sender: "   << data.getSender();
+        out << "Amount: "            << data.getAmount()           << ", ";
+        out << "Recieving Address: " << data.getRecieverAddress() << ", ";
+        out << "Sender: "            << data.getSenderAddress();
 
         return out;
     }

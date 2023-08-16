@@ -11,9 +11,12 @@
 // Constructors
 Keyser::Chain::Chain(uint8_t difficulty, uint8_t miningReward)
 {
-    _currBlock  = NULL;
+    _currBlock  = nullptr;
     _difficulty = difficulty;
     _miningReward = miningReward;
+    
+    _pendingTransactions = std::vector<Transaction>{};
+
 
     createGenesisBlock();
 }
@@ -47,7 +50,7 @@ void Keyser::Chain::mineBlock(std::string rewardAddress)
 
     _pendingTransactions.clear();
 
-    _pendingTransactions.push_back(Keyser::Transaction(100, "None", "theguy"));
+    _pendingTransactions.push_back(Keyser::Transaction(_miningReward, rewardAddress, "None"));
 }
 
 // Other
@@ -85,10 +88,10 @@ void Keyser::Chain::getAddressBalance(std::string address)
 
         for (uint i = 0 ; i < transactions.size() ; i++)
         {
-            if (transactions.at(i).getReciever() == address)
+            if (transactions.at(i).getRecieverAddress() == address)
                 balance += transactions.at(i).getAmount();
 
-            if (transactions.at(i).getSender() == address)
+            if (transactions.at(i).getSenderAddress() == address)
                 balance -= transactions.at(i).getAmount();
         }
         temp = temp->getPrevBlock();
