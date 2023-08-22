@@ -7,10 +7,6 @@
 #include "./include/Wallet.hpp"
 #include "./include/util.hpp"
 
-// Example wallets below...
-// Owner: AJ,  Public address: 0xc6d8a2c830495d07318212e9f2cad16f
-// Owner: Guy, Public address: 0x183944191006324a447bdb2d98d4b408
-
 
 int initChain()
 {
