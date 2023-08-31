@@ -3,10 +3,11 @@
 #include <vector>
 #include <string>
 
+#include <cryptography.hpp>
+
 #include "./include/Block.hpp"
 #include "./include/Transaction.hpp"
-#include "./include/cryptography.hpp"
-#include "./include/util.hpp"
+
 
 
 // Constructors

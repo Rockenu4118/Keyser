@@ -9,7 +9,7 @@
 #include <openssl/ec.h>
 #include <openssl/pem.h>
 
-#include "./include/cryptography.hpp"
+#include "./cryptography.hpp"
 
 
 // Hashing
@@ -52,7 +52,7 @@ bool cryptography::sha256(const std::string& unhashed, std::string& hashed)
 std::string cryptography::pubKeytoAddress(const std::string& uPublicKey)
 {   
     // Step 1: Convert the raw hex characters of the uncompressed public key to a string.
-    std::string unhashed = cryptography::hexToString(uPublicKey);
+    std::string unhashed = hexToString(uPublicKey);
     std::string hashed = "";
 
     // Step 2: Generate a sha256 hash of the uncompressed public key.

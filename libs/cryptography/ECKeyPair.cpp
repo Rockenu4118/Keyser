@@ -4,7 +4,7 @@
 #include <openssl/ec.h>
 #include <openssl/evp.h>
 
-#include "./include/ECKeyPair.hpp"
+#include "./ECKeyPair.hpp"
 
 
 // Constructors

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <openssl/ec.h>
 
-#include "./ECKeyPair.hpp"
+#include <ECKeyPair.hpp>
 
 
 namespace Keyser

@@ -1,0 +1,1 @@
+add_library(cryptography cryptography.cpp cryptography.hpp ECKeyPair.cpp ECKeyPair.hpp)

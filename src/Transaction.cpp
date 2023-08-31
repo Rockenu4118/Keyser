@@ -2,11 +2,12 @@
 #include <string>
 
 #include <openssl/ec.h>
+#include <ECKeyPair.hpp>
+#include <cryptography.hpp>
 
 #include "./include/Transaction.hpp"
-#include "./include/cryptography.hpp"
 #include "./include/Wallet.hpp"
-#include "./include/ECKeyPair.hpp"
+
 
 
 // Constructors

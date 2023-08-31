@@ -5,7 +5,6 @@
 
 #include "./include/Chain.hpp"
 #include "./include/Block.hpp"
-#include "./include/util.hpp"
 
 
 // Constructors

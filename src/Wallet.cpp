@@ -4,8 +4,8 @@
 #include <openssl/ec.h>
 
 #include "./include/Wallet.hpp"
-#include "./include/ECKeyPair.hpp"
-#include "./include/cryptography.hpp"
+#include "ECKeyPair.hpp"
+#include "cryptography.hpp"
 
 
 // Constructors
