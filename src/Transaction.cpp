@@ -7,6 +7,7 @@
 
 #include "./include/Transaction.hpp"
 #include "./include/Wallet.hpp"
+#include "./utils/utils.hpp"
 
 
 
@@ -15,7 +16,7 @@ Keyser::Transaction::Transaction(int amount, std::string recievingAddress, std::
 {
     _amount          = amount;
     _recieverAddress = recievingAddress;
-    _senderAddress   = cryptography::pubKeytoAddress(sendingPubKey);
+    _senderAddress   = keyser::utils::pubKeytoAddress(sendingPubKey);
     _senderPublicKey = sendingPubKey;
     _hash            = "";
     _signature       = nullptr;

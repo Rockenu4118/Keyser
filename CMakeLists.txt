@@ -6,7 +6,7 @@ project(${PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD 11)
 
-file(GLOB SOURCES "src/*.cpp")
+file(GLOB SOURCES "src/*.cpp" "src/utils/*.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 

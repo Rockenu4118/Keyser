@@ -4,8 +4,10 @@
 #include <openssl/ec.h>
 
 #include "./include/Wallet.hpp"
-#include "ECKeyPair.hpp"
-#include "cryptography.hpp"
+#include "./utils/utils.hpp"
+#include <ECKeyPair.hpp>
+#include <cryptography.hpp>
+#include "./utils/utils.hpp"
 
 
 // Constructors
@@ -17,7 +19,7 @@ Keyser::Wallet::Wallet(std::string owner)
     _keyPair = new ECKeyPair();
 
     // Calculate public address with previously generated EC uncompressed public key
-    _publicAddress = cryptography::pubKeytoAddress(_keyPair->getUPublicKey());
+    _publicAddress = keyser::utils::pubKeytoAddress(_keyPair->getUPublicKey());
 }
 
 Keyser::Wallet::Wallet(std::string owner, std::string privateKey)
@@ -28,7 +30,7 @@ Keyser::Wallet::Wallet(std::string owner, std::string privateKey)
     _keyPair = new ECKeyPair("private", privateKey);
 
     // Calculate public address with previously provided private key
-    _publicAddress = cryptography::pubKeytoAddress(_keyPair->getUPublicKey());
+    _publicAddress = keyser::utils::pubKeytoAddress(_keyPair->getUPublicKey());
 }
 
 // Accessors
