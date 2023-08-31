@@ -8,7 +8,7 @@
 namespace cryptography
 {
     // Hashing
-    bool SHA256(const std::string& unhashed, std::string& hashed);
+    bool SHA256(const std::string& unhashed, std::string& hashed);    
 
     // Assymmetric encryption
     class ECKeyPair
@@ -32,6 +32,10 @@ namespace cryptography
             bool insertPrivateKey(std::string privateKey);
             bool insertPublicKey(std::string publicKey);
             bool extractKeys();
+
+            // Other
+            ECDSA_SIG* sign(std::string hash);
+            bool       verify(std::string hash, ECDSA_SIG* signature);
 
         private:
             EC_KEY*     _keyPairObj;

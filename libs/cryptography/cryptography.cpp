@@ -203,6 +203,17 @@ bool cryptography::ECKeyPair::extractKeys()
     return true;
 }
 
+// Other
+ECDSA_SIG* cryptography::ECKeyPair::sign(std::string hash)
+{
+    return ECDSA_do_sign((const unsigned char *)hash.c_str(), strlen(hash.c_str()), _keyPairObj);
+}
+
+bool cryptography::ECKeyPair::verify(std::string hash, ECDSA_SIG* signature)
+{
+    return ECDSA_do_verify((const unsigned char *)hash.c_str(), strlen(hash.c_str()), signature, _keyPairObj);
+}
+
 // IO Stream operators
 namespace cryptography
 {

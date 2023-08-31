@@ -25,8 +25,8 @@ namespace Keyser
         cryptography::ECKeyPair*  getKeyPair();
 
     private:
-        std::string _owner;
-        std::string _publicAddress;
+        std::string               _owner;
+        std::string               _publicAddress;
         cryptography::ECKeyPair*  _keyPair;
     };
 }

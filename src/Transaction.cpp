@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-#include <openssl/ec.h>
+// #include <openssl/ec.h>
 #include <cryptography.hpp>
 
 #include "./include/Transaction.hpp"
@@ -72,7 +72,7 @@ void Keyser::Transaction::sign(cryptography::ECKeyPair* signingKey)
 
     calcHash();
 
-    _signature = ECDSA_do_sign((const unsigned char *)_hash.c_str(), strlen(_hash.c_str()), signingKey->getKeyPairObj());
+    _signature = signingKey->sign(_hash);
 }
 
 bool Keyser::Transaction::isValid()
@@ -89,8 +89,7 @@ bool Keyser::Transaction::isValid()
 
     cryptography::ECKeyPair keyPair = cryptography::ECKeyPair("public", _senderPublicKey);
 
-    // TODO finish this, last param
-    if (!ECDSA_do_verify((const unsigned char *)_hash.c_str(), strlen(_hash.c_str()), _signature, keyPair.getKeyPairObj())) {
+    if (!keyPair.verify(_hash, _signature)) {
         std::cout << "Invalid transaction." << std::endl;
         return false;
     }
