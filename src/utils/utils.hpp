@@ -1,5 +1,5 @@
-#ifndef KEYSERUTILS_H
-#define KEYSERUTILS_H
+#ifndef UTILS_H
+#define UTILS_H
 
 #include <string>
 
