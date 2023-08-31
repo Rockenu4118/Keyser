@@ -2,7 +2,6 @@
 #include <string>
 
 #include <openssl/ec.h>
-#include <ECKeyPair.hpp>
 #include <cryptography.hpp>
 
 #include "./include/Transaction.hpp"
@@ -59,12 +58,12 @@ void Keyser::Transaction::calcHash()
     std::string unhashed = std::to_string(_amount) + _recieverAddress + _senderAddress + _senderPublicKey;
     std::string hashed = "";
 
-    cryptography::sha256(unhashed, hashed);
+    cryptography::SHA256(unhashed, hashed);
 
     _hash = hashed;
 }
 
-void Keyser::Transaction::sign(ECKeyPair* signingKey)
+void Keyser::Transaction::sign(cryptography::ECKeyPair* signingKey)
 {   
     if (signingKey->getUPublicKey() != _senderPublicKey) {
         std::cout << "Cannot sign transactions for other wallets." << std::endl;
@@ -88,7 +87,7 @@ bool Keyser::Transaction::isValid()
         return false;
     }
 
-    ECKeyPair keyPair = ECKeyPair("public", _senderPublicKey);
+    cryptography::ECKeyPair keyPair = cryptography::ECKeyPair("public", _senderPublicKey);
 
     // TODO finish this, last param
     if (!ECDSA_do_verify((const unsigned char *)_hash.c_str(), strlen(_hash.c_str()), _signature, keyPair.getKeyPairObj())) {

@@ -64,7 +64,7 @@ void Keyser::Block::calcHash()
     std::string unhashed = _prevHash + std::to_string(_time) + std::to_string(_nonce);
     std::string hashed = "";
 
-    cryptography::sha256(unhashed, hashed);
+    cryptography::SHA256(unhashed, hashed);
 
     _hash = hashed;
 }

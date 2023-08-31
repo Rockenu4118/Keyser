@@ -5,8 +5,7 @@
 #include <iostream>
 #include <openssl/ec.h>
 
-#include <ECKeyPair.hpp>
-
+#include <cryptography.hpp>
 
 namespace Keyser
 {
@@ -30,7 +29,7 @@ namespace Keyser
 
             // Modifiers
             void calcHash();
-            void sign(ECKeyPair* signingKey);
+            void sign(cryptography::ECKeyPair* signingKey);
 
             // Other
             bool isValid();

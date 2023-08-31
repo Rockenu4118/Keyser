@@ -5,7 +5,6 @@
 
 #include "./include/Wallet.hpp"
 #include "./utils/utils.hpp"
-#include <ECKeyPair.hpp>
 #include <cryptography.hpp>
 #include "./utils/utils.hpp"
 
@@ -16,7 +15,7 @@ Keyser::Wallet::Wallet(std::string owner)
     _owner = owner;
 
     // Generate EC Key Pair object
-    _keyPair = new ECKeyPair();
+    _keyPair = new cryptography::ECKeyPair();
 
     // Calculate public address with previously generated EC uncompressed public key
     _publicAddress = keyser::utils::pubKeytoAddress(_keyPair->getUPublicKey());
@@ -27,7 +26,7 @@ Keyser::Wallet::Wallet(std::string owner, std::string privateKey)
     _owner = owner;
 
     // Insert provided private key
-    _keyPair = new ECKeyPair("private", privateKey);
+    _keyPair = new cryptography::ECKeyPair("private", privateKey);
 
     // Calculate public address with previously provided private key
     _publicAddress = keyser::utils::pubKeytoAddress(_keyPair->getUPublicKey());
@@ -44,7 +43,7 @@ std::string Keyser::Wallet::getOwner()
     return _owner;
 }
 
-Keyser::ECKeyPair* Keyser::Wallet::getKeyPair()
+cryptography::ECKeyPair* Keyser::Wallet::getKeyPair()
 {
     return _keyPair;
 }

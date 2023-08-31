@@ -16,7 +16,7 @@ std::string keyser::utils::pubKeytoAddress(const std::string& uPublicKey)
     std::string hashed = "";
 
     // Step 2: Generate a sha256 hash of the uncompressed public key.
-    cryptography::sha256(unhashed, hashed);
+    cryptography::SHA256(unhashed, hashed);
 
     // Step 3: Extract last 32 (hex) characters, 16 bytes, of the sha256 hash.
     std::string address = hashed.substr(32, 32);

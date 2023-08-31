@@ -4,8 +4,7 @@
 #include <string>
 #include <iostream>
 #include <openssl/ec.h>
-
-#include <ECKeyPair.hpp>
+#include <cryptography.hpp>
 
 
 namespace Keyser
@@ -23,12 +22,12 @@ namespace Keyser
         // Accessors
         std::string getOwner();
         std::string getPublicAddress();
-        ECKeyPair*  getKeyPair();
+        cryptography::ECKeyPair*  getKeyPair();
 
     private:
         std::string _owner;
         std::string _publicAddress;
-        ECKeyPair*  _keyPair;
+        cryptography::ECKeyPair*  _keyPair;
     };
 }
 
