@@ -6,15 +6,17 @@
 #include <memory>
 #include <cstring>
 
-#include "./connection.hpp"
+#include "./Connection.hpp"
 
-// Forwrard declare
-template <typename T>
-class Connection;
+
 
 
 namespace networking
 {
+    // Forwrard declare 
+    template <typename T>
+    class Connection;
+
     template <typename T>
     class MessageHeader
     {
@@ -41,7 +43,10 @@ namespace networking
             Message() = default;
 
             // Utility
-            size_t size() const;
+            size_t size() const
+            {
+                return body.size();
+            }
 
             // Members
             MessageHeader<T>     header{};

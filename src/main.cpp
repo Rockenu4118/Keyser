@@ -10,28 +10,32 @@
 #include <ctime>
 #include <vector>
 #include <unistd.h>
-
+#include <Server_Interface.hpp>
 #include <net_message.hpp>
+#include <Connection.hpp>
 
 #include "./include/init.hpp"
+#include "./include/Server.hpp"
 
 
-enum class MsgTypes : uint32_t
-{
-    SendVersion,
-    SendTransaction
-};
 
 int main()
 {
     std::cout << "Program running...\n";
 
-    networking::Message<MsgTypes> msg;
-    msg.header.id = MsgTypes::SendVersion;
+    // networking::Message<MsgTypes> msg;
+    // msg.header.id = MsgTypes::SendVersion;
+
+    Server server(6000);
+    server.start();
+
+    while (1) {
+        server.update();
+    }
  
 
-    std::cout << msg;
-
+    // std::cout << msg;
+    // msg.size();
 
     // Begin chain initialization and sequence
     // InitChain chain = InitChain();
@@ -40,6 +44,8 @@ int main()
     // TCP Stuff
     // InitNet net = InitNet();
     // net.initNet();
+
+    
 
     
 
