@@ -1,5 +1,5 @@
-#ifndef MESSAGE_H
-#define MESSAGE_H
+#ifndef NET_MESSAGE_H
+#define NET_MESSAGE_H
 
 #include <iostream>
 #include <vector>
@@ -38,6 +38,39 @@ namespace networking
             return out;
         }
 
+        template <typename DataType>
+        friend Message<T>& operator<<(Message<T>& msg, const DataType& data)
+        {
+            static_assert(std::is_standard_layout<DataType>::value, "Data is too complex to push into vector");
+
+            size_t i = msg.body.size();
+
+            msg.body.resize(msg.body.size() + sizeof(DataType));
+
+            std::memcpy(msg.body.data() + i, &data, sizeof(DataType));
+
+            msg.header.size = msg.size();
+
+            return msg;
+        }
+
+        template <typename DataType>
+        friend Message<T>& operator>>(Message<T>& msg, DataType& data)
+        {
+            static_assert(std::is_standard_layout<DataType>::value, "Data is too complex to be pulled from vector");
+
+            size_t i = msg.body.size() - sizeof(DataType);
+
+            std::memcpy(&data, msg.body.data() + i, sizeof(DataType));
+
+            msg.body.resize(i);
+
+            msg.header.size = msg.size();
+
+            return msg;
+        }
+
+
         public:
             // Constructor
             Message() = default;
@@ -56,27 +89,24 @@ namespace networking
     template <typename T>
     class OwnedMessage
     {
-        template <typename U>
-        friend std::ostream& operator<<(std::ostream& out, const OwnedMessage<U>& msg) {
+        friend std::ostream& operator<<(std::ostream& out, const OwnedMessage<T>& msg) {
             out << msg.msg;
             return out;
         }
 
         public:
             // Constructor
-            OwnedMessage() = default;
+            OwnedMessage(std::shared_ptr<Connection<T>> remote, Message<T> msg)
+            {
+                _remote = remote;
+                _msg    = msg;
+            }
 
             // Members
-            std::shared_ptr<Connection<T>> remote = nullptr;
-            Message<T> msg;
+            std::shared_ptr<Connection<T>> _remote = nullptr;
+            Message<T>                     _msg;
 
     };
 }
-
-
-
-
-
-
 
 #endif

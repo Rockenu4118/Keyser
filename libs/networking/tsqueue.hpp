@@ -13,7 +13,6 @@ namespace networking
         public:
             // Constructors and Destructor
             tsqueue() = default;
-
             tsqueue(const tsqueue<T>&) = delete;
 
             virtual ~tsqueue()
@@ -21,7 +20,6 @@ namespace networking
                 clear();
             }
 
-            // Accessors
             const T& front()
             {
                 std::scoped_lock lock(muxQueue);
@@ -50,20 +48,24 @@ namespace networking
                 return t;
             }
 
-            // Modifiers
             void pushBack(const T& item)
             {
                 std::scoped_lock lock(muxQueue);
                 deqQueue.emplace_back(std::move(item));
+
+                std::unique_lock<std::mutex> ul(muxBlocking);
+                cvBlocking.notify_one();
             }
 
             void pushFront(const T& item)
             {
                 std::scoped_lock lock(muxQueue);
                 deqQueue.emplace_front(std::move(item));
+
+                std::unique_lock<std::mutex> ul(muxBlocking);
+                cvBlocking.notify_one();
             }
 
-            // Other
             bool empty()
             {
                 std::scoped_lock lock(muxQueue);
@@ -81,11 +83,22 @@ namespace networking
                 std::scoped_lock lock(muxQueue);
                 return deqQueue.size();
             }
+
+            void wait()
+            {
+                while (empty())
+                {
+                    std::unique_lock<std::mutex> ul(muxBlocking);
+                    cvBlocking.wait(ul);
+                }
+            }
             
             
         protected:
-            std::mutex    muxQueue;
-            std::deque<T> deqQueue;
+            std::mutex              muxQueue;
+            std::deque<T>           deqQueue;
+            std::condition_variable cvBlocking;
+            std::mutex              muxBlocking;
     };
 }
 

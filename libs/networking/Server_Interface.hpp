@@ -1,5 +1,5 @@
-#ifndef SERVER_H
-#define SERVER_H
+#ifndef SERVER_INTERFACE_H
+#define SERVER_INTERFACE_H
 
 #include <memory>
 #include <deque>
@@ -69,16 +69,16 @@ namespace networking
                                 std::make_shared<Connection<T>>(Connection<T>::owner::server, _context, std::move(socket), _qMessagesIn);
 
                             // Give user server a chance to deny connection
-                            // if (onClientConnect(newConn)) {
-                            //     // Connection allowed, connection pushed to back of connection container
-                            //     _deqConnections.push_back(std::move(newConn));
+                            if (onClientConnect(newConn)) {
+                                // Connection allowed, connection pushed to back of connection container
+                                _deqConnections.push_back(std::move(newConn));
 
-                            //     _deqConnections.back()->ConnectToClient(_idCounter++);
+                                _deqConnections.back()->connectToClient(_idCounter++);
 
-                            //     std::cout << "[" << _deqConnections.back()->getId() << "] Connection Approved" << std::endl;
-                            // } else {
-                            //     std::cout << "[-----] Connection Denied" << std::endl;
-                            // }
+                                std::cout << "[" << _deqConnections.back()->getId() << "] Connection Approved" << std::endl;
+                            } else {
+                                std::cout << "[-----] Connection Denied" << std::endl;
+                            }
                         } else {
                             // Error during acceptance
                             std::cout << "[SERVER] New Connection Error: " << ec.message() << std::endl;
@@ -94,9 +94,12 @@ namespace networking
             void messageClient(std::shared_ptr<Connection<T>> client, const Message<T>& msg)
             {
                 // Send message if client is connected
-                if (client && client->isConnected()) {
+                if (client && client->isConnected()) 
+                {
                     client->send(msg);
-                } else {
+                } 
+                else 
+                {
                     // Perform disconnect logic on client if it disconnected
                     onClientDisconnect(client);
                     client.reset();
@@ -114,11 +117,15 @@ namespace networking
                 for (auto& client : _deqConnections)
                 {
                     // Check if client is connected
-                    if (client && client->isConnected()) {
-                        if (client != ignoreClient) {
+                    if (client && client->isConnected()) 
+                    {
+                        if (client != ignoreClient) 
+                        {
                             client->send(msg);
                         }
-                    } else {
+                    } 
+                    else 
+                    {
                         // Could not connect, assume it disconnected.
                         onClientDisconnect(client);
                         client.reset();
@@ -128,14 +135,20 @@ namespace networking
 
                 // Remove all disconnected clients at once, as to not invalidate the deqQueue
                 // as its being iterated through
-                if (invalidClientExists) {
+                if (invalidClientExists) 
+                {
                     _deqConnections.erase(std::remove(_deqConnections.begin(), _deqConnections.end(), nullptr), _deqConnections.end());
                 }
             }
 
             // Allow user to explicitly limit amount of messages allowed to be handled at once
-            void update(size_t maxMessages = -1)
+            void update(size_t maxMessages = -1, bool wait = true)
             {
+                if (wait)
+                {
+                    _qMessagesIn.wait();
+                }
+
                 size_t messageCount = 0;
                 while (messageCount < maxMessages && !_qMessagesIn.empty())
                 {
@@ -144,7 +157,7 @@ namespace networking
 
                     // Pass to message handler
                     // Pass pointer to client connection, as well as actual message
-                    onMessage(msg.remote, msg.msg);
+                    onMessage(msg._remote, msg._msg);
 
                     messageCount++;
                 }
@@ -153,7 +166,7 @@ namespace networking
         protected:
             virtual bool onClientConnect(std::shared_ptr<Connection<T>> client)
             {
-                return false;
+                return true;
             }
 
             virtual void onClientDisconnect(std::shared_ptr<Connection<T>> client)

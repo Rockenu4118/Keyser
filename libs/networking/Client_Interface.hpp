@@ -1,5 +1,5 @@
-#ifndef CLIENT_H
-#define CLIENT_H
+#ifndef CLIENT_INTERFACE_H
+#define CLIENT_INTERFACE_H
 
 #include <string>
 #include <boost/asio.hpp>
@@ -12,12 +12,14 @@
 namespace networking
 {
     template <typename T>
-    class Client
+    class Client_Interface
     {
         public:
-            Client() = default;
-            virtual ~Client()
+            Client_Interface() = default;
+            
+            virtual ~Client_Interface()
             {
+                // Attempt to disconnect from server if client is destroyed
                 disconnect();
             }
 
@@ -25,15 +27,15 @@ namespace networking
             {
                 try
                 {
-                    // Create connection
-                    _connection = std::make_unique<Connection<T>>();
-
                     // Resolve hostname/ip-address into physical address
                     boost::asio::ip::tcp::resolver               resolver(_context);
                     boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(host, std::to_string(port));
 
+                    // Create connection
+                    _connection = std::make_unique<Connection<T>>(Connection<T>::owner::client, _context, boost::asio::ip::tcp::socket(_context), _qMessagesIn);
+
                     // Tell the connection object to connect to server
-                    _connection->connectToServer();
+                    _connection->connectToServer(endpoints);
 
                     // Start context thread
                     _thrContext = std::thread([this]() { _context.run(); });
@@ -41,23 +43,26 @@ namespace networking
                 }
                 catch (std::exception& e)
                 {
-
+                    std::cerr << "Client Exception: " << e.what() << std::endl;
+                    return false;
                 }
 
-                return false;
+                return true;
             }
 
             void disconnect()
             {
                 // Check if connection exists, if so, disconnect
-                if (isConnected()) {
+                if (isConnected()) 
+                {
                     _connection->disconnect();
                 }
 
                 // Stop asio context as well as its thread
                 _context.stop();
 
-                if (_thrContext.joinable()) {
+                if (_thrContext.joinable()) 
+                {
                     _thrContext.join();
                 }
 
@@ -67,10 +72,20 @@ namespace networking
 
             bool isConnected()
             {
-                if (_connection) {
+                if (_connection) 
+                {
                     return _connection->isConnected();
-                } else {
+                } else 
+                {
                     return false;
+                }
+            }
+
+            void send(const Message<T>& msg)
+            {
+                if (isConnected())
+                {
+                    _connection->send(msg);
                 }
             }
 
@@ -84,8 +99,6 @@ namespace networking
             boost::asio::io_context _context;
             // Needs to run in its own thread to execute commands
             std::thread _thrContext;
-            // Physical socket connected to the server
-            boost::asio::ip::tcp::socket _socket;
             // Client has a single connection object to handle data transfer
             std::unique_ptr<Connection<T>> _connection;
 
