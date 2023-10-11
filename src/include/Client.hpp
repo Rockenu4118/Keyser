@@ -2,7 +2,10 @@
 #define CLIENT_H
 
 #include <Client_Interface.hpp>
-#include ".//MsgTypes.hpp"
+
+#include "./version.hpp"
+#include "./MsgTypes.hpp"
+
 
 
 class Client : public networking::Client_Interface<MsgTypes>

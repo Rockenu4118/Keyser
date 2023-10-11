@@ -15,57 +15,119 @@
 #include "./include/init.hpp"
 #include "./include/Server.hpp"
 #include "./include/Client.hpp"
+#include "./include/Chain.hpp"
+#include "./include/MsgTypes.hpp"
+#include "./include/Prompt.hpp"
+#include "./include/Wallet.hpp"
+#include "./include/WalletCollection.hpp"
 
 int main()
 {
-    std::cout << "Program running..." << std::endl;
+    std::string key1 = "38B15E3C2210827DEB42C39FBC04D2D8268B5F7B7F1DC2DA75FD620BBD2F4E01";
+    std::string key2 = "18E14A7B6A307F426A94F8114701E7C8E774E7F9A47E2C2035DB29A206321725";
 
+    Keyser::WalletCollection wallets;
+
+    Keyser::Wallet ajWallet("AJ", key1);
+    wallets.addWallet(ajWallet);
+
+    Keyser::Wallet guyWallet("Guy", key2);
+    wallets.addWallet(guyWallet);
+
+    // int serverPort;
+    // int clientPort;
     int selection;
-    std::cout << "(1 - Server / 2 - Client): ";
-    std::cin >> selection;
 
-    if (selection == 1) {
-        Server server(6000);
-        server.start();
 
-        while (1) {
-            server.update();
+    // Keyser::cli::promptNetConfig(serverPort, clientPort);
+    // // Keyser::cli::promptChainConfig(selection, difficulty, reward);
+
+    // Server server(serverPort);
+    // server.start();
+
+    // Client client;
+    // client.connect("127.0.0.1", clientPort);
+
+    Keyser::Chain chain(5, 100);
+
+    do
+    {
+        Keyser::cli::promptMainMenu(selection);
+
+        switch (selection)
+        {
+            case 1:
+                std::cout << "Begun mining." << std::endl;
+                break;
+            case 2:
+                Keyser::cli::promptTransactionMenu();
+                break;
+            case 3:
+                Keyser::cli::promptWallets(wallets);
+                break;
+            default:
+                std::cout << "Exiting program..." << std::endl;
+                break;
         }
-    } else {
-        Client client = Client();
-        client.connect("127.0.0.1", 6000);
+    } 
+    while (selection != 0);
+    
+    
 
-        int other = 1;
-        while (other) {
-            auto msg = client.incoming().popFront()._msg;
-            std::cout << "Printing message: " << msg << std::endl;
-            std::cout << "Ping-1, MsgAll-2, Quit-0: ";
-            std::cin >> other;
-            if (other == 1)
-            {
-                client.ping();
-            } else {
-                client.messageAll();
-            }
-        }
-        
 
-        // bool quit = false;
 
-        // while (!quit) {
-        //     if (client.isConnected()){
-                
 
-        //     }
-        //     else {
-        //         quit = true;
-        //     }
-        // }
-    }
+
+    // sleep(30);
 
     // Begin chain initialization and sequence
     // InitChain chain = InitChain();
     // chain.initChain();
+
+
+    // int selection;
+    // std::cout << "(1 - Server / 2 - Client): ";
+    // std::cin >> selection;
+
+    // if (selection == 1) {
+    //     Server server(6000);
+    //     server.start();
+
+    //     while (1) {
+    //         server.update();
+    //     }
+    // } else {
+    //     Client client = Client();
+    //     client.connect("127.0.0.1", 6000);
+
+    //     int other = 1;
+    //     while (other) {
+    //         if (!client.incoming().empty())
+    //         {
+    //             auto msg = client.incoming().popFront();
+    //             if (msg._msg.header.id == MsgTypes::ServerAccept)
+    //             {
+    //                 std::cout << "Server Accepted" << std::endl;
+    //             } else {
+    //                 std::cout << "Printing message: ";
+    //                 msg._msg.printMsg();
+    //                 std::cout << std::endl;
+    //             }
+                
+    //         }
+            
+    //         std::cout << "Ping-1, MsgAll-2, Quit-0: ";
+    //         std::cin >> other;
+    //         if (other == 1)
+    //         {
+    //             client.ping();
+    //         } else {
+    //             client.messageAll();
+    //         }
+    //     }
+    // }
+
+   
 
     
 

@@ -3,8 +3,10 @@
 
 enum class MsgTypes : uint32_t {
     Ping,
+    Version,
     MessageAll,
-    ServerMessage
+    ServerMessage,
+    ServerAccept
 };
 
 #endif

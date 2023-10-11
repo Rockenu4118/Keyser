@@ -2,6 +2,7 @@
 #define NET_MESSAGE_H
 
 #include <iostream>
+#include <string>
 #include <vector>
 #include <memory>
 #include <cstring>
@@ -81,16 +82,36 @@ namespace networking
                 return body.size();
             }
 
+            void printMsg()
+            {
+                for (int i = 0 ; i < header.size ; i++)
+                {
+                    std::cout << body.at(i);
+                }
+            }
+
+            void pushMsg(const std::string& msg)
+            {
+                size_t strlen = msg.size();
+
+                for (int i = 0 ; i < strlen ; i++)
+                {
+                    body.push_back(msg[i]);
+                }
+
+                header.size = size();
+            }
+
             // Members
-            MessageHeader<T>     header{};
-            std::vector<uint8_t> body;
+            MessageHeader<T>  header{};
+            std::vector<char> body;
     };
 
     template <typename T>
     class OwnedMessage
     {
         friend std::ostream& operator<<(std::ostream& out, const OwnedMessage<T>& msg) {
-            out << msg.msg;
+            out << msg._msg;
             return out;
         }
 
