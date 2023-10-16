@@ -4,15 +4,14 @@
 #include <openssl/ec.h>
 
 #include "./include/Wallet.hpp"
-#include "./utils/utils.hpp"
+#include "../utils/include/utils.hpp"
 #include <cryptography.hpp>
-#include "./utils/utils.hpp"
 
 
 // Constructors
-Keyser::Wallet::Wallet(std::string owner)
+Keyser::Wallet::Wallet(std::string name)
 {    
-    _owner = owner;
+    _name = name;
 
     // Generate EC Key Pair object
     _keyPair = new cryptography::ECKeyPair();
@@ -21,9 +20,9 @@ Keyser::Wallet::Wallet(std::string owner)
     _publicAddress = keyser::utils::pubKeytoAddress(_keyPair->getUPublicKey());
 }
 
-Keyser::Wallet::Wallet(std::string owner, std::string privateKey)
+Keyser::Wallet::Wallet(std::string name, std::string privateKey)
 {
-    _owner = owner;
+    _name = name;
 
     // Insert provided private key
     _keyPair = new cryptography::ECKeyPair("private", privateKey);
@@ -38,9 +37,9 @@ std::string Keyser::Wallet::getPublicAddress()
     return _publicAddress;
 }
 
-std::string Keyser::Wallet::getOwner()
+std::string Keyser::Wallet::getName()
 {
-    return _owner;
+    return _name;
 }
 
 cryptography::ECKeyPair* Keyser::Wallet::getKeyPair()
@@ -52,7 +51,7 @@ cryptography::ECKeyPair* Keyser::Wallet::getKeyPair()
 namespace Keyser
 {
     std::ostream& operator<<(std::ostream& out, Wallet& data) {
-        out << "Owner: "          << data.getOwner() << ", ";
+        out << "Owner: "          << data.getName() << ", ";
         out << "Public address: " << data.getPublicAddress();
 
         return out;

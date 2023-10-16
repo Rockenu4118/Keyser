@@ -13,13 +13,13 @@
 #include <net_message.hpp>
 
 #include "./include/init.hpp"
-#include "./include/Server.hpp"
-#include "./include/Client.hpp"
-#include "./include/Chain.hpp"
-#include "./include/MsgTypes.hpp"
-#include "./include/Prompt.hpp"
-#include "./include/Wallet.hpp"
-#include "./include/WalletCollection.hpp"
+#include "./net/include/Server.hpp"
+#include "./net/include/Client.hpp"
+#include "./chain/include/Chain.hpp"
+#include "./net/include/MsgTypes.hpp"
+#include "./views/cli/include/Prompt.hpp"
+#include "./chain/include/Wallet.hpp"
+#include "./chain/include/WalletCollection.hpp"
 
 int main()
 {
@@ -36,7 +36,8 @@ int main()
 
     // int serverPort;
     // int clientPort;
-    int selection;
+    int  selection;
+    bool miningStatus = false;
 
 
     // Keyser::cli::promptNetConfig(serverPort, clientPort);
@@ -52,7 +53,8 @@ int main()
 
     do
     {
-        Keyser::cli::promptMainMenu(selection);
+        
+        Keyser::cli::promptMainMenu(selection, miningStatus);
 
         switch (selection)
         {
@@ -63,7 +65,7 @@ int main()
                 Keyser::cli::promptTransactionMenu();
                 break;
             case 3:
-                Keyser::cli::promptWallets(wallets);
+                Keyser::cli::promptWalletMenu(wallets);
                 break;
             default:
                 std::cout << "Exiting program..." << std::endl;

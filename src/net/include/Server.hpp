@@ -3,7 +3,7 @@
 
 #include <Server_Interface.hpp>
 #include "./MsgTypes.hpp"
-#include "./version.hpp"
+#include "../../data/include/version.hpp"
 
 
 class Server : public networking::Server_Interface<MsgTypes>

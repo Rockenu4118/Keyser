@@ -6,7 +6,7 @@
 #include <string.h>
 #include <cryptography.hpp>
 
-#include "./utils.hpp"
+#include "./include/utils.hpp"
 
 
 std::string keyser::utils::pubKeytoAddress(const std::string& uPublicKey)

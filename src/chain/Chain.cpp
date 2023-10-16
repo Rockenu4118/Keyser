@@ -15,9 +15,7 @@ Keyser::Chain::Chain(uint8_t difficulty, uint8_t miningReward)
     _miningReward = miningReward;
     
     _pendingTransactions = std::vector<Transaction>{};
-
-    createGenesisBlock();
-}
+    }
 
 // Accessors
 Keyser::Block* Keyser::Chain::getCurrBlock()

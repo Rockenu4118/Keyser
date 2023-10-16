@@ -3,7 +3,7 @@
 
 #include <Client_Interface.hpp>
 
-#include "./version.hpp"
+#include "../../data/include/version.hpp"
 #include "./MsgTypes.hpp"
 
 

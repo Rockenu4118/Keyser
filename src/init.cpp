@@ -7,10 +7,10 @@
 #include <boost/asio/ts/internet.hpp>
 
 #include "./include/init.hpp"
-#include "./include/Chain.hpp"
-#include "./include/Block.hpp"
-#include "./include/Wallet.hpp"
-#include "./include/WalletCollection.hpp"
+#include "./chain/include/Chain.hpp"
+#include "./chain/include/Block.hpp"
+#include "./chain/include/Wallet.hpp"
+#include "./chain/include/WalletCollection.hpp"
 
 
 int InitChain::initChain()

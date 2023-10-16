@@ -16,16 +16,16 @@ namespace Keyser
 
     public:
         // Constructors
-        Wallet(std::string owner);
-        Wallet(std::string owner, std::string privateKey);
+        Wallet(std::string name);
+        Wallet(std::string name, std::string privateKey);
 
         // Accessors
-        std::string getOwner();
+        std::string getName();
         std::string getPublicAddress();
         cryptography::ECKeyPair*  getKeyPair();
 
     private:
-        std::string               _owner;
+        std::string               _name;
         std::string               _publicAddress;
         cryptography::ECKeyPair*  _keyPair;
     };

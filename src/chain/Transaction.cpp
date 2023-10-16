@@ -6,7 +6,7 @@
 
 #include "./include/Transaction.hpp"
 #include "./include/Wallet.hpp"
-#include "./utils/utils.hpp"
+#include "../utils/include/utils.hpp"
 
 
 
