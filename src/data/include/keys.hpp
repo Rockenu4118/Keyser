@@ -1,0 +1,11 @@
+#ifndef KEYS_H
+#define KEYS_H
+
+#include <string>
+
+// Test Private keys
+
+const std::string key1 = "38B15E3C2210827DEB42C39FBC04D2D8268B5F7B7F1DC2DA75FD620BBD2F4E01";
+const std::string key2 = "18E14A7B6A307F426A94F8114701E7C8E774E7F9A47E2C2035DB29A206321725";
+
+#endif

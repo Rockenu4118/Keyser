@@ -7,7 +7,7 @@
 #include <cryptography.hpp>
 
 
-namespace Keyser
+namespace keyser
 {
     class Wallet
     {

@@ -94,7 +94,26 @@ namespace networking
                 return _qMessagesIn;
             }
 
+            // Allow manual updating of incoming messages
+            void update()
+            {
+                _qMessagesIn.wait();
+
+                while (!_qMessagesIn.empty())
+                {
+                    // Grab the front message
+                    auto msg = _qMessagesIn.popFront();
+
+                    // Pass to message handler
+                    // Pass pointer to client connection, as well as actual message
+                    onMessage(msg._msg);
+                }
+            }
+
         protected:
+            virtual void onMessage(Message<T>& msg)
+            {}
+
             // context handles data transfer
             boost::asio::io_context _context;
             // Needs to run in its own thread to execute commands

@@ -9,7 +9,7 @@
 
 
 // Constructors
-Keyser::Wallet::Wallet(std::string name)
+keyser::Wallet::Wallet(std::string name)
 {    
     _name = name;
 
@@ -20,7 +20,7 @@ Keyser::Wallet::Wallet(std::string name)
     _publicAddress = keyser::utils::pubKeytoAddress(_keyPair->getUPublicKey());
 }
 
-Keyser::Wallet::Wallet(std::string name, std::string privateKey)
+keyser::Wallet::Wallet(std::string name, std::string privateKey)
 {
     _name = name;
 
@@ -32,23 +32,23 @@ Keyser::Wallet::Wallet(std::string name, std::string privateKey)
 }
 
 // Accessors
-std::string Keyser::Wallet::getPublicAddress()
+std::string keyser::Wallet::getPublicAddress()
 {
     return _publicAddress;
 }
 
-std::string Keyser::Wallet::getName()
+std::string keyser::Wallet::getName()
 {
     return _name;
 }
 
-cryptography::ECKeyPair* Keyser::Wallet::getKeyPair()
+cryptography::ECKeyPair* keyser::Wallet::getKeyPair()
 {
     return _keyPair;
 }
 
 // IO Stream operators
-namespace Keyser
+namespace keyser
 {
     std::ostream& operator<<(std::ostream& out, Wallet& data) {
         out << "Owner: "          << data.getName() << ", ";

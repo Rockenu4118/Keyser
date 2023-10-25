@@ -1,5 +1,5 @@
 //
-//  Keyser Blockchain Protocol
+//  keyser Blockchain Protocol
 //
 //  Created by AJ Hermosillo on July 13, 2023.
 //  Copyright (c) 2015 2023 Hermosillo. All rights reserved.
@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include <net_message.hpp>
 
-#include "./include/init.hpp"
 #include "./net/include/Server.hpp"
 #include "./net/include/Client.hpp"
 #include "./chain/include/Chain.hpp"
@@ -20,76 +19,73 @@
 #include "./views/cli/include/Prompt.hpp"
 #include "./chain/include/Wallet.hpp"
 #include "./chain/include/WalletCollection.hpp"
+#include "./node/include/Node.hpp"
+#include "./data/include/keys.hpp"
 
 int main()
 {
-    std::string key1 = "38B15E3C2210827DEB42C39FBC04D2D8268B5F7B7F1DC2DA75FD620BBD2F4E01";
-    std::string key2 = "18E14A7B6A307F426A94F8114701E7C8E774E7F9A47E2C2035DB29A206321725";
+    keyser::WalletCollection wallets;
 
-    Keyser::WalletCollection wallets;
-
-    Keyser::Wallet ajWallet("AJ", key1);
+    keyser::Wallet ajWallet("AJ", key1);
     wallets.addWallet(ajWallet);
 
-    Keyser::Wallet guyWallet("Guy", key2);
+    keyser::Wallet guyWallet("Guy", key2);
     wallets.addWallet(guyWallet);
 
-    // int serverPort;
-    // int clientPort;
-    int  selection;
+    char nodeType;
+    char selection;
     bool miningStatus = false;
 
+    
+    std::cout << "Select Node type:" << std::endl;
+    std::cout << "[1] Full Node"     << std::endl;
+    std::cout << "[2] Wallet Node"   << std::endl;
+    std::cout << "[0] Exit"          << std::endl;
+    std::cout << std::endl;
+    std::cin  >> nodeType;
+    
 
-    // Keyser::cli::promptNetConfig(serverPort, clientPort);
-    // // Keyser::cli::promptChainConfig(selection, difficulty, reward);
-
-    // Server server(serverPort);
-    // server.start();
-
-    // Client client;
-    // client.connect("127.0.0.1", clientPort);
-
-    Keyser::Chain chain(5, 100);
+    keyser::Node* node;
+    
+    switch (nodeType)
+    {
+        case '1':
+            node = new keyser::Node(keyser::Node::NodeType::FullNode, 6000);
+            node->start();
+            break;
+        case '2':
+            node = new keyser::Node(keyser::Node::NodeType::WalletNode, 6000);
+            node->start();
+            break;
+        default:
+            std::cout << "Invalid selection..." << std::endl;
+            break;
+    }
 
     do
     {
-        
-        Keyser::cli::promptMainMenu(selection, miningStatus);
+        keyser::cli::promptMainMenu(selection, miningStatus);
 
         switch (selection)
         {
-            case 1:
-                std::cout << "Begun mining." << std::endl;
+            case '1':
+                keyser::cli::promptMiningMenu(node, miningStatus);
                 break;
-            case 2:
-                Keyser::cli::promptTransactionMenu();
+            case '2':
+                keyser::cli::promptTransactionMenu(node);
                 break;
-            case 3:
-                Keyser::cli::promptWalletMenu(wallets);
+            case '3':
+                keyser::cli::promptWalletMenu(wallets);
+                break;
+            case '4':
+                node->ping();
                 break;
             default:
                 std::cout << "Exiting program..." << std::endl;
                 break;
         }
-    } 
-    while (selection != 0);
-    
-    
-
-
-
-
-
-    // sleep(30);
-
-    // Begin chain initialization and sequence
-    // InitChain chain = InitChain();
-    // chain.initChain();
-
-
-    // int selection;
-    // std::cout << "(1 - Server / 2 - Client): ";
-    // std::cin >> selection;
+    }
+    while (selection != '0');
 
     // if (selection == 1) {
     //     Server server(6000);
@@ -115,9 +111,7 @@ int main()
     //                 msg._msg.printMsg();
     //                 std::cout << std::endl;
     //             }
-                
     //         }
-            
     //         std::cout << "Ping-1, MsgAll-2, Quit-0: ";
     //         std::cin >> other;
     //         if (other == 1)

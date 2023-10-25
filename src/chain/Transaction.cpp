@@ -11,7 +11,7 @@
 
 
 // Constructors
-Keyser::Transaction::Transaction(int amount, std::string recievingAddress, std::string sendingPubKey)
+keyser::Transaction::Transaction(int amount, std::string recievingAddress, std::string sendingPubKey)
 {
     _amount          = amount;
     _recieverAddress = recievingAddress;
@@ -22,38 +22,38 @@ Keyser::Transaction::Transaction(int amount, std::string recievingAddress, std::
 }
 
 // Accessors
-uint Keyser::Transaction::getAmount()
+uint keyser::Transaction::getAmount()
 {
     return _amount;
 }
 
-std::string Keyser::Transaction::getRecieverAddress()
+std::string keyser::Transaction::getRecieverAddress()
 {
     return _recieverAddress;
 }
 
-std::string Keyser::Transaction::getSenderAddress()
+std::string keyser::Transaction::getSenderAddress()
 {
     return _senderAddress;
 }
 
-std::string Keyser::Transaction::getSenderPublicKey()
+std::string keyser::Transaction::getSenderPublicKey()
 {
     return _senderPublicKey;
 }
 
-std::string Keyser::Transaction::getHash()
+std::string keyser::Transaction::getHash()
 {
     return _hash;
 }
 
-ECDSA_SIG* Keyser::Transaction::getSignature()
+ECDSA_SIG* keyser::Transaction::getSignature()
 {
     return _signature;
 }
 
 // Modifiers
-void Keyser::Transaction::calcHash()
+void keyser::Transaction::calcHash()
 {
     std::string unhashed = std::to_string(_amount) + _recieverAddress + _senderAddress + _senderPublicKey;
     std::string hashed = "";
@@ -63,7 +63,7 @@ void Keyser::Transaction::calcHash()
     _hash = hashed;
 }
 
-void Keyser::Transaction::sign(cryptography::ECKeyPair* signingKey)
+void keyser::Transaction::sign(cryptography::ECKeyPair* signingKey)
 {   
     if (signingKey->getUPublicKey() != _senderPublicKey) {
         std::cout << "Cannot sign transactions for other wallets." << std::endl;
@@ -75,7 +75,7 @@ void Keyser::Transaction::sign(cryptography::ECKeyPair* signingKey)
     _signature = signingKey->sign(_hash);
 }
 
-bool Keyser::Transaction::isValid()
+bool keyser::Transaction::isValid()
 {
     // Sender address will be "None" if transaction is from the genesis block or a mining reward
     if (_senderAddress == "None") { 
@@ -103,7 +103,7 @@ bool Keyser::Transaction::isValid()
 }
 
 // Operator overloading
-namespace Keyser
+namespace keyser
 {
     std::ostream& operator<<(std::ostream& out, Transaction& data) {
         out << "Amount: "            << data.getAmount()           << ", ";

@@ -6,7 +6,7 @@
 
 #include "./Transaction.hpp"
 
-namespace Keyser
+namespace keyser
 {
     class Block
     {

@@ -6,7 +6,7 @@
 #include "./Block.hpp"
 #include "./Transaction.hpp"
 
-namespace Keyser 
+namespace keyser 
 {
     class Chain
     {   

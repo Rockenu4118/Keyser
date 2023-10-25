@@ -4,12 +4,12 @@
 #include "./include/Wallet.hpp"
 
 
-void Keyser::WalletCollection::addWallet(Wallet wallet)
+void keyser::WalletCollection::addWallet(Wallet wallet)
 {
     wallets.push_back(wallet);
 }
 
-void Keyser::WalletCollection::displayWallets()
+void keyser::WalletCollection::displayWallets()
 {
     for (int i = 0 ; i < wallets.size() ; i++)
     {

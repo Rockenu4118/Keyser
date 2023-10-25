@@ -11,7 +11,7 @@
 
 
 // Constructors
-Keyser::Block::Block(uint index, Block* prevBlock, std::string prevHash, std::vector<Transaction> transactions)
+keyser::Block::Block(uint index, Block* prevBlock, std::string prevHash, std::vector<Transaction> transactions)
 {
     _prevBlock    = prevBlock;
     _index        = index;
@@ -23,43 +23,43 @@ Keyser::Block::Block(uint index, Block* prevBlock, std::string prevHash, std::ve
 }
 
 // Accessors
-Keyser::Block* Keyser::Block::getPrevBlock()
+keyser::Block* keyser::Block::getPrevBlock()
 {
     return _prevBlock;
 }
 
-uint Keyser::Block::getIndex()
+uint keyser::Block::getIndex()
 {
     return _index;
 }
 
-time_t Keyser::Block::getTime()
+time_t keyser::Block::getTime()
 {
     return _time;
 }
 
-uint32_t Keyser::Block::getNonce()
+uint32_t keyser::Block::getNonce()
 {
     return _nonce;
 }
 
-std::string Keyser::Block::getPrevHash()
+std::string keyser::Block::getPrevHash()
 {
     return _prevHash;
 }
 
-std::string Keyser::Block::getHash()
+std::string keyser::Block::getHash()
 {
     return _hash;
 }
 
-std::vector<Keyser::Transaction> Keyser::Block::getTransactions()
+std::vector<keyser::Transaction> keyser::Block::getTransactions()
 {
     return _transactions;
 }
 
 // Modifiers
-void Keyser::Block::calcHash()
+void keyser::Block::calcHash()
 {
     std::string unhashed = _prevHash + std::to_string(_time) + std::to_string(_nonce);
     std::string hashed = "";
@@ -69,7 +69,7 @@ void Keyser::Block::calcHash()
     _hash = hashed;
 }
 
-void Keyser::Block::calcValidHash(uint8_t difficulty)
+void keyser::Block::calcValidHash(uint8_t difficulty)
 {
     bool validHash;
 
@@ -94,7 +94,7 @@ void Keyser::Block::calcValidHash(uint8_t difficulty)
 }
 
 // Other
-void Keyser::Block::printTransactions()
+void keyser::Block::printTransactions()
 {
     std::cout << std::endl;
     std::cout << "Transactions, Block #" << _index << "" << std::endl;
@@ -111,7 +111,7 @@ void Keyser::Block::printTransactions()
     }
 }
 
-namespace Keyser
+namespace keyser
 {
     std::ostream& operator<<(std::ostream& out, Block& data) {
         out << "Index:        " << data.getIndex()               << std::endl;

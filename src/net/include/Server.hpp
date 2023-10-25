@@ -4,8 +4,11 @@
 #include <Server_Interface.hpp>
 #include "./MsgTypes.hpp"
 #include "../../data/include/version.hpp"
+#include "../../chain/include/Chain.hpp"
 
 
+namespace keyser
+{
 class Server : public networking::Server_Interface<MsgTypes>
 {
     public:
@@ -53,6 +56,10 @@ class Server : public networking::Server_Interface<MsgTypes>
                 break;
             }
         }
+    
+    private:
+        Chain* _chain;
 };
+}
 
 #endif

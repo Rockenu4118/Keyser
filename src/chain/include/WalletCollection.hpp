@@ -6,7 +6,7 @@
 
 #include "./Wallet.hpp"
 
-namespace Keyser
+namespace keyser
 {
     class WalletCollection
     {

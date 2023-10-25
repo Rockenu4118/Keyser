@@ -8,49 +8,49 @@
 
 
 // Constructors
-Keyser::Chain::Chain(uint8_t difficulty, uint8_t miningReward)
+keyser::Chain::Chain(uint8_t difficulty, uint8_t miningReward)
 {
     _currBlock  = nullptr;
     _difficulty = difficulty;
     _miningReward = miningReward;
     
     _pendingTransactions = std::vector<Transaction>{};
-    }
+}
 
 // Accessors
-Keyser::Block* Keyser::Chain::getCurrBlock()
+keyser::Block* keyser::Chain::getCurrBlock()
 {
     return _currBlock;
 }
 
 // Modifiers
-void Keyser::Chain::createTransaction(Keyser::Transaction transaction)
+void keyser::Chain::createTransaction(keyser::Transaction transaction)
 {
     _pendingTransactions.push_back(transaction);
 }
 
-void Keyser::Chain::createGenesisBlock()
+void keyser::Chain::createGenesisBlock()
 {
-    Keyser::Block* genesisBlock = new Keyser::Block(0, NULL, "None", _pendingTransactions);
+    keyser::Block* genesisBlock = new keyser::Block(0, NULL, "None", _pendingTransactions);
     genesisBlock->calcHash();
 
     _currBlock = genesisBlock;
 }
 
-void Keyser::Chain::mineBlock(std::string rewardAddress)
+void keyser::Chain::mineBlock(std::string rewardAddress)
 {
-    Keyser::Block* newBlock = new Keyser::Block(_currBlock->getIndex() + 1, _currBlock, _currBlock->getHash(), _pendingTransactions);
+    keyser::Block* newBlock = new keyser::Block(_currBlock->getIndex() + 1, _currBlock, _currBlock->getHash(), _pendingTransactions);
     newBlock->calcValidHash(_difficulty);
 
     _currBlock = newBlock;
 
     _pendingTransactions.clear();
 
-    _pendingTransactions.push_back(Keyser::Transaction(_miningReward, rewardAddress, "None"));
+    _pendingTransactions.push_back(keyser::Transaction(_miningReward, rewardAddress, "None"));
 }
 
 // Other
-void Keyser::Chain::printChain()
+void keyser::Chain::printChain()
 {
     int count = 0;
 
@@ -72,11 +72,11 @@ void Keyser::Chain::printChain()
     std::cout << std::endl << "Block count: " << count << std::endl;
 }
 
-void Keyser::Chain::getAddressBalance(std::string address)
+void keyser::Chain::getAddressBalance(std::string address)
 {
     uint balance = 0;
 
-    Keyser::Block* temp = _currBlock;
+    keyser::Block* temp = _currBlock;
 
     while (temp != NULL)
     {
