@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "./include/WalletCollection.hpp"
-#include "./include/Wallet.hpp"
+#include "./WalletCollection.hpp"
+#include "./Wallet.hpp"
 
 
 void keyser::WalletCollection::addWallet(Wallet wallet)

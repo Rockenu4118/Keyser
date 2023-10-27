@@ -1,8 +1,8 @@
 #ifndef PROMPT_H
 #define PROMPT_H
 
-#include "../../../chain/include/WalletCollection.hpp"
-#include "../../../node/include/Node.hpp"
+#include "../../chain/WalletCollection.hpp"
+#include "../../node/Node.hpp"
 
 namespace keyser
 {

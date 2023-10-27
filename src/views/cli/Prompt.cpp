@@ -2,9 +2,9 @@
 #include <iomanip>
 #include <string>
 
-#include "./include/Prompt.hpp"
-#include "../../chain/include/WalletCollection.hpp"
-#include "../../node/include/Node.hpp"
+#include "./Prompt.hpp"
+#include "../../chain//WalletCollection.hpp"
+#include "../../node//Node.hpp"
 
 
 void keyser::cli::promptNetConfig(int& serverPort, int& clientPort)

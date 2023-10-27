@@ -4,9 +4,9 @@
 // #include <openssl/ec.h>
 #include <cryptography.hpp>
 
-#include "./include/Transaction.hpp"
-#include "./include/Wallet.hpp"
-#include "../utils/include/utils.hpp"
+#include "./Transaction.hpp"
+#include "./Wallet.hpp"
+#include "../utils/utils.hpp"
 
 
 

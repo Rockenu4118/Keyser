@@ -1,9 +1,9 @@
 #include <iostream>
 
-#include "./include/Node.hpp"
-#include "../chain/include/Chain.hpp"
-#include "../net/include/Server.hpp"
-#include "../net/include/Client.hpp"
+#include "./Node.hpp"
+#include "../chain/Chain.hpp"
+#include "../net/Server.hpp"
+#include "../net/Client.hpp"
 
 
 keyser::Node::Node(NodeType nodeType, int port = 6000)
@@ -73,7 +73,6 @@ void keyser::Node::miningSequence()
 
     while (1)
     {
-        
         _chain->mineBlock("aj");
         std::cout << *_chain->getCurrBlock() << std::endl;
     }

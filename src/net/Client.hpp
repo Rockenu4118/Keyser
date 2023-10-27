@@ -4,9 +4,9 @@
 #include <Client_Interface.hpp>
 #include <net_message.hpp>
 
-#include "../../data/include/version.hpp"
-#include "../../chain/include/Transaction.hpp"
-#include "../../chain/include/Chain.hpp"
+#include "../data/version.hpp"
+#include "../chain/Transaction.hpp"
+#include "../chain/Chain.hpp"
 #include "./MsgTypes.hpp"
 
 
@@ -25,7 +25,6 @@ class Client : public networking::Client_Interface<MsgTypes>
     {
         networking::Message<MsgTypes> msg;
         msg.header.id = MsgTypes::MessageAll;
-
         send(msg);
     }
 
@@ -40,7 +39,17 @@ class Client : public networking::Client_Interface<MsgTypes>
 
     protected:
         virtual void onMessage(networking::Message<MsgTypes>& msg)
-        {}
+        {
+            switch(msg.header.id)
+            {
+                case MsgTypes::Version:
+                    msg.printMsg();
+                    break;
+                case MsgTypes::Ping:
+                    msg.printMsg();
+                    break;
+            }
+        }
 
     private:
         keyser::Chain* _chain;

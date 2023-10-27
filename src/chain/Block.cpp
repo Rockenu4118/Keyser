@@ -5,8 +5,8 @@
 
 #include <cryptography.hpp>
 
-#include "./include/Block.hpp"
-#include "./include/Transaction.hpp"
+#include "./Block.hpp"
+#include "./Transaction.hpp"
 
 
 

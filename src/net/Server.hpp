@@ -3,8 +3,8 @@
 
 #include <Server_Interface.hpp>
 #include "./MsgTypes.hpp"
-#include "../../data/include/version.hpp"
-#include "../../chain/include/Chain.hpp"
+#include "../data/version.hpp"
+#include "../chain/Chain.hpp"
 
 
 namespace keyser

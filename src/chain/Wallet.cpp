@@ -3,8 +3,8 @@
 #include <openssl/evp.h>
 #include <openssl/ec.h>
 
-#include "./include/Wallet.hpp"
-#include "../utils/include/utils.hpp"
+#include "./Wallet.hpp"
+#include "../utils/utils.hpp"
 #include <cryptography.hpp>
 
 

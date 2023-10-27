@@ -3,8 +3,8 @@
 #include <iomanip>
 #include <chrono>
 
-#include "./include/Chain.hpp"
-#include "./include/Block.hpp"
+#include "./Chain.hpp"
+#include "./Block.hpp"
 
 
 // Constructors

@@ -12,15 +12,15 @@
 #include <unistd.h>
 #include <net_message.hpp>
 
-#include "./net/include/Server.hpp"
-#include "./net/include/Client.hpp"
-#include "./chain/include/Chain.hpp"
-#include "./net/include/MsgTypes.hpp"
-#include "./views/cli/include/Prompt.hpp"
-#include "./chain/include/Wallet.hpp"
-#include "./chain/include/WalletCollection.hpp"
-#include "./node/include/Node.hpp"
-#include "./data/include/keys.hpp"
+#include "./net/Server.hpp"
+#include "./net/Client.hpp"
+#include "./chain/Chain.hpp"
+#include "./net/MsgTypes.hpp"
+#include "./views/cli/Prompt.hpp"
+#include "./chain/Wallet.hpp"
+#include "./chain/WalletCollection.hpp"
+#include "./node/Node.hpp"
+#include "./data/keys.hpp"
 
 int main()
 {

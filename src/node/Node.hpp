@@ -1,11 +1,11 @@
 #ifndef FULL_NODE_H
 #define FULL_NODE_H
 
-#include "../../chain/include/Chain.hpp"
-#include "../../net/include/Server.hpp"
-#include "../../net/include/Client.hpp"
-#include "../../chain/include/WalletCollection.hpp"
-#include "../../chain/include/Transaction.hpp"
+#include "../chain/Chain.hpp"
+#include "../net/Server.hpp"
+#include "../net/Client.hpp"
+#include "../chain/WalletCollection.hpp"
+#include "../chain/Transaction.hpp"
 
 
 namespace keyser

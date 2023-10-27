@@ -75,7 +75,8 @@ namespace networking
                 if (_connection) 
                 {
                     return _connection->isConnected();
-                } else 
+                } 
+                else 
                 {
                     return false;
                 }
