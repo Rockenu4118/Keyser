@@ -1,14 +1,16 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <string>
+
 #include <Client_Interface.hpp>
 #include <net_message.hpp>
 
 #include "../data/version.hpp"
 #include "../chain/Transaction.hpp"
 #include "../chain/Chain.hpp"
+#include "../utils/utils.hpp"
 #include "./MsgTypes.hpp"
-
 
 
 class Client : public networking::Client_Interface<MsgTypes>
@@ -28,12 +30,11 @@ class Client : public networking::Client_Interface<MsgTypes>
         send(msg);
     }
 
-    void sendTransaction()
+    void sendTransaction(keyser::Transaction& transaction)
     {
         networking::Message<MsgTypes> msg;
         msg.header.id = MsgTypes::Transaction;
-
-
+        msg.push(keyser::utils::encodeJson(transaction));
         send(msg);
     }
 
@@ -43,16 +44,20 @@ class Client : public networking::Client_Interface<MsgTypes>
             switch(msg.header.id)
             {
                 case MsgTypes::Version:
-                    msg.printMsg();
+                    std::cout << msg;
+                    msg.print();
                     break;
                 case MsgTypes::Ping:
-                    msg.printMsg();
+                    msg.print();
+                    break;
+                case MsgTypes::ServerMessage:
+                    std::cout << msg;
                     break;
             }
         }
 
     private:
-        keyser::Chain* _chain;
+        keyser::Chain* _chain = nullptr;
 };
 
 #endif

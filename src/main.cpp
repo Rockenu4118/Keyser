@@ -11,6 +11,7 @@
 #include <vector>
 #include <unistd.h>
 #include <net_message.hpp>
+#include <nlohmann/json.hpp>
 
 #include "./net/Server.hpp"
 #include "./net/Client.hpp"
@@ -18,19 +19,26 @@
 #include "./net/MsgTypes.hpp"
 #include "./views/cli/Prompt.hpp"
 #include "./chain/Wallet.hpp"
-#include "./chain/WalletCollection.hpp"
+#include "./chain/WalletManager.hpp"
 #include "./node/Node.hpp"
 #include "./data/keys.hpp"
 
+
 int main()
 {
-    keyser::WalletCollection wallets;
+    
+    keyser::WalletManager wallets;
 
     keyser::Wallet ajWallet("AJ", key1);
     wallets.addWallet(ajWallet);
 
     keyser::Wallet guyWallet("Guy", key2);
     wallets.addWallet(guyWallet);
+
+    keyser::Transaction tx = keyser::Transaction(100, "0xc6d8a2c830495d07318212e9f2cad16f", ajWallet.getKeyPair()->getUPublicKey());
+    tx.sign(ajWallet.getKeyPair());
+
+    
 
     char nodeType;
     char selection;
@@ -72,13 +80,17 @@ int main()
                 keyser::cli::promptMiningMenu(node, miningStatus);
                 break;
             case '2':
-                keyser::cli::promptTransactionMenu(node);
+                // keyser::cli::promptTransactionMenu(node);
+                node->sendTransaction(tx);
                 break;
             case '3':
                 keyser::cli::promptWalletMenu(wallets);
                 break;
             case '4':
                 node->ping();
+                break;
+            case '5':
+                node->messageAll();
                 break;
             default:
                 std::cout << "Exiting program..." << std::endl;

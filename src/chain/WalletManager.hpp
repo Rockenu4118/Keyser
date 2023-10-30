@@ -8,10 +8,10 @@
 
 namespace keyser
 {
-    class WalletCollection
+    class WalletManager
     {
         public:
-            WalletCollection() = default;
+            WalletManager() = default;
 
             void addWallet(Wallet wallet);
             void displayWallets();

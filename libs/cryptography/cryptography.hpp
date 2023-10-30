@@ -34,8 +34,8 @@ namespace cryptography
             bool extractKeys();
 
             // Other
-            ECDSA_SIG* sign(std::string hash);
-            bool       verify(std::string hash, ECDSA_SIG* signature);
+            void sign(std::string hash, std::string& rSigVal, std::string& sSigVal);
+            bool verify(std::string hash, std::string rSigVal, std::string sSigVal);
 
         private:
             EC_KEY*     _keyPairObj;

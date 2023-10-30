@@ -1,10 +1,9 @@
-#ifndef FULL_NODE_H
-#define FULL_NODE_H
+#ifndef NODE_H
+#define NODE_H
 
 #include "../chain/Chain.hpp"
 #include "../net/Server.hpp"
 #include "../net/Client.hpp"
-#include "../chain/WalletCollection.hpp"
 #include "../chain/Transaction.hpp"
 
 
@@ -28,8 +27,9 @@ namespace keyser
             void beginMining();
             void miningSequence();
 
-            void sendTransaction(Transaction transaction);
+            void sendTransaction(Transaction& transaction);
             void ping();
+            void messageAll();
 
         private:
             Chain*   _chain  = nullptr;

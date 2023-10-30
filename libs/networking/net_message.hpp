@@ -10,8 +10,6 @@
 #include "./Connection.hpp"
 
 
-
-
 namespace networking
 {
     // Forwrard declare 
@@ -29,7 +27,6 @@ namespace networking
             T        id{};
             uint32_t size = 0;
     };
-
 
     template <typename T>
     class Message
@@ -71,7 +68,6 @@ namespace networking
             return msg;
         }
 
-
         public:
             // Constructor
             Message() = default;
@@ -82,15 +78,17 @@ namespace networking
                 return body.size();
             }
 
-            void printMsg()
+            void print()
             {
                 for (int i = 0 ; i < header.size ; i++)
                 {
                     std::cout << body.at(i);
                 }
+
+                std::cout << std::endl;
             }
 
-            void pushMsg(const std::string& msg)
+            void push(const std::string& msg)
             {
                 size_t strlen = msg.size();
 
@@ -100,6 +98,16 @@ namespace networking
                 }
 
                 header.size = size();
+            }
+
+            void pull(std::string& msg)
+            {
+                size_t len = body.size();
+
+                for (int i = 0 ; i < len ; i++)
+                {
+                    msg += body.at(i);
+                }
             }
 
             // Members

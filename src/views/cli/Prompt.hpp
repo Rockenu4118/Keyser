@@ -1,7 +1,7 @@
 #ifndef PROMPT_H
 #define PROMPT_H
 
-#include "../../chain/WalletCollection.hpp"
+#include "../../chain/WalletManager.hpp"
 #include "../../node/Node.hpp"
 
 namespace keyser
@@ -11,7 +11,7 @@ namespace keyser
         void promptNetConfig(int& serverPort, int& clientPort);
         void promptMainMenu(char& selection, bool& miningStatus);
         void promptMiningMenu(Node* node, bool& miningStatus);
-        void promptWalletMenu(WalletCollection& wallets);
+        void promptWalletMenu(WalletManager& wallets);
         void promptTransactionMenu(Node* node);
     }
 }

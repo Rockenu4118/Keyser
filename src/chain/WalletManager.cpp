@@ -1,15 +1,15 @@
 #include <iostream>
 
-#include "./WalletCollection.hpp"
+#include "./WalletManager.hpp"
 #include "./Wallet.hpp"
 
 
-void keyser::WalletCollection::addWallet(Wallet wallet)
+void keyser::WalletManager::addWallet(Wallet wallet)
 {
     wallets.push_back(wallet);
 }
 
-void keyser::WalletCollection::displayWallets()
+void keyser::WalletManager::displayWallets()
 {
     for (int i = 0 ; i < wallets.size() ; i++)
     {

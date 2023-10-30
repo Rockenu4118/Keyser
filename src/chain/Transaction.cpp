@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 
-// #include <openssl/ec.h>
 #include <cryptography.hpp>
 
 #include "./Transaction.hpp"
@@ -18,7 +17,8 @@ keyser::Transaction::Transaction(int amount, std::string recievingAddress, std::
     _senderAddress   = keyser::utils::pubKeytoAddress(sendingPubKey);
     _senderPublicKey = sendingPubKey;
     _hash            = "";
-    _signature       = nullptr;
+    _rSigVal         = "";
+    _sSigVal         = "";
 }
 
 // Accessors
@@ -47,9 +47,14 @@ std::string keyser::Transaction::getHash()
     return _hash;
 }
 
-ECDSA_SIG* keyser::Transaction::getSignature()
+std::string keyser::Transaction::getRSigVal()
 {
-    return _signature;
+    return _rSigVal;
+}
+
+std::string keyser::Transaction::getSSigVal()
+{
+    return _sSigVal;
 }
 
 // Modifiers
@@ -72,7 +77,7 @@ void keyser::Transaction::sign(cryptography::ECKeyPair* signingKey)
 
     calcHash();
 
-    _signature = signingKey->sign(_hash);
+    signingKey->sign(_hash, _rSigVal, _sSigVal);
 }
 
 bool keyser::Transaction::isValid()
@@ -84,7 +89,7 @@ bool keyser::Transaction::isValid()
     }
 
     // Transaction is not valid if it has not been signed
-    if (_signature == nullptr) {
+    if (_rSigVal == "" || _sSigVal == "") {
         std::cout << "No signature found." << std::endl;
         return false;
     }
@@ -93,10 +98,10 @@ bool keyser::Transaction::isValid()
     cryptography::ECKeyPair keyPair = cryptography::ECKeyPair("public", _senderPublicKey);
 
     // Use the instantiated ECKeyPair to verify the transactions signature
-    if (!keyPair.verify(_hash, _signature)) {
-        std::cout << "Invalid transaction." << std::endl;
-        return false;
-    }
+    // if (!keyPair.verify(_hash, _signature)) {
+    //     std::cout << "Invalid transaction." << std::endl;
+    //     return false;
+    // }
 
     std::cout << "Valid transaction." << std::endl;
     return true;

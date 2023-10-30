@@ -2,6 +2,7 @@
 
 #include "./Node.hpp"
 #include "../chain/Chain.hpp"
+#include "../chain/Transaction.hpp"
 #include "../net/Server.hpp"
 #include "../net/Client.hpp"
 
@@ -42,9 +43,19 @@ void keyser::Node::start()
     }
 }
 
+void keyser::Node::sendTransaction(Transaction& transaction)
+{
+    _client->sendTransaction(transaction);
+}
+
 void keyser::Node::ping()
 {
     _client->ping();
+}
+
+void keyser::Node::messageAll()
+{
+    _client->messageAll();
 }
 
 void keyser::Node::updateServerMessages()

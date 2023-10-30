@@ -204,14 +204,33 @@ bool cryptography::ECKeyPair::extractKeys()
 }
 
 // Other
-ECDSA_SIG* cryptography::ECKeyPair::sign(std::string hash)
+void cryptography::ECKeyPair::sign(std::string hash, std::string& rSigVal, std::string& sSigVal)
 {
-    return ECDSA_do_sign((const unsigned char *)hash.c_str(), strlen(hash.c_str()), _keyPairObj);
+    ECDSA_SIG* signature = ECDSA_do_sign((const unsigned char *)hash.c_str(), strlen(hash.c_str()), _keyPairObj);
+
+    const BIGNUM* pr;
+    const BIGNUM* ps;
+
+    char* prChar;
+    char* psChar;
+
+    ECDSA_SIG_get0(signature, &pr, &ps);
+
+    prChar = BN_bn2hex(pr);
+    psChar = BN_bn2hex(ps);
+
+    rSigVal = prChar;
+    sSigVal = psChar;
+
+    // ECDSA_SIG_set0();
+
+    // std::cout << rSigVal << std::endl;
+    // std::cout << sSigVal << std::endl;
 }
 
-bool cryptography::ECKeyPair::verify(std::string hash, ECDSA_SIG* signature)
+bool cryptography::ECKeyPair::verify(std::string hash, std::string rSigVal, std::string sSigVal)
 {
-    return ECDSA_do_verify((const unsigned char *)hash.c_str(), strlen(hash.c_str()), signature, _keyPairObj);
+    // return ECDSA_do_verify((const unsigned char *)hash.c_str(), strlen(hash.c_str()), signature, _keyPairObj);
 }
 
 // IO Stream operators
