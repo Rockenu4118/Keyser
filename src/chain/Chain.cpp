@@ -31,7 +31,7 @@ void keyser::Chain::createTransaction(keyser::Transaction transaction)
 
 void keyser::Chain::createGenesisBlock()
 {
-    keyser::Block* genesisBlock = new keyser::Block(0, NULL, "None", _pendingTransactions);
+    keyser::Block* genesisBlock = new keyser::Block(0, nullptr, "None", _pendingTransactions);
     genesisBlock->calcHash();
 
     _currBlock = genesisBlock;

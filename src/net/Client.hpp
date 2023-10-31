@@ -8,56 +8,75 @@
 
 #include "../data/version.hpp"
 #include "../chain/Transaction.hpp"
+#include "../chain/Block.hpp"
 #include "../chain/Chain.hpp"
 #include "../utils/utils.hpp"
 #include "./MsgTypes.hpp"
 
 
-class Client : public networking::Client_Interface<MsgTypes>
+namespace keyser
 {
-    public:
-    void ping()
+    namespace net
     {
-        networking::Message<MsgTypes> msg;
-        msg.header.id = MsgTypes::Ping;
-        send(msg);
-    }
-
-    void messageAll()
-    {
-        networking::Message<MsgTypes> msg;
-        msg.header.id = MsgTypes::MessageAll;
-        send(msg);
-    }
-
-    void sendTransaction(keyser::Transaction& transaction)
-    {
-        networking::Message<MsgTypes> msg;
-        msg.header.id = MsgTypes::Transaction;
-        msg.push(keyser::utils::encodeJson(transaction));
-        send(msg);
-    }
-
-    protected:
-        virtual void onMessage(networking::Message<MsgTypes>& msg)
+        class Client : public networking::Client_Interface<MsgTypes>
         {
-            switch(msg.header.id)
-            {
-                case MsgTypes::Version:
-                    std::cout << msg;
-                    msg.print();
-                    break;
-                case MsgTypes::Ping:
-                    msg.print();
-                    break;
-                case MsgTypes::ServerMessage:
-                    std::cout << msg;
-                    break;
-            }
-        }
+            public:
+                void ping()
+                {
+                    networking::Message<MsgTypes> msg;
+                    msg.header.id = MsgTypes::Ping;
+                    send(msg);
+                }
 
-    private:
-        keyser::Chain* _chain = nullptr;
-};
+                void messageAll()
+                {
+                    networking::Message<MsgTypes> msg;
+                    msg.header.id = MsgTypes::MessageAll;
+                    send(msg);
+                }
+
+                void sendTransaction(Transaction& transaction)
+                {
+                    networking::Message<MsgTypes> msg;
+                    msg.header.id = MsgTypes::Transaction;
+                    std::string msgStr;
+                    keyser::utils::encodeJson(msgStr, transaction);
+                    msg.push(msgStr);
+                    send(msg);
+                }
+
+                void sendBlock(Block& block)
+                {
+                    networking::Message<MsgTypes> msg;
+                    msg.header.id = MsgTypes::Block;
+                    std::string msgStr;
+                    keyser::utils::encodeJson(msgStr, block);
+                    msg.push(msgStr);
+                    send(msg);
+                }
+
+            protected:
+                virtual void onMessage(networking::Message<MsgTypes>& msg)
+                {
+                    switch(msg.header.id)
+                    {
+                        case MsgTypes::Version:
+                            std::cout << msg;
+                            msg.print();
+                            break;
+                        case MsgTypes::Ping:
+                            msg.print();
+                            break;
+                        case MsgTypes::ServerMessage:
+                            std::cout << msg;
+                            break;
+                    }
+                }
+
+            private:
+                keyser::Chain* _chain = nullptr;
+        };
+    }
+}
 
 #endif

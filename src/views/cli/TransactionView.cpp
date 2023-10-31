@@ -2,11 +2,14 @@
 #include <iomanip>
 
 #include "./TransactionView.hpp"
+#include "../../chain/Transaction.hpp"
 #include "../../chain/WalletManager.hpp"
 
 
-keyser::cli::TransactionView::TransactionView(WalletManager& wallets) : _wallets(wallets)
+keyser::cli::TransactionView::TransactionView(WalletManager& wallets, node::Node* node) : _wallets(wallets)
 {
+    _node = node;
+
     display();
 }
 
@@ -15,6 +18,8 @@ void keyser::cli::TransactionView::display()
     int         amount;
     std::string recievingAddress;
     std::string sendingPublicKey;
+
+    char confirmation;
 
     // system("clear");
     std::cout << "Creating Transaction" << std::endl;
@@ -30,7 +35,12 @@ void keyser::cli::TransactionView::display()
     std::cout << "Amount: ";
     std::cin  >> amount;
 
-    std::cout << "\nPress any key to continue...";
-    char c;
-    std::cin >> c;
+    std::cout << "Confirm? (y/n): ";
+    std::cin  >> confirmation;
+
+    if (confirmation == 'y')
+    {
+        Transaction transaction = Transaction(amount, recievingAddress, sendingPublicKey);
+        _node->sendTransaction(transaction);
+    }
 }

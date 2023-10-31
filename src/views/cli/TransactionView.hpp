@@ -3,6 +3,7 @@
 
 #include "../../chain/WalletManager.hpp"
 #include "../../chain/Transaction.hpp"
+#include "../../node/Node.hpp"
 
 namespace keyser
 {
@@ -11,12 +12,13 @@ namespace keyser
         class TransactionView
         {
             public:
-                TransactionView(WalletManager& wallets);
+                TransactionView(WalletManager& wallets, node::Node* node);
 
                 void display();
 
             private:
                 WalletManager& _wallets;
+                node::Node*    _node;
         };
     }
 }

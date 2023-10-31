@@ -15,6 +15,7 @@ namespace keyser
 
         public:
             // Constructors
+            Block() = default;
             Block(uint index, Block* prevBlock, std::string prevHash, std::vector<Transaction> transactions);
 
             // Accessors
@@ -34,7 +35,7 @@ namespace keyser
             // Other
             void printTransactions();
         
-        private:
+        public:
             Block*      _prevBlock;
             uint        _index;
             time_t      _time;

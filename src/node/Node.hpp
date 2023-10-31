@@ -5,42 +5,47 @@
 #include "../net/Server.hpp"
 #include "../net/Client.hpp"
 #include "../chain/Transaction.hpp"
+#include "../chain/Block.hpp"
 
 
 namespace keyser
 {
-    class Node
+    namespace node
     {
-        public:
-            enum class NodeType
-            {
-                FullNode,
-                WalletNode
-            };
+        class Node
+        {
+            public:
+                enum class NodeType
+                {
+                    FullNode,
+                    WalletNode
+                };
 
-            Node(NodeType type, int port);
+                Node(NodeType type, int port);
 
-            void start();
-            void updateServerMessages();
-            void updateClientMessages();
+                void start();
+                void updateServerMessages();
+                void updateClientMessages();
 
-            void beginMining();
-            void miningSequence();
+                void beginMining();
+                void miningSequence();
 
-            void sendTransaction(Transaction& transaction);
-            void ping();
-            void messageAll();
+                void sendTransaction(Transaction& transaction);
+                void sendBlock(Block& block);
+                void ping();
+                void messageAll();
 
-        private:
-            Chain*   _chain  = nullptr;
-            Server*  _server = nullptr;
-            Client*  _client = nullptr;
-            NodeType _nodeType;
+            private:
+                Chain*       _chain  = nullptr;
+                net::Server* _server = nullptr;
+                net::Client* _client = nullptr;
+                NodeType     _nodeType;
 
-            std::thread _serverResponseThr;
-            std::thread _clientResponseThr;
-            std::thread _miningThr;
-    };
+                std::thread _serverResponseThr;
+                std::thread _clientResponseThr;
+                std::thread _miningThr;
+        };
+    }
 }
 
 #endif

@@ -16,10 +16,12 @@
 #include "./net/Server.hpp"
 #include "./net/Client.hpp"
 #include "./chain/Chain.hpp"
+#include "./chain/Block.hpp"
 #include "./net/MsgTypes.hpp"
 #include "./views/cli/Prompt.hpp"
 #include "./chain/Wallet.hpp"
 #include "./chain/WalletManager.hpp"
+#include "./views/cli/TransactionView.hpp"
 #include "./node/Node.hpp"
 #include "./data/keys.hpp"
 
@@ -38,6 +40,18 @@ int main()
     keyser::Transaction tx = keyser::Transaction(100, "0xc6d8a2c830495d07318212e9f2cad16f", ajWallet.getKeyPair()->getUPublicKey());
     tx.sign(ajWallet.getKeyPair());
 
+    keyser::Transaction tx2 = keyser::Transaction(200, "0xc6d8a2c830495d07318212e9f2cad16f", ajWallet.getKeyPair()->getUPublicKey());
+
+    keyser::Transaction tx3 = keyser::Transaction(300, "0xc6d8a2c830495d07318212e9f2cad16f", ajWallet.getKeyPair()->getUPublicKey());
+
+
+    std::vector<keyser::Transaction> txs;
+    txs.push_back(tx);
+    txs.push_back(tx2);
+    txs.push_back(tx3);
+
+    keyser::Block block = keyser::Block(1, nullptr, "hashalashash", txs);
+
     
 
     char nodeType;
@@ -53,16 +67,16 @@ int main()
     std::cin  >> nodeType;
     
 
-    keyser::Node* node;
+    keyser::node::Node* node;
     
     switch (nodeType)
     {
         case '1':
-            node = new keyser::Node(keyser::Node::NodeType::FullNode, 6000);
+            node = new keyser::node::Node(keyser::node::Node::NodeType::FullNode, 6000);
             node->start();
             break;
         case '2':
-            node = new keyser::Node(keyser::Node::NodeType::WalletNode, 6000);
+            node = new keyser::node::Node(keyser::node::Node::NodeType::WalletNode, 6000);
             node->start();
             break;
         default:
@@ -77,14 +91,18 @@ int main()
         switch (selection)
         {
             case '1':
+            {
                 keyser::cli::promptMiningMenu(node, miningStatus);
+            }
                 break;
             case '2':
-                // keyser::cli::promptTransactionMenu(node);
-                node->sendTransaction(tx);
-                break;
+            {
+                keyser::cli::TransactionView view = keyser::cli::TransactionView(wallets, node);
+            }
+                break;  
             case '3':
-                keyser::cli::promptWalletMenu(wallets);
+                // keyser::cli::promptWalletMenu(wallets);
+                node->sendBlock(block);
                 break;
             case '4':
                 node->ping();

@@ -37,7 +37,7 @@ void keyser::cli::promptMainMenu(char& selection, bool& miningStatus)
     std::cin  >> selection;
 }
 
-void keyser::cli::promptMiningMenu(keyser::Node* node, bool& miningStatus)
+void keyser::cli::promptMiningMenu(keyser::node::Node* node, bool& miningStatus)
 {
     char selection;
 
@@ -68,7 +68,7 @@ void keyser::cli::promptMiningMenu(keyser::Node* node, bool& miningStatus)
     }
 }
 
-void keyser::cli::promptTransactionMenu(keyser::Node* node)
+void keyser::cli::promptTransactionMenu(keyser::node::Node* node)
 {   
     int         amount;
     std::string recievingAddress;

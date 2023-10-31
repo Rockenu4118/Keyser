@@ -6,6 +6,7 @@ enum class MsgTypes : uint32_t {
     Version,
     MessageAll,
     Transaction,
+    Block,
     ServerMessage,
     ServerAccept
 };
