@@ -22,6 +22,7 @@
 #include "./chain/Wallet.hpp"
 #include "./chain/WalletManager.hpp"
 #include "./views/cli/TransactionView.hpp"
+#include "./views/cli/ChainView.hpp"
 #include "./node/Node.hpp"
 #include "./data/keys.hpp"
 
@@ -45,16 +46,17 @@ int main()
     keyser::Transaction tx3 = keyser::Transaction(300, "0xc6d8a2c830495d07318212e9f2cad16f", ajWallet.getKeyPair()->getUPublicKey());
 
 
-    std::vector<keyser::Transaction> txs;
-    txs.push_back(tx);
-    txs.push_back(tx2);
-    txs.push_back(tx3);
+    // std::vector<keyser::Transaction> txs;
+    // txs.push_back(tx);
+    // txs.push_back(tx2);
+    // txs.push_back(tx3);
 
-    keyser::Block block = keyser::Block(1, nullptr, "hashalashash", txs);
+    // keyser::Block block = keyser::Block(1,  "hashalashash", txs);
 
-    
 
     char nodeType;
+    int  serverPort;
+    int  clientPort;
     char selection;
     bool miningStatus = false;
 
@@ -66,18 +68,25 @@ int main()
     std::cout << std::endl;
     std::cin  >> nodeType;
     
+    if (nodeType == '1')
+    {
+        std::cout << "Server port: ";
+        std::cin  >> serverPort;
+        std::cout << "Client port: ";
+        std::cin  >> clientPort;
+    }
 
     keyser::node::Node* node;
     
     switch (nodeType)
     {
         case '1':
-            node = new keyser::node::Node(keyser::node::Node::NodeType::FullNode, 6000);
-            node->start();
+            node = new keyser::node::Node(keyser::node::Node::NodeType::FullNode, serverPort, miningStatus);
+            node->start(clientPort);
             break;
         case '2':
-            node = new keyser::node::Node(keyser::node::Node::NodeType::WalletNode, 6000);
-            node->start();
+            node = new keyser::node::Node(keyser::node::Node::NodeType::WalletNode, clientPort, miningStatus);
+            node->start(clientPort);
             break;
         default:
             std::cout << "Invalid selection..." << std::endl;
@@ -92,7 +101,7 @@ int main()
         {
             case '1':
             {
-                keyser::cli::promptMiningMenu(node, miningStatus);
+                keyser::cli::ChainView view = keyser::cli::ChainView(node, miningStatus);
             }
                 break;
             case '2':
@@ -101,14 +110,20 @@ int main()
             }
                 break;  
             case '3':
+            {
                 // keyser::cli::promptWalletMenu(wallets);
-                node->sendBlock(block);
+                // node->sendBlock(block);
+            }   
                 break;
             case '4':
+            {
                 node->ping();
+            }
                 break;
             case '5':
+            {
                 node->messageAll();
+            }
                 break;
             default:
                 std::cout << "Exiting program..." << std::endl;
@@ -117,47 +132,7 @@ int main()
     }
     while (selection != '0');
 
-    // if (selection == 1) {
-    //     Server server(6000);
-    //     server.start();
 
-    //     while (1) {
-    //         server.update();
-    //     }
-    // } else {
-    //     Client client = Client();
-    //     client.connect("127.0.0.1", 6000);
-
-    //     int other = 1;
-    //     while (other) {
-    //         if (!client.incoming().empty())
-    //         {
-    //             auto msg = client.incoming().popFront();
-    //             if (msg._msg.header.id == MsgTypes::ServerAccept)
-    //             {
-    //                 std::cout << "Server Accepted" << std::endl;
-    //             } else {
-    //                 std::cout << "Printing message: ";
-    //                 msg._msg.printMsg();
-    //                 std::cout << std::endl;
-    //             }
-    //         }
-    //         std::cout << "Ping-1, MsgAll-2, Quit-0: ";
-    //         std::cin >> other;
-    //         if (other == 1)
-    //         {
-    //             client.ping();
-    //         } else {
-    //             client.messageAll();
-    //         }
-    //     }
-    // }
-
-   
-
-    
-
-    
 
     return 0;
 }

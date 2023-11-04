@@ -11,51 +11,14 @@
 
 
 // Constructors
-keyser::Block::Block(uint index, Block* prevBlock, std::string prevHash, std::vector<Transaction> transactions)
+keyser::Block::Block(uint index, time_t time, std::string prevHash, std::vector<Transaction> transactions)
 {
-    _prevBlock    = prevBlock;
     _index        = index;
-    _time         = time(NULL);
+    _time         = time;
     _nonce        = 0;
     _prevHash     = prevHash;
     _hash         = "";
     _transactions = transactions;
-}
-
-// Accessors
-keyser::Block* keyser::Block::getPrevBlock()
-{
-    return _prevBlock;
-}
-
-uint keyser::Block::getIndex()
-{
-    return _index;
-}
-
-time_t keyser::Block::getTime()
-{
-    return _time;
-}
-
-uint32_t keyser::Block::getNonce()
-{
-    return _nonce;
-}
-
-std::string keyser::Block::getPrevHash()
-{
-    return _prevHash;
-}
-
-std::string keyser::Block::getHash()
-{
-    return _hash;
-}
-
-std::vector<keyser::Transaction> keyser::Block::getTransactions()
-{
-    return _transactions;
 }
 
 // Modifiers
@@ -103,9 +66,9 @@ void keyser::Block::printTransactions()
     {
         std::cout << "Transaction # " << std::to_string(i + 1) << std::endl;
 
-        std::cout << "Amount: "     << _transactions.at(i).getAmount();
-        std::cout << ", Reciever: " << _transactions.at(i).getRecieverAddress();
-        std::cout << ", Sender: "   << _transactions.at(i).getSenderAddress();
+        std::cout << "Amount: "     << _transactions.at(i)._amount;
+        std::cout << ", Reciever: " << _transactions.at(i)._recieverAddress;
+        std::cout << ", Sender: "   << _transactions.at(i)._senderAddress;
     
         std::cout << std::endl;
     }
@@ -114,12 +77,12 @@ void keyser::Block::printTransactions()
 namespace keyser
 {
     std::ostream& operator<<(std::ostream& out, Block& data) {
-        out << "Index:        " << data.getIndex()               << std::endl;
-        out << "Time:         " << data.getTime()                << std::endl;
-        out << "Nonce:        " << data.getNonce()               << std::endl;
-        out << "Prev Hash:    " << data.getPrevHash()            << std::endl;
-        out << "Hash:         " << data.getHash()                << std::endl;
-        out << "Transactions: " << data.getTransactions().size() << std::endl;
+        out << "Index:        " << data._index               << std::endl;
+        out << "Time:         " << data._time                << std::endl;
+        out << "Nonce:        " << data._nonce               << std::endl;
+        out << "Prev Hash:    " << data._prevHash            << std::endl;
+        out << "Hash:         " << data._hash                << std::endl;
+        out << "Transactions: " << data._transactions.size() << std::endl;
 
         return out;
     }

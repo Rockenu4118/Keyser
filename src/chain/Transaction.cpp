@@ -10,7 +10,7 @@
 
 
 // Constructors
-keyser::Transaction::Transaction(int amount, std::string recievingAddress, std::string sendingPubKey)
+keyser::Transaction::Transaction(double amount, std::string recievingAddress, std::string sendingPubKey)
 {
     _amount          = amount;
     _recieverAddress = recievingAddress;
@@ -19,42 +19,6 @@ keyser::Transaction::Transaction(int amount, std::string recievingAddress, std::
     _hash            = "";
     _rSigVal         = "";
     _sSigVal         = "";
-}
-
-// Accessors
-uint keyser::Transaction::getAmount()
-{
-    return _amount;
-}
-
-std::string keyser::Transaction::getRecieverAddress()
-{
-    return _recieverAddress;
-}
-
-std::string keyser::Transaction::getSenderAddress()
-{
-    return _senderAddress;
-}
-
-std::string keyser::Transaction::getSenderPublicKey()
-{
-    return _senderPublicKey;
-}
-
-std::string keyser::Transaction::getHash()
-{
-    return _hash;
-}
-
-std::string keyser::Transaction::getRSigVal()
-{
-    return _rSigVal;
-}
-
-std::string keyser::Transaction::getSSigVal()
-{
-    return _sSigVal;
 }
 
 // Modifiers
@@ -111,9 +75,9 @@ bool keyser::Transaction::isValid()
 namespace keyser
 {
     std::ostream& operator<<(std::ostream& out, Transaction& data) {
-        out << "Amount: "            << data.getAmount()           << ", ";
-        out << "Recieving Address: " << data.getRecieverAddress() << ", ";
-        out << "Sender: "            << data.getSenderAddress();
+        out << "Amount: "            << data._amount          << ", ";
+        out << "Recieving Address: " << data._recieverAddress << ", ";
+        out << "Sender: "            << data._senderAddress;
 
         return out;
     }

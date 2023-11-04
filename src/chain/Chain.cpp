@@ -10,17 +10,16 @@
 // Constructors
 keyser::Chain::Chain(uint8_t difficulty, uint8_t miningReward)
 {
-    _currBlock  = nullptr;
     _difficulty = difficulty;
     _miningReward = miningReward;
-    
-    _pendingTransactions = std::vector<Transaction>{};
+
+    createGenesisBlock();
 }
 
 // Accessors
-keyser::Block* keyser::Chain::getCurrBlock()
+std::shared_ptr<keyser::Block> keyser::Chain::getCurrBlock()
 {
-    return _currBlock;
+    return _blocks.back();
 }
 
 // Modifiers
@@ -31,18 +30,20 @@ void keyser::Chain::createTransaction(keyser::Transaction transaction)
 
 void keyser::Chain::createGenesisBlock()
 {
-    keyser::Block* genesisBlock = new keyser::Block(0, nullptr, "None", _pendingTransactions);
+    std::shared_ptr<Block> genesisBlock = std::make_shared<Block>(0, 0, "None", _pendingTransactions);
+
     genesisBlock->calcHash();
 
-    _currBlock = genesisBlock;
+    _blocks.push_back(genesisBlock);
 }
 
 void keyser::Chain::mineBlock(std::string rewardAddress)
 {
-    keyser::Block* newBlock = new keyser::Block(_currBlock->getIndex() + 1, _currBlock, _currBlock->getHash(), _pendingTransactions);
+    std::shared_ptr<Block> newBlock = std::make_shared<Block>(getCurrBlock()->_index + 1, time(NULL), getCurrBlock()->_hash, _pendingTransactions);
+
     newBlock->calcValidHash(_difficulty);
 
-    _currBlock = newBlock;
+    _blocks.push_back(newBlock);
 
     _pendingTransactions.clear();
 
@@ -52,48 +53,36 @@ void keyser::Chain::mineBlock(std::string rewardAddress)
 // Other
 void keyser::Chain::printChain()
 {
-    int count = 0;
-
-    Block* temp = _currBlock;
-
-    if (temp == NULL) 
+    if (_blocks.size() == 0)
     {
-        std::cout << "\nChain empty." << std::endl;
-        return; 
+        std::cout << "Chain empty." << std::endl;
+        return;
     }
 
-    while (temp != NULL) 
+    for (int i = 0 ; i < _blocks.size() ; i++)
     {
-        std::cout << *temp << std::endl;
-        temp = temp->getPrevBlock();
-        count++;
+        std::cout << *_blocks.at(i) << std::endl;
     }
-
-    std::cout << std::endl << "Block count: " << count << std::endl;
 }
 
 void keyser::Chain::getAddressBalance(std::string address)
 {
-    uint balance = 0;
+    double balance = 0;
 
-    keyser::Block* temp = _currBlock;
-
-    while (temp != NULL)
+    for (int i = 0 ; i < _blocks.size() ; i++)
     {
-        std::vector<Transaction> transactions = temp->getTransactions();
+        std::vector<Transaction> transactions = _blocks.at(i)->_transactions;
 
-        for (uint i = 0 ; i < transactions.size() ; i++)
+        for (int j = 0 ; j < transactions.size() ; j++)
         {
-            if (transactions.at(i).getRecieverAddress() == address)
-                balance += transactions.at(i).getAmount();
+            if (transactions.at(j)._recieverAddress == address)
+                balance += transactions.at(j)._amount;
 
-            if (transactions.at(i).getSenderAddress() == address)
-                balance -= transactions.at(i).getAmount();
+            if (transactions.at(j)._senderAddress == address)
+                balance -= transactions.at(j)._amount;
         }
-        temp = temp->getPrevBlock();
     }
-
-    std::cout << std::endl;
+    
     std::cout << "Address: " << address << ", Balance: " << balance << std::endl;
 }
 

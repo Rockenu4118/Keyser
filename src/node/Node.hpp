@@ -21,14 +21,17 @@ namespace keyser
                     WalletNode
                 };
 
-                Node(NodeType type, int port);
+                Node(NodeType type, int serverPort, bool& miningStatus);
+                ~Node();
 
-                void start();
+                void start(int clientPort);
+                void stop();
                 void updateServerMessages();
                 void updateClientMessages();
 
                 void beginMining();
                 void miningSequence();
+                void printChain();
 
                 void sendTransaction(Transaction& transaction);
                 void sendBlock(Block& block);
@@ -44,6 +47,8 @@ namespace keyser
                 std::thread _serverResponseThr;
                 std::thread _clientResponseThr;
                 std::thread _miningThr;
+
+                bool& _miningStatus;
         };
     }
 }

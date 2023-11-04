@@ -2,7 +2,6 @@
 #define SERVER_H
 
 #include <Server_Interface.hpp>
-#include <rapidjson/document.h>
 
 #include "./MsgTypes.hpp"
 #include "../data/version.hpp"

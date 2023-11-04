@@ -17,20 +17,10 @@ namespace keyser
 
         public:
             // Constructors
-            Transaction(int amount, std::string recievingAddress, std::string sendingPublicKey);
+            Transaction(double amount, std::string recievingAddress, std::string sendingPublicKey);
             Transaction() = default;
 
-            // Accessors
-            uint        getAmount();
-            std::string getRecieverAddress();
-            std::string getSenderAddress();
-            std::string getSenderPublicKey();
-            std::string getHash();
-            std::string getRSigVal();
-            std::string getSSigVal();
-
             // Modifiers
-
             void calcHash();
             void sign(cryptography::ECKeyPair* signingKey);
 
@@ -38,7 +28,7 @@ namespace keyser
             bool isValid();
 
         public:
-            uint        _amount;
+            double      _amount;
             std::string _recieverAddress;
             std::string _senderAddress;
             std::string _senderPublicKey;

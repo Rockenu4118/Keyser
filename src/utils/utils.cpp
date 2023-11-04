@@ -52,13 +52,13 @@ void keyser::utils::encodeJson(std::string& jsonStr, Transaction& transaction)
 {
     nlohmann::json doc;
 
-    doc["amount"]            = transaction.getAmount();
-    doc["reciever address"]  = transaction.getRecieverAddress();
-    doc["sender address"]    = transaction.getSenderAddress();
-    doc["sender public key"] = transaction.getSenderPublicKey();
-    doc["hash"]              = transaction.getHash();
-    doc["r sig val"]         = transaction.getRSigVal();
-    doc["s sig val"]         = transaction.getSSigVal();
+    doc["amount"]            = transaction._amount;
+    doc["reciever address"]  = transaction._recieverAddress;
+    doc["sender address"]    = transaction._senderAddress;
+    doc["sender public key"] = transaction._senderPublicKey;
+    doc["hash"]              = transaction._hash;
+    doc["r sig val"]         = transaction._rSigVal;
+    doc["s sig val"]         = transaction._sSigVal;
 
     jsonStr = doc.dump();
 }

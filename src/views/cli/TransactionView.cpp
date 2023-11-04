@@ -15,7 +15,7 @@ keyser::cli::TransactionView::TransactionView(WalletManager& wallets, node::Node
 
 void keyser::cli::TransactionView::display()
 {
-    int         amount;
+    double      amount;
     std::string recievingAddress;
     std::string sendingPublicKey;
 

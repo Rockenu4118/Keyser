@@ -2,6 +2,7 @@
 #define CHAIN_H
 
 #include <vector>
+#include <memory>
 
 #include "./Block.hpp"
 #include "./Transaction.hpp"
@@ -15,23 +16,21 @@ namespace keyser
         Chain(uint8_t difficulty, uint8_t miningReward);
 
         // Accessors
-        Block* getCurrBlock();
+        std::shared_ptr<Block> getCurrBlock();
 
-        // Modifiers
         void createTransaction(Transaction transaction);
 
-        // Other
         void printChain();
         void createGenesisBlock();
         void mineBlock(std::string rewardAddress);
         void getAddressBalance(std::string address);
         
     private:
-        Block*  _currBlock;
+        std::vector<std::shared_ptr<Block>> _blocks;
+        std::vector<Transaction>            _pendingTransactions;
+        
         uint8_t _difficulty;
         uint8_t _miningReward;
-
-        std::vector<Transaction> _pendingTransactions;
     };
 }
 

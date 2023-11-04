@@ -16,17 +16,7 @@ namespace keyser
         public:
             // Constructors
             Block() = default;
-            Block(uint index, Block* prevBlock, std::string prevHash, std::vector<Transaction> transactions);
-
-            // Accessors
-            uint        getIndex();
-            Block*      getPrevBlock();
-            std::string getPrevHash();
-            time_t      getTime();
-            uint32_t    getNonce();
-            std::string getHash();
-
-            std::vector<Transaction> getTransactions();
+            Block(uint index, time_t time, std::string prevHash, std::vector<Transaction> transactions);
 
             // Modifiers
             void calcHash();
@@ -36,7 +26,6 @@ namespace keyser
             void printTransactions();
         
         public:
-            Block*      _prevBlock;
             uint        _index;
             time_t      _time;
             uint32_t    _nonce;
@@ -44,7 +33,6 @@ namespace keyser
             std::string _hash;
 
             std::vector<Transaction> _transactions;
-        
     };
 }
 
