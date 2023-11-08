@@ -221,16 +221,24 @@ void cryptography::ECKeyPair::sign(std::string hash, std::string& rSigVal, std::
 
     rSigVal = prChar;
     sSigVal = psChar;
-
-    // ECDSA_SIG_set0();
-
-    // std::cout << rSigVal << std::endl;
-    // std::cout << sSigVal << std::endl;
 }
 
 bool cryptography::ECKeyPair::verify(std::string hash, std::string rSigVal, std::string sSigVal)
 {
-    // return ECDSA_do_verify((const unsigned char *)hash.c_str(), strlen(hash.c_str()), signature, _keyPairObj);
+    ECDSA_SIG* signature;
+
+    BIGNUM* r;
+    BIGNUM* s;
+
+    char* rChar = (char*)rSigVal.c_str();
+    char* sChar = (char*)sSigVal.c_str();
+
+    BN_hex2bn(&r, rChar);
+    BN_hex2bn(&s, sChar);
+
+    ECDSA_SIG_set0(signature, r, s);
+
+    return ECDSA_do_verify((const unsigned char*)hash.c_str(), strlen(hash.c_str()), signature, _keyPairObj);
 }
 
 // IO Stream operators

@@ -18,8 +18,10 @@ namespace keyser
         class Server : public networking::Server_Interface<MsgTypes>
         {
             public:
-                Server(uint16_t port) : networking::Server_Interface<MsgTypes>(port)
-                {}
+                Server(uint16_t port, Chain* chain) : networking::Server_Interface<MsgTypes>(port)
+                {
+                    _chain = chain;
+                }
 
             protected: 
                 virtual bool onClientConnect(std::shared_ptr<networking::Connection<MsgTypes>> client)
@@ -73,8 +75,7 @@ namespace keyser
                             msg.pull(jsonStr);
                             Block block;
                             utils::decodeJson(block, jsonStr);
-                            std::cout << block << std::endl;
-                            block.printTransactions();
+                            _chain->addBlock(block);
                         }
                         default:
                             break;

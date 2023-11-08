@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <chrono>
 
+
 #include "./Chain.hpp"
 #include "./Block.hpp"
 
@@ -48,6 +49,12 @@ void keyser::Chain::mineBlock(std::string rewardAddress)
     _pendingTransactions.clear();
 
     _pendingTransactions.push_back(keyser::Transaction(_miningReward, rewardAddress, "None"));
+}
+
+void keyser::Chain::addBlock(Block block)
+{
+    std::shared_ptr<Block> newBlock = std::make_shared<Block>(block);
+    _blocks.push_back(newBlock);
 }
 
 // Other

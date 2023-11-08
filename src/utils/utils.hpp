@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include <string>
+#include <memory>
 
 #include "../chain/Transaction.hpp"
 #include "../chain/Block.hpp"

@@ -23,6 +23,7 @@ namespace keyser
         void printChain();
         void createGenesisBlock();
         void mineBlock(std::string rewardAddress);
+        void addBlock(Block block);
         void getAddressBalance(std::string address);
         
     private:

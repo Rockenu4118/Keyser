@@ -16,7 +16,7 @@ keyser::node::Node::Node(NodeType nodeType, int serverPort, bool& miningStatus) 
     {
         case NodeType::FullNode:
             _chain  = new keyser::Chain(4, 100);
-            _server = new net::Server(serverPort);
+            _server = new net::Server(serverPort, _chain);
             _client = new net::Client();
             break;
         case NodeType::WalletNode:
@@ -50,16 +50,7 @@ void keyser::node::Node::start(int clientPort)
 }
 
 void keyser::node::Node::stop()
-{
-    if (_serverResponseThr.joinable());
-        _serverResponseThr.join();
-    
-    if (_clientResponseThr.joinable());
-        _clientResponseThr.join();
-    
-    if (_miningThr.joinable());
-        _miningThr.join();
-}
+{}
 
 void keyser::node::Node::sendTransaction(Transaction& transaction)
 {
@@ -113,7 +104,7 @@ void keyser::node::Node::miningSequence()
 {
     _chain->mineBlock("aj");
     std::cout << "[CHAIN] block mined." << std::endl;
-    // _client->sendBlock(*_chain->getCurrBlock());
+    _client->sendBlock(*_chain->getCurrBlock());
     _miningStatus = false;
 }
 

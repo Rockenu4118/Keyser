@@ -74,7 +74,7 @@ namespace keyser
                 }
 
             private:
-                keyser::Chain* _chain = nullptr;
+
         };
     }
 }
