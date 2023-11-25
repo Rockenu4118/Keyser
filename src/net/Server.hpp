@@ -15,28 +15,25 @@ namespace keyser
 {
     namespace net
     {
-        class Server : public networking::Server_Interface<MsgTypes>
+        class Server : public net_core::Server_Interface<MsgTypes>
         {
             public:
-                Server(uint16_t port, Chain* chain) : networking::Server_Interface<MsgTypes>(port)
-                {
-                    _chain = chain;
-                }
+                Server(uint16_t port, Chain* chain);
 
             protected: 
-                virtual bool onClientConnect(std::shared_ptr<networking::Connection<MsgTypes>> client)
+                virtual bool onClientConnect(std::shared_ptr<net_core::Connection<MsgTypes>> client)
                 {
-                    networking::Message<MsgTypes> msg;
+                    net_core::Message<MsgTypes> msg;
                     msg.header.id = MsgTypes::Version;
                     msg.push(KEYSER_VERSION);
                     client->send(msg);
                     return true;
                 }
 
-                virtual void onClientDisconnect(std::shared_ptr<networking::Connection<MsgTypes>> client)
+                virtual void onClientDisconnect(std::shared_ptr<net_core::Connection<MsgTypes>> client)
                 {}
 
-                virtual void onMessage(std::shared_ptr<networking::Connection<MsgTypes>> client, networking::Message<MsgTypes>& msg)
+                virtual void onMessage(std::shared_ptr<net_core::Connection<MsgTypes>> client, net_core::Message<MsgTypes>& msg)
                 {
                     switch (msg.header.id)
                     {
@@ -51,7 +48,7 @@ namespace keyser
                         case MsgTypes::MessageAll:
                         {
                             std::cout << "Messaged all: " << client->getId() << std::endl;
-                            networking::Message<MsgTypes> newmsg;
+                            net_core::Message<MsgTypes> newmsg;
                             newmsg.header.id = MsgTypes::ServerMessage;
                             newmsg.push("Pinged from " + std::to_string(client->getId()));
 
@@ -65,7 +62,7 @@ namespace keyser
                             msg.pull(jsonStr);
                             Transaction transaction;
                             utils::decodeJson(transaction, jsonStr);
-                            std::cout << transaction << std::endl;
+                            std::cout << (transaction.isValid() ? "Valid" : "Not valid") << std::endl;
                         }
                             break;
                         case MsgTypes::Block:

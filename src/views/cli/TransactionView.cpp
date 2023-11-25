@@ -15,32 +15,69 @@ keyser::cli::TransactionView::TransactionView(WalletManager& wallets, node::Node
 
 void keyser::cli::TransactionView::display()
 {
+    char selection;
+
+    displayTitle("Transaction Menu");
+
+    do
+    {
+        std::cout << "[1] New Transaction" << std::endl;
+        std::cout << "[0] Exit"            << std::endl;
+        std::cout << std::endl;
+
+        promptSelection(selection);
+
+        switch (selection)
+        {
+            case '1':
+                newTransaction();
+                continueMsg();
+                break;
+            default:
+                std::cout << "Invalid selection." << std::endl;
+                break;
+        }
+    }
+    while(selection != '0');
+}
+
+void keyser::cli::TransactionView::newTransaction()
+{
+    uint        walletIndex;
     double      amount;
     std::string recievingAddress;
-    std::string sendingPublicKey;
-
-    char confirmation;
+    Wallet      sendingWallet;
+    char        confirmation;
 
     // system("clear");
-    std::cout << "Creating Transaction" << std::endl;
-    std::cout << std::setfill('-') << std::setw(50);
-    std::cout << "-" << std::endl;
+    displayTitle("Creating Transaction");
 
-    std::cout << "Recieving address: ";
-    std::cin  >> recievingAddress;
+    promptInput("Recieving address: ", recievingAddress);
 
-    std::cout << "Sending public key: ";
-    std::cin  >> sendingPublicKey;
+    std::cout << "Wallets:" << std::endl;
 
-    std::cout << "Amount: ";
-    std::cin  >> amount;
+    _wallets.displayWallets();
 
-    std::cout << "Confirm? (y/n): ";
-    std::cin  >> confirmation;
+    promptInput("Sending wallet: ", walletIndex);
+
+    _wallets.getWallet(sendingWallet, walletIndex);
+
+    if (sendingWallet.getKeyPair() == nullptr)
+        return;
+
+    promptInput("Amount: ", amount);
+
+    std::cout << "Amount, "           << amount 
+              << ", Reciever: "       << recievingAddress 
+              << ", Sending wallet: " << sendingWallet.getName() 
+              << std::endl;
+
+    promptConfirmation(confirmation);
 
     if (confirmation == 'y')
     {
-        Transaction transaction = Transaction(amount, recievingAddress, sendingPublicKey);
+        Transaction transaction = Transaction(amount, recievingAddress, sendingWallet.getKeyPair()->getUPublicKey());
+        transaction.sign(sendingWallet.getKeyPair());
         _node->sendTransaction(transaction);
     }
 }

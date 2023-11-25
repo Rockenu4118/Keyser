@@ -9,7 +9,7 @@
 #include "./net_message.hpp"
 
 
-namespace networking
+namespace net_core
 {
     template <typename T>
     class Client_Interface

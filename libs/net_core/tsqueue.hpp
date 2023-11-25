@@ -5,7 +5,7 @@
 #include <condition_variable>
 #include <deque>
 
-namespace networking
+namespace net_core
 {
     template<typename T>
     class tsqueue

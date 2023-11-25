@@ -18,60 +18,16 @@ namespace keyser
 {
     namespace net
     {
-        class Client : public networking::Client_Interface<MsgTypes>
+        class Client : public net_core::Client_Interface<MsgTypes>
         {
             public:
-                void ping()
-                {
-                    networking::Message<MsgTypes> msg;
-                    msg.header.id = MsgTypes::Ping;
-                    send(msg);
-                }
-
-                void messageAll()
-                {
-                    networking::Message<MsgTypes> msg;
-                    msg.header.id = MsgTypes::MessageAll;
-                    send(msg);
-                }
-
-                void sendTransaction(Transaction& transaction)
-                {
-                    networking::Message<MsgTypes> msg;
-                    msg.header.id = MsgTypes::Transaction;
-                    std::string msgStr;
-                    keyser::utils::encodeJson(msgStr, transaction);
-                    msg.push(msgStr);
-                    send(msg);
-                }
-
-                void sendBlock(Block& block)
-                {
-                    networking::Message<MsgTypes> msg;
-                    msg.header.id = MsgTypes::Block;
-                    std::string msgStr;
-                    keyser::utils::encodeJson(msgStr, block);
-                    msg.push(msgStr);
-                    send(msg);
-                }
+                void ping();
+                void messageAll();
+                void sendTransaction(Transaction& transaction);
+                void sendBlock(Block& block);
 
             protected:
-                virtual void onMessage(networking::Message<MsgTypes>& msg)
-                {
-                    switch(msg.header.id)
-                    {
-                        case MsgTypes::Version:
-                            std::cout << msg;
-                            msg.print();
-                            break;
-                        case MsgTypes::Ping:
-                            msg.print();
-                            break;
-                        case MsgTypes::ServerMessage:
-                            std::cout << msg;
-                            break;
-                    }
-                }
+                virtual void onMessage(net_core::Message<MsgTypes>& msg);
 
             private:
 

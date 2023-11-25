@@ -10,7 +10,7 @@
 #include "./Connection.hpp"
 
 
-namespace networking
+namespace net_core
 {
     // Forwrard declare 
     template <typename T>

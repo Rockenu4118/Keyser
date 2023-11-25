@@ -9,7 +9,7 @@
 #include "./net_message.hpp"
 #include "./tsqueue.hpp"
 
-namespace networking
+namespace net_core
 {
     template <typename T>
     class Server_Interface

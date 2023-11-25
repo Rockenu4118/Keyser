@@ -8,7 +8,7 @@
 
 
 
-namespace networking
+namespace net_core
 {
     // Forward declare classes
     template <typename T>

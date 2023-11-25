@@ -23,6 +23,7 @@ namespace keyser
             void calcValidHash(uint8_t difficulty);
 
             // Other
+            bool hasValidTransactions();
             void printTransactions();
         
         public:

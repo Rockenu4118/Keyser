@@ -16,9 +16,7 @@ void keyser::cli::ChainView::display()
 {
     char selection;
 
-    std::cout << "Chain Options" << std::endl;
-    std::cout << std::setfill('-') << std::setw(50);
-    std::cout << "-" << std::endl;
+    displayTitle("Chain Menu");
 
     do
     {
@@ -27,12 +25,13 @@ void keyser::cli::ChainView::display()
         std::cout << "[0] Exit"         << std::endl;
         std::cout << std::endl;
 
-        std::cin  >> selection;
+        promptSelection(selection);
 
         switch (selection)
         {
             case '1':
                 _node->printChain();
+                continueMsg();
                 break;
             case '2':
                 _node->beginMining();

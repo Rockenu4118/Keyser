@@ -16,6 +16,7 @@ namespace keyser
 
     public:
         // Constructors
+        Wallet();
         Wallet(std::string name);
         Wallet(std::string name, std::string privateKey);
 

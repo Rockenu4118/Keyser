@@ -10,9 +10,6 @@ namespace keyser
     {
         void promptNetConfig(int& serverPort, int& clientPort);
         void promptMainMenu(char& selection, bool& miningStatus);
-        void promptMiningMenu(node::Node* node, bool& miningStatus);
-        void promptWalletMenu(WalletManager& wallets);
-        void promptTransactionMenu(node::Node* node);
     }
 }
 

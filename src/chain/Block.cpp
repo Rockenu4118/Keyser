@@ -57,6 +57,16 @@ void keyser::Block::calcValidHash(uint8_t difficulty)
 }
 
 // Other
+bool keyser::Block::hasValidTransactions()
+{
+    for (int i = 0 ; i < _transactions.size() ; i++)
+    {
+        if (!_transactions.at(i).isValid())
+            return false;
+    }
+    return true;
+}
+
 void keyser::Block::printTransactions()
 {
     std::cout << std::endl;

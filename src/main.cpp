@@ -1,5 +1,5 @@
 //
-//  keyser Blockchain Protocol
+//  Keyser Blockchain Protocol
 //
 //  Created by AJ Hermosillo on July 13, 2023.
 //  Copyright (c) 2015 2023 Hermosillo. All rights reserved.
@@ -23,13 +23,13 @@
 #include "./chain/WalletManager.hpp"
 #include "./views/cli/TransactionView.hpp"
 #include "./views/cli/ChainView.hpp"
+#include "./views/cli/WalletView.hpp"
 #include "./node/Node.hpp"
 #include "./data/keys.hpp"
 
 
 int main()
-{
-    
+{    
     keyser::WalletManager wallets;
 
     keyser::Wallet ajWallet("AJ", key1);
@@ -51,7 +51,9 @@ int main()
     // txs.push_back(tx2);
     // txs.push_back(tx3);
 
-    // keyser::Block block = keyser::Block(1,  "hashalashash", txs);
+    // keyser::Block block = keyser::Block(1, 0, "hashalashash", txs);
+
+    // std::cout << (block.hasValidTransactions() ? "Valid: true" : "Valid: false") << std::endl;
 
 
     char nodeType;
@@ -66,6 +68,7 @@ int main()
     std::cout << "[2] Wallet Node"   << std::endl;
     std::cout << "[0] Exit"          << std::endl;
     std::cout << std::endl;
+    std::cout << "Selection: ";
     std::cin  >> nodeType;
     
     if (nodeType == '1')
@@ -111,18 +114,12 @@ int main()
                 break;  
             case '3':
             {
-                // keyser::cli::promptWalletMenu(wallets);
-                // node->sendBlock(block);
+                keyser::cli::WalletView view = keyser::cli::WalletView(wallets);
             }   
                 break;
             case '4':
             {
                 node->ping();
-            }
-                break;
-            case '5':
-            {
-                node->messageAll();
             }
                 break;
             default:

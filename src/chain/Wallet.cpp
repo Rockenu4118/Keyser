@@ -9,6 +9,13 @@
 
 
 // Constructors
+keyser::Wallet::Wallet()
+{
+    _name    = "";
+    _keyPair = nullptr;
+    _publicAddress = "";
+}
+
 keyser::Wallet::Wallet(std::string name)
 {    
     _name = name;

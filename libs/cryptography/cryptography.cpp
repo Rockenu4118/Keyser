@@ -208,37 +208,42 @@ void cryptography::ECKeyPair::sign(std::string hash, std::string& rSigVal, std::
 {
     ECDSA_SIG* signature = ECDSA_do_sign((const unsigned char *)hash.c_str(), strlen(hash.c_str()), _keyPairObj);
 
-    const BIGNUM* pr;
-    const BIGNUM* ps;
+    const BIGNUM* pr = BN_new();
+    const BIGNUM* ps = BN_new();
 
     char* prChar;
     char* psChar;
 
-    ECDSA_SIG_get0(signature, &pr, &ps);
+    pr = ECDSA_SIG_get0_r(signature);
+    ps = ECDSA_SIG_get0_s(signature);
 
     prChar = BN_bn2hex(pr);
     psChar = BN_bn2hex(ps);
 
     rSigVal = prChar;
     sSigVal = psChar;
+
+    ECDSA_SIG_free(signature);
 }
 
 bool cryptography::ECKeyPair::verify(std::string hash, std::string rSigVal, std::string sSigVal)
 {
-    ECDSA_SIG* signature;
+    ECDSA_SIG* signature = ECDSA_SIG_new();
 
-    BIGNUM* r;
-    BIGNUM* s;
+    BIGNUM* r = BN_new();
+    BIGNUM* s = BN_new();
 
-    char* rChar = (char*)rSigVal.c_str();
-    char* sChar = (char*)sSigVal.c_str();
 
-    BN_hex2bn(&r, rChar);
-    BN_hex2bn(&s, sChar);
+    BN_hex2bn(&r, rSigVal.c_str());
+    BN_hex2bn(&s, sSigVal.c_str());
 
     ECDSA_SIG_set0(signature, r, s);
 
-    return ECDSA_do_verify((const unsigned char*)hash.c_str(), strlen(hash.c_str()), signature, _keyPairObj);
+    int success = ECDSA_do_verify((const unsigned char*)hash.c_str(), strlen(hash.c_str()), signature, _keyPairObj);
+
+    ECDSA_SIG_free(signature);
+
+    return success;
 }
 
 // IO Stream operators

@@ -62,10 +62,10 @@ bool keyser::Transaction::isValid()
     cryptography::ECKeyPair keyPair = cryptography::ECKeyPair("public", _senderPublicKey);
 
     // Use the instantiated ECKeyPair to verify the transactions signature
-    // if (!keyPair.verify(_hash, _signature)) {
-    //     std::cout << "Invalid transaction." << std::endl;
-    //     return false;
-    // }
+    if (!keyPair.verify(_hash, _rSigVal, _sSigVal)) {
+        std::cout << "Invalid transaction." << std::endl;
+        return false;
+    }
 
     std::cout << "Valid transaction." << std::endl;
     return true;

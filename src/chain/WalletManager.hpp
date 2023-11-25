@@ -1,6 +1,7 @@
 #ifndef WALLET_COLLECTION_H
 #define WALLET_COLLECTION_H
 
+#include <string>
 #include <vector>
 #include <memory>
 
@@ -14,10 +15,11 @@ namespace keyser
             WalletManager() = default;
 
             void addWallet(Wallet wallet);
+            void getWallet(Wallet& wallet, uint index);
             void displayWallets();
 
         private:
-            std::vector<Wallet> wallets;
+            std::vector<Wallet> _wallets;
     };
 }
 
