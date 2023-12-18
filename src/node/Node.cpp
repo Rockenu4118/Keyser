@@ -87,20 +87,35 @@ void keyser::node::Node::updateClientMessages()
     }
 }
 
-void keyser::node::Node::beginMining()
+void keyser::node::Node::beginMining(bool continuous)
 {
     if (_miningStatus == true)
     {
         std::cout << "[CHAIN] Mining in progress." << std::endl;
         return;
     }
+
     _miningStatus = true;
 
-    _miningThr = std::thread([this]() { miningSequence(); });
+    if (continuous)
+        _miningThr = std::thread([this]() { mineContinuously(); });
+    else
+        _miningThr = std::thread([this]() { mineSingleBlock(); });
+
     _miningThr.detach();
 }
 
-void keyser::node::Node::miningSequence()
+void keyser::node::Node::mineContinuously()
+{
+    while (1)
+    {
+        _chain->mineBlock("aj");
+        std::cout << "[CHAIN] block mined." << std::endl;
+        _client->sendBlock(*_chain->getCurrBlock());
+    }
+}
+
+void keyser::node::Node::mineSingleBlock()
 {
     _chain->mineBlock("aj");
     std::cout << "[CHAIN] block mined." << std::endl;
@@ -108,7 +123,7 @@ void keyser::node::Node::miningSequence()
     _miningStatus = false;
 }
 
-void keyser::node::Node::printChain()
+keyser::Chain* keyser::node::Node::chain()
 {
-    _chain->printChain();
+    return _chain;
 }

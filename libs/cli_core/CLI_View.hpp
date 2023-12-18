@@ -20,6 +20,7 @@ namespace cli_core
             void promptInput(std::string msg, double& input,      bool extraEndl = false);
             void promptInput(std::string msg, uint& input,        bool extraEndl = false);
 
+            void clearScreen();
             void continueMsg();
     };
 }

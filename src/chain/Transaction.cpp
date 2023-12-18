@@ -47,7 +47,7 @@ void keyser::Transaction::sign(cryptography::ECKeyPair* signingKey)
 bool keyser::Transaction::isValid()
 {
     // Sender address will be "None" if transaction is from the genesis block or a mining reward
-    if (_senderAddress == "None") { 
+    if (_senderPublicKey == "None") { 
         std::cout << "Mining reward valid." << std::endl;
         return true;
     }
@@ -67,7 +67,6 @@ bool keyser::Transaction::isValid()
         return false;
     }
 
-    std::cout << "Valid transaction." << std::endl;
     return true;
 }
 

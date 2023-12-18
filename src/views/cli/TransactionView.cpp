@@ -39,6 +39,8 @@ void keyser::cli::TransactionView::display()
         }
     }
     while(selection != '0');
+
+    clearScreen();
 }
 
 void keyser::cli::TransactionView::newTransaction()
@@ -49,7 +51,6 @@ void keyser::cli::TransactionView::newTransaction()
     Wallet      sendingWallet;
     char        confirmation;
 
-    // system("clear");
     displayTitle("Creating Transaction");
 
     promptInput("Recieving address: ", recievingAddress);

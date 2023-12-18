@@ -29,19 +29,22 @@ namespace keyser
                 void updateServerMessages();
                 void updateClientMessages();
 
-                void beginMining();
-                void miningSequence();
-                void printChain();
+                void beginMining(bool continuous);
+                void mineSingleBlock();
+                void mineContinuously();
 
                 void sendTransaction(Transaction& transaction);
                 void sendBlock(Block& block);
                 void ping();
                 void messageAll();
 
+                Chain* chain();
+
             private:
                 Chain*       _chain  = nullptr;
                 net::Server* _server = nullptr;
                 net::Client* _client = nullptr;
+                
                 NodeType     _nodeType;
 
                 std::thread _serverResponseThr;

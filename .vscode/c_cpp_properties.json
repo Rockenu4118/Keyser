@@ -4,8 +4,9 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/libs/networking",
-                "${workspaceFolder}/libs/cryptography"
+                "${workspaceFolder}/libs/net_core",
+                "${workspaceFolder}/libs/cryptography",
+                "${workspaceFolder}/libs/cli_core"
             ],
             "defines": [],
             "cStandard": "c17",

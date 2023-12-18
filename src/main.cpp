@@ -38,23 +38,8 @@ int main()
     keyser::Wallet guyWallet("Guy", key2);
     wallets.addWallet(guyWallet);
 
-    keyser::Transaction tx = keyser::Transaction(100, "0xc6d8a2c830495d07318212e9f2cad16f", ajWallet.getKeyPair()->getUPublicKey());
-    tx.sign(ajWallet.getKeyPair());
 
-    keyser::Transaction tx2 = keyser::Transaction(200, "0xc6d8a2c830495d07318212e9f2cad16f", ajWallet.getKeyPair()->getUPublicKey());
-
-    keyser::Transaction tx3 = keyser::Transaction(300, "0xc6d8a2c830495d07318212e9f2cad16f", ajWallet.getKeyPair()->getUPublicKey());
-
-
-    // std::vector<keyser::Transaction> txs;
-    // txs.push_back(tx);
-    // txs.push_back(tx2);
-    // txs.push_back(tx3);
-
-    // keyser::Block block = keyser::Block(1, 0, "hashalashash", txs);
-
-    // std::cout << (block.hasValidTransactions() ? "Valid: true" : "Valid: false") << std::endl;
-
+    std::vector<int> list;
 
     char nodeType;
     int  serverPort;
@@ -71,12 +56,18 @@ int main()
     std::cout << "Selection: ";
     std::cin  >> nodeType;
     
-    if (nodeType == '1')
+    switch (nodeType)
     {
-        std::cout << "Server port: ";
-        std::cin  >> serverPort;
-        std::cout << "Client port: ";
-        std::cin  >> clientPort;
+        case '1':
+            std::cout << "Server port: ";
+            std::cin  >> serverPort;
+            std::cout << "Client port: ";
+            std::cin  >> clientPort;
+            break;
+        case '2':
+            std::cout << "Client port: ";
+            std::cin  >> clientPort;
+            break;
     }
 
     keyser::node::Node* node;

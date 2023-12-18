@@ -44,4 +44,6 @@ void keyser::cli::WalletView::display()
         }
     }
     while (selection != '0');
+
+    clearScreen();
 }

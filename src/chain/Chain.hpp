@@ -6,6 +6,7 @@
 
 #include "./Block.hpp"
 #include "./Transaction.hpp"
+#include "./Mempool.hpp"
 
 namespace keyser 
 {
@@ -18,17 +19,18 @@ namespace keyser
         // Accessors
         std::shared_ptr<Block> getCurrBlock();
 
-        void createTransaction(Transaction transaction);
-
         void printChain();
         void createGenesisBlock();
         void mineBlock(std::string rewardAddress);
         void addBlock(Block block);
         void getAddressBalance(std::string address);
+        bool isValid();
+
+        Mempool* mempool();
         
     private:
         std::vector<std::shared_ptr<Block>> _blocks;
-        std::vector<Transaction>            _pendingTransactions;
+        Mempool*                            _mempool;
         
         uint8_t _difficulty;
         uint8_t _miningReward;

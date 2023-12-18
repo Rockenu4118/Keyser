@@ -54,6 +54,11 @@ void cli_core::CLI_View::promptInput(std::string msg, uint& input, bool extraEnd
         std::cout << std::endl;
 }
 
+void cli_core::CLI_View::clearScreen()
+{
+    system("clear");
+}
+
 void cli_core::CLI_View::continueMsg()
 {
     char c;
