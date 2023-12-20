@@ -8,21 +8,11 @@
 #include "../net/Client.hpp"
 
 
-keyser::node::Node::Node(NodeType nodeType, int serverPort, bool& miningStatus) : _miningStatus(miningStatus)
+keyser::node::Node::Node(int serverPort, bool& miningStatus) : _miningStatus(miningStatus)
 {
-    _nodeType = nodeType;
-
-    switch (_nodeType)
-    {
-        case NodeType::FullNode:
-            _chain  = new keyser::Chain(4, 100);
-            _server = new net::Server(serverPort, _chain);
-            _client = new net::Client();
-            break;
-        case NodeType::WalletNode:
-            _client = new net::Client();
-            break;
-    }
+    _chain  = new keyser::Chain(4, 100);
+    _server = new net::Server(serverPort, _chain);
+    _client = new net::Client();      
 }
 
 keyser::node::Node::~Node()
@@ -32,21 +22,11 @@ keyser::node::Node::~Node()
 
 void keyser::node::Node::start(int clientPort)
 {
-    switch (_nodeType)
-    {
-        case NodeType::FullNode:
-            _server->start();
-            _client->connect("127.0.0.1", clientPort);
+    _server->start();
+    _client->connect("127.0.0.1", clientPort);
 
-            _serverResponseThr = std::thread([this]() { updateServerMessages(); });
-            _clientResponseThr = std::thread([this]() { updateClientMessages(); });
-            break;
-        case NodeType::WalletNode:
-            _client->connect("127.0.0.1", clientPort);
-
-            _clientResponseThr = std::thread([this]() { updateClientMessages(); });
-            break;
-    }
+    _serverResponseThr = std::thread([this]() { updateServerMessages(); });
+    _clientResponseThr = std::thread([this]() { updateClientMessages(); });     
 }
 
 void keyser::node::Node::stop()

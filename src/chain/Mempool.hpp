@@ -1,7 +1,7 @@
 #ifndef MEMPOOL_H
 #define MEMPOOL_H
 
-#include <vector>
+#include <tsqueue.hpp>
 
 #include "./Transaction.hpp"
 
@@ -19,7 +19,7 @@ namespace keyser
             void printMempool();
 
         private:
-            std::vector<Transaction> _pendingTransactions;
+            net_core::tsqueue<Transaction> _pendingTransactions;
 
     };
 }

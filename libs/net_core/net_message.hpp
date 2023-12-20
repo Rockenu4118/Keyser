@@ -36,38 +36,6 @@ namespace net_core
             return out;
         }
 
-        template <typename DataType>
-        friend Message<T>& operator<<(Message<T>& msg, const DataType& data)
-        {
-            static_assert(std::is_standard_layout<DataType>::value, "Data is too complex to push into vector");
-
-            size_t i = msg.body.size();
-
-            msg.body.resize(msg.body.size() + sizeof(DataType));
-
-            std::memcpy(msg.body.data() + i, &data, sizeof(DataType));
-
-            msg.header.size = msg.size();
-
-            return msg;
-        }
-
-        template <typename DataType>
-        friend Message<T>& operator>>(Message<T>& msg, DataType& data)
-        {
-            static_assert(std::is_standard_layout<DataType>::value, "Data is too complex to be pulled from vector");
-
-            size_t i = msg.body.size() - sizeof(DataType);
-
-            std::memcpy(&data, msg.body.data() + i, sizeof(DataType));
-
-            msg.body.resize(i);
-
-            msg.header.size = msg.size();
-
-            return msg;
-        }
-
         public:
             // Constructor
             Message() = default;

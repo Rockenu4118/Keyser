@@ -10,30 +10,36 @@ void keyser::Mempool::addTransaction(Transaction transaction)
     // Validate transaction before adding it to Mempool
     if (transaction.isValid())
     {
-        _pendingTransactions.push_back(transaction);
+        _pendingTransactions.pushBack(transaction);
     }
 }
 
 std::vector<keyser::Transaction> keyser::Mempool::popLeadingTransactions()
 {
-    // In future, only allow a limited amount of transactions
-    std::vector<keyser::Transaction> transactions = _pendingTransactions;
-    
-    _pendingTransactions.clear();
+    // In future, prioritize transactions by gas fee
+    std::vector<keyser::Transaction> transactions;
 
+    while (!_pendingTransactions.empty())
+    {
+        Transaction tx = _pendingTransactions.popFront();
+
+        transactions.push_back(tx);
+    }
+    
     return transactions;
 }
 
 void keyser::Mempool::printMempool()
 {
-    if (_pendingTransactions.size() == 0)
+    if (_pendingTransactions.count() == 0)
     {
         std::cout << "Mempool empty." << std::endl;
         return;
     }
 
-    for (int i = 0 ; i < _pendingTransactions.size() ; i++)
+    for (int i = 0 ; i < _pendingTransactions.count() ; i++)
     {
-        std::cout << _pendingTransactions.at(i) << std::endl;
+        Transaction t = _pendingTransactions.at(i);
+        std::cout << t << std::endl;
     }
 }

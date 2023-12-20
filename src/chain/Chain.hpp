@@ -13,10 +13,8 @@ namespace keyser
     class Chain
     {   
     public:
-        // Constructors
         Chain(uint8_t difficulty, uint8_t miningReward);
 
-        // Accessors
         std::shared_ptr<Block> getCurrBlock();
 
         void printChain();

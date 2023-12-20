@@ -66,6 +66,12 @@ namespace net_core
                 cvBlocking.notify_one();
             }
 
+            const T& at(int index)
+            {
+                std::scoped_lock lock(muxQueue);
+                return deqQueue.at(index);
+            }
+
             bool empty()
             {
                 std::scoped_lock lock(muxQueue);

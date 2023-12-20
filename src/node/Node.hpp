@@ -15,13 +15,7 @@ namespace keyser
         class Node
         {
             public:
-                enum class NodeType
-                {
-                    FullNode,
-                    WalletNode
-                };
-
-                Node(NodeType type, int serverPort, bool& miningStatus);
+                Node(int serverPort, bool& miningStatus);
                 ~Node();
 
                 void start(int clientPort);
@@ -45,8 +39,6 @@ namespace keyser
                 net::Server* _server = nullptr;
                 net::Client* _client = nullptr;
                 
-                NodeType     _nodeType;
-
                 std::thread _serverResponseThr;
                 std::thread _clientResponseThr;
                 std::thread _miningThr;

@@ -32,7 +32,7 @@ namespace net_core
                     boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(host, std::to_string(port));
 
                     // Create connection
-                    _connection = std::make_unique<Connection<T>>(Connection<T>::owner::client, _context, boost::asio::ip::tcp::socket(_context), _qMessagesIn);
+                    _connection = std::make_shared<Connection<T>>(Connection<T>::owner::client, _context, boost::asio::ip::tcp::socket(_context), _qMessagesIn);
 
                     // Tell the connection object to connect to server
                     _connection->connectToServer(endpoints);
@@ -120,7 +120,7 @@ namespace net_core
             // Needs to run in its own thread to execute commands
             std::thread _thrContext;
             // Client has a single connection object to handle data transfer
-            std::unique_ptr<Connection<T>> _connection;
+            std::shared_ptr<Connection<T>> _connection;
 
 
         private:

@@ -52,10 +52,11 @@ void keyser::Chain::mineBlock(std::string rewardAddress)
 void keyser::Chain::addBlock(Block block)
 {
     std::shared_ptr<Block> newBlock = std::make_shared<Block>(block);
-    _blocks.push_back(newBlock);
+    
+    if (newBlock->hasValidTransactions())
+        _blocks.push_back(newBlock);
 }
 
-// Other
 void keyser::Chain::printChain()
 {
     if (_blocks.size() == 0)

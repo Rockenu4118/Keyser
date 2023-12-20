@@ -38,54 +38,20 @@ int main()
     keyser::Wallet guyWallet("Guy", key2);
     wallets.addWallet(guyWallet);
 
-
-    std::vector<int> list;
-
-    char nodeType;
     int  serverPort;
     int  clientPort;
     char selection;
     bool miningStatus = false;
 
-    
-    std::cout << "Select Node type:" << std::endl;
-    std::cout << "[1] Full Node"     << std::endl;
-    std::cout << "[2] Wallet Node"   << std::endl;
-    std::cout << "[0] Exit"          << std::endl;
-    std::cout << std::endl;
-    std::cout << "Selection: ";
-    std::cin  >> nodeType;
-    
-    switch (nodeType)
-    {
-        case '1':
-            std::cout << "Server port: ";
-            std::cin  >> serverPort;
-            std::cout << "Client port: ";
-            std::cin  >> clientPort;
-            break;
-        case '2':
-            std::cout << "Client port: ";
-            std::cin  >> clientPort;
-            break;
-    }
-
+    std::cout << "Server port: ";
+    std::cin  >> serverPort;
+    std::cout << "Client port: ";
+    std::cin  >> clientPort;
+            
     keyser::node::Node* node;
     
-    switch (nodeType)
-    {
-        case '1':
-            node = new keyser::node::Node(keyser::node::Node::NodeType::FullNode, serverPort, miningStatus);
-            node->start(clientPort);
-            break;
-        case '2':
-            node = new keyser::node::Node(keyser::node::Node::NodeType::WalletNode, clientPort, miningStatus);
-            node->start(clientPort);
-            break;
-        default:
-            std::cout << "Invalid selection..." << std::endl;
-            break;
-    }
+    node = new keyser::node::Node(serverPort, miningStatus);
+    node->start(clientPort);        
 
     do
     {
@@ -119,8 +85,6 @@ int main()
         }
     }
     while (selection != '0');
-
-
 
     return 0;
 }
