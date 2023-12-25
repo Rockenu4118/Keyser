@@ -17,8 +17,15 @@ namespace net_core
     {
         public:
             // Constructor and destructor
-            Net_Connection(boost::asio::io_context& asioContext, boost::asio::ip::tcp::socket socket, tsqueue<OwnedMessage<T>>& qMessagesIn, std::condition_variable& cvBlocking, uint16_t uid)
-                : _asioContext(asioContext), _socket(std::move(socket)), _cvBlocking(cvBlocking), _qMessagesIn(qMessagesIn)
+            Net_Connection(boost::asio::io_context& asioContext, 
+                           boost::asio::ip::tcp::socket socket, 
+                           tsqueue<OwnedMessage<T>>& qMessagesIn, 
+                           std::condition_variable& cvBlocking, 
+                           uint16_t uid) : 
+                           _asioContext(asioContext),
+                           _socket(std::move(socket)), 
+                           _cvBlocking(cvBlocking), 
+                           _qMessagesIn(qMessagesIn)
             {
                 _id = uid;
             }
@@ -33,7 +40,6 @@ namespace net_core
             boost::asio::ip::tcp::endpoint getEndpoint() const
             {
                 return _socket.remote_endpoint();
-
             }
 
             bool isConnected() const

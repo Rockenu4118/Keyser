@@ -2,7 +2,7 @@
 #include <iomanip>
 
 #include "./ChainView.hpp"
-#include "../../node/Node.hpp"
+#include "../node/Node.hpp"
 
 
 keyser::cli::ChainView::ChainView(Node* node)
@@ -16,10 +16,10 @@ void keyser::cli::ChainView::display()
 {
     char selection;
 
-    displayTitle("Chain Menu");
-
     do
     {
+        displayTitle("Chain Menu");
+
         std::cout << "[1] View chain"        << std::endl;
         std::cout << "[2] View mempool"      << std::endl;  
         std::cout << "[3] Mine continuously" << std::endl;
@@ -32,10 +32,12 @@ void keyser::cli::ChainView::display()
         switch (selection)
         {
             case '1':
+                displayTitle("Chain");
                 _node->chain()->printChain();
                 continueMsg();
                 break;
             case '2':
+                displayTitle("Mempool");
                 _node->chain()->mempool()->printMempool();
                 continueMsg();
                 break;
@@ -49,8 +51,8 @@ void keyser::cli::ChainView::display()
                 std::cout << "Invalid selection." << std::endl;
                 break;
         }
+
+        clearScreen();
     }
     while (selection != '0');
-
-    clearScreen();
 }

@@ -22,7 +22,11 @@ namespace net_core
         public:
             Net_Interface(uint16_t port) : _acceptor(_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
             {
+                // Save port number
                 _port = port;
+
+                // Run thread to handle messsages
+                _responseThread = std::thread([this]() { update(); }); 
             }
             
             virtual ~Net_Interface() { shutdown(); } 
@@ -52,7 +56,6 @@ namespace net_core
             bool connect(const std::string& host, const uint16_t port)
             {
                 // TODO - dont allow multiple connections to same host
-
                 try
                 {
                     // Resolve hostname/ip-address into physical address
@@ -193,25 +196,27 @@ namespace net_core
                 }
             }
 
-
-            // Allow user to explicitly limit amount of messages handled at once
+            // Handle incoming messages
             void update(uint8_t maxMessages = -1, bool wait = true)
             {
-                if (wait)
+                while(1)
+                {
+                    if (wait)
                     _messagesIn.wait();
 
-                uint8_t msgCount = 0;
+                    uint8_t msgCount = 0;
 
-                while (msgCount < maxMessages && !_messagesIn.empty())
-                {
-                    // Grab front msg
-                    auto msg = _messagesIn.popFront();
+                    while (msgCount < maxMessages && !_messagesIn.empty())
+                    {
+                        // Grab front msg
+                        auto msg = _messagesIn.popFront();
                     
-                    // Pass to msg handler
-                    // Pass pointer to connection, as well as actual msg
-                    onMessage(msg._remote, msg._msg);
+                        // Pass to msg handler
+                        // Pass pointer to connection, as well as actual msg
+                        onMessage(msg._remote, msg._msg);
 
-                    msgCount++;
+                        msgCount++;
+                    }
                 }
             }
 
@@ -240,32 +245,35 @@ namespace net_core
 
             // Thread safe queue for incoming messages
             tsqueue<OwnedMessage<T>> _messagesIn;
+            
+            // Thread for handling incoming messages
+            std::thread _responseThread;
 
             // Container for active validated connections
             std::deque<std::shared_ptr<Net_Connection<T>>> _connections{};
+
+            // All active node addresses
+            // std::vector<> _activeNodes;
 
             // Asio context as well as its own thread to run in
             boost::asio::io_context _context;
             std::thread             _contextThread;
 
             // Thread for cleaning invalid connections
-            // TODO
-            // if invalid connections is true, allow thread to iterate through connections, find invalid ones
-            // and destroy them
-            // Pass _invalidConnections to each individual connection object, set to true if connections fails or dies
+            // Mutex and condition variable for blocking thread
+            // until connection either fails or disconnects
             std::condition_variable _cvBlocking;
             std::mutex              _muxBlocking;
-            std::thread _connectionRemovalThread;
+            std::thread             _connectionRemovalThread;
 
             // Asio acceptor
             boost::asio::ip::tcp::acceptor _acceptor;
 
-            // Current config
+            // Current port server is running on
             uint16_t _port;
 
             // Connections will be identified in the system by an id
             uint16_t _idCounter = 10000;
-
     };
 }
 

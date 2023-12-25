@@ -1,6 +1,8 @@
 #ifndef NODE_H
 #define NODE_H
 
+#include <set>
+
 #include <Net_Interface.hpp>
 #include <Net_Connection.hpp>
 
@@ -17,8 +19,6 @@ namespace keyser
         public:
             Node(uint16_t port);
 
-            void updateMessages();
-
             void beginMining(bool continuous);
             void mineSingleBlock();
             void mineContinuously();
@@ -26,6 +26,7 @@ namespace keyser
             void InitBlockDownload();
 
             void sendVersion();
+            void sendActiveNodes();
             void sendTransaction(Transaction& transaction);
             void sendBlock(Block& block);
             void ping();
@@ -47,7 +48,9 @@ namespace keyser
             // Node members
             Chain* _chain = nullptr;
 
-            std::thread _responseThread;
+            
+
+            
             std::thread _miningThr;
 
             bool _miningStatus;

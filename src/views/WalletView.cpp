@@ -2,7 +2,7 @@
 #include <iomanip>
 
 #include "./WalletView.hpp"
-#include "../../wallet/WalletManager.hpp"
+#include "../wallet/WalletManager.hpp"
 
 
 keyser::cli::WalletView::WalletView(WalletManager& wallets) : _wallets(wallets)
@@ -14,10 +14,10 @@ void keyser::cli::WalletView::display()
 {
     char selection;
 
-    displayTitle("Wallet Menu");
-
     do
     {
+        displayTitle("Wallet Menu");
+
         std::cout << "[1] View wallets"  << std::endl;
         std::cout << "[2] Edit wallet"   << std::endl;
         std::cout << "[3] Create wallet" << std::endl;
@@ -29,6 +29,7 @@ void keyser::cli::WalletView::display()
         switch (selection)
         {
             case '1':
+                displayTitle("Wallets");
                 _wallets.displayWallets();
                 continueMsg();
                 break;
@@ -42,8 +43,8 @@ void keyser::cli::WalletView::display()
                 std::cout << "Invalid selection." << std::endl;
                 break;
         }
+
+        clearScreen();
     }
     while (selection != '0');
-
-    clearScreen();
 }

@@ -3,9 +3,9 @@
 
 #include <CLI_View.hpp>
 
-#include "../../wallet/WalletManager.hpp"
-#include "../../chain/Transaction.hpp"
-#include "../../node/Node.hpp"
+#include "../wallet/WalletManager.hpp"
+#include "../chain/Transaction.hpp"
+#include "../node/Node.hpp"
 
 namespace keyser
 {

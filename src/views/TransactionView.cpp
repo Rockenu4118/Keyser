@@ -2,8 +2,8 @@
 #include <iomanip>
 
 #include "./TransactionView.hpp"
-#include "../../chain/Transaction.hpp"
-#include "../../wallet/WalletManager.hpp"
+#include "../chain/Transaction.hpp"
+#include "../wallet/WalletManager.hpp"
 
 
 keyser::cli::TransactionView::TransactionView(WalletManager& wallets, Node* node) : _wallets(wallets)
@@ -17,10 +17,10 @@ void keyser::cli::TransactionView::display()
 {
     char selection;
 
-    displayTitle("Transaction Menu");
-
     do
     {
+        displayTitle("Transaction Menu");
+
         std::cout << "[1] New Transaction" << std::endl;
         std::cout << "[0] Exit"            << std::endl;
         std::cout << std::endl;
@@ -37,10 +37,10 @@ void keyser::cli::TransactionView::display()
                 std::cout << "Invalid selection." << std::endl;
                 break;
         }
+
+        clearScreen();
     }
     while(selection != '0');
-
-    clearScreen();
 }
 
 void keyser::cli::TransactionView::newTransaction()

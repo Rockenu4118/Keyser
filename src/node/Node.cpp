@@ -14,20 +14,7 @@
 keyser::Node::Node(uint16_t port) : net_core::Net_Interface<MsgTypes>(port)
 {
     _chain  = new keyser::Chain(4, 100);
-
-    _responseThread = std::thread([this]() { updateMessages(); }); 
 }
-
-void keyser::Node::updateMessages()
-{
-    while (1)
-    {
-        update();
-    }
-}
-
-// void keyser::node::Node::stop()
-// {}
 
 void keyser::Node::beginMining(bool continuous)
 {
@@ -82,6 +69,14 @@ void keyser::Node::InitBlockDownload()
     message(_connections.front(), msg);
 }
 
+void keyser::Node::sendActiveNodes()
+{
+    // for (auto& nodeInfo : _activeNodes)
+    // {
+
+    // }
+}
+
 void keyser::Node::sendTransaction(Transaction& transaction)
 {
     _chain->mempool()->addTransaction(transaction);
@@ -118,6 +113,9 @@ keyser::Chain* keyser::Node::chain()
 bool keyser::Node::onConnect(std::shared_ptr<net_core::Net_Connection<MsgTypes>> connection) 
 { 
     // TODO - version msg upon connection
+    // TODO - add connection to active node list
+    std::cout << "Sending active nodes list" << std::endl;
+    // _activeNodes
     return true; 
 }
 

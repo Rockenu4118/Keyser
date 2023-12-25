@@ -1,8 +1,9 @@
 #include <iostream>
 #include <iomanip>
+#include <string>
 
 #include "./NetworkView.hpp"
-#include "../../node/Node.hpp"
+#include "../node/Node.hpp"
 
 
 keyser::cli::NetworkView::NetworkView(Node* node)
@@ -16,10 +17,10 @@ void keyser::cli::NetworkView::display()
 {
     char selection;
 
-    displayTitle("Network Menu");
-
     do
     {
+        displayTitle("Network Menu");
+
         std::cout << "[1] View connections" << std::endl;
         std::cout << "[2] New connection"   << std::endl;
         std::cout << "[0] Exit"             << std::endl;
@@ -30,6 +31,7 @@ void keyser::cli::NetworkView::display()
         switch (selection)
         {
             case '1':
+                displayTitle("Connections");
                 _node->displayConnections();
                 continueMsg();
                 break;
@@ -41,18 +43,19 @@ void keyser::cli::NetworkView::display()
                 std::cout << "Invalid selection." << std::endl;
                 break;
         }
+
+        clearScreen();
     }
     while (selection != '0');
-
-    clearScreen();
 }
 
 void keyser::cli::NetworkView::newConnection()
 {
-    uint16_t port;
+    std::string ip = "127.0.0.1";
+    uint16_t    port;
 
     std::cout << "Port: ";
     std::cin >> port;
 
-    _node->connect("192.168.56.1", port);
+    _node->connect(ip, port);
 }

@@ -10,6 +10,7 @@ void cli_core::CLI_View::display()
 
 void cli_core::CLI_View::displayTitle(std::string title)
 {
+    std::cout << std::endl;
     std::cout << title << std::endl;
     std::cout << std::setfill('-') << std::setw(50);
     std::cout << "-" << std::endl;
