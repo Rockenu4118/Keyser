@@ -24,6 +24,7 @@ namespace keyser
         void getAddressBalance(std::string address);
         bool isValid();
 
+        std::vector<std::shared_ptr<Block>>& blocks();
         Mempool* mempool();
         
     private:

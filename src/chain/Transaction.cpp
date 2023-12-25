@@ -4,7 +4,7 @@
 #include <cryptography.hpp>
 
 #include "./Transaction.hpp"
-#include "./Wallet.hpp"
+#include "../wallet/Wallet.hpp"
 #include "../utils/utils.hpp"
 
 
@@ -48,7 +48,6 @@ bool keyser::Transaction::isValid()
 {
     // Sender address will be "None" if transaction is from the genesis block or a mining reward
     if (_senderPublicKey == "None") { 
-        std::cout << "Mining reward valid." << std::endl;
         return true;
     }
 

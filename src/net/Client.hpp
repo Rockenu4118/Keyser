@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include <Client_Interface.hpp>
+// #include <Client_Interface.hpp>
 #include <net_message.hpp>
 
 #include "../data/version.hpp"
@@ -14,25 +14,25 @@
 #include "./MsgTypes.hpp"
 
 
-namespace keyser
-{
-    namespace net
-    {
-        class Client : public net_core::Client_Interface<MsgTypes>
-        {
-            public:
-                void ping();
-                void messageAll();
-                void sendTransaction(Transaction& transaction);
-                void sendBlock(Block& block);
+// namespace keyser
+// {
+//     namespace net
+//     {
+//         class Client : public net_core::Client_Interface<MsgTypes>
+//         {
+//             public:
+//                 void ping();
+//                 void messageAll();
+//                 void sendTransaction(Transaction& transaction);
+//                 void sendBlock(Block& block);
 
-            protected:
-                virtual void onMessage(net_core::Message<MsgTypes>& msg);
+//             protected:
+//                 virtual void onMessage(net_core::Message<MsgTypes>& msg);
 
-            private:
+//             private:
 
-        };
-    }
-}
+//         };
+//     }
+// }
 
 #endif

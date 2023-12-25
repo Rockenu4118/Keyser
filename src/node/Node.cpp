@@ -1,77 +1,39 @@
 #include <iostream>
+#include <string>
 
 #include "./Node.hpp"
+#include "../data/version.hpp"
+#include "../net/MsgTypes.hpp"
+#include "../utils/utils.hpp"
 #include "../chain/Chain.hpp"
 #include "../chain/Block.hpp"
 #include "../chain/Transaction.hpp"
-#include "../net/Server.hpp"
-#include "../net/Client.hpp"
 
 
-keyser::node::Node::Node(int serverPort, bool& miningStatus) : _miningStatus(miningStatus)
+
+keyser::Node::Node(uint16_t port) : net_core::Net_Interface<MsgTypes>(port)
 {
     _chain  = new keyser::Chain(4, 100);
-    _server = new net::Server(serverPort, _chain);
-    _client = new net::Client();      
+
+    _responseThread = std::thread([this]() { updateMessages(); }); 
 }
 
-keyser::node::Node::~Node()
-{
-    stop();
-}
-
-void keyser::node::Node::start(int clientPort)
-{
-    _server->start();
-    _client->connect("127.0.0.1", clientPort);
-
-    _serverResponseThr = std::thread([this]() { updateServerMessages(); });
-    _clientResponseThr = std::thread([this]() { updateClientMessages(); });     
-}
-
-void keyser::node::Node::stop()
-{}
-
-void keyser::node::Node::sendTransaction(Transaction& transaction)
-{
-    _client->sendTransaction(transaction);
-}
-
-void keyser::node::Node::sendBlock(Block& block)
-{
-    _client->sendBlock(block);
-}
-
-void keyser::node::Node::ping()
-{
-    _client->ping();
-}
-
-void keyser::node::Node::messageAll()
-{
-    _client->messageAll();
-}
-
-void keyser::node::Node::updateServerMessages()
-{
-    while (1) {
-        _server->update();
-    }
-}
-
-void keyser::node::Node::updateClientMessages()
+void keyser::Node::updateMessages()
 {
     while (1)
     {
-        _client->update();
+        update();
     }
 }
 
-void keyser::node::Node::beginMining(bool continuous)
+// void keyser::node::Node::stop()
+// {}
+
+void keyser::Node::beginMining(bool continuous)
 {
     if (_miningStatus == true)
     {
-        std::cout << "[CHAIN] Mining in progress." << std::endl;
+        std::cout << "[CHAIN] Mining In Progress" << std::endl;
         return;
     }
 
@@ -85,25 +47,145 @@ void keyser::node::Node::beginMining(bool continuous)
     _miningThr.detach();
 }
 
-void keyser::node::Node::mineContinuously()
+void keyser::Node::mineContinuously()
 {
     while (1)
     {
         _chain->mineBlock("aj");
-        std::cout << "[CHAIN] block mined." << std::endl;
-        _client->sendBlock(*_chain->getCurrBlock());
+        std::cout << "[CHAIN] Block Mined." << std::endl;
+        net_core::Message<MsgTypes> msg;
+        msg.header.id = MsgTypes::Block;
+        std::string msgStr;
+        keyser::utils::encodeJson(msgStr, *_chain->getCurrBlock());
+        msg.push(msgStr);
+        messageNeighbors(msg);
     }
 }
 
-void keyser::node::Node::mineSingleBlock()
+void keyser::Node::mineSingleBlock()
 {
     _chain->mineBlock("aj");
-    std::cout << "[CHAIN] block mined." << std::endl;
-    _client->sendBlock(*_chain->getCurrBlock());
+    std::cout << "[CHAIN] Block Mined." << std::endl;
+    net_core::Message<MsgTypes> msg;
+    msg.header.id = MsgTypes::Block;
+    std::string msgStr;
+    keyser::utils::encodeJson(msgStr, *_chain->getCurrBlock());
+    msg.push(msgStr);
+    messageNeighbors(msg);
     _miningStatus = false;
 }
 
-keyser::Chain* keyser::node::Node::chain()
+void keyser::Node::InitBlockDownload()
+{
+    net_core::Message<MsgTypes> msg;
+    msg.header.id = MsgTypes::InitBlockDownload;
+    message(_connections.front(), msg);
+}
+
+void keyser::Node::sendTransaction(Transaction& transaction)
+{
+    _chain->mempool()->addTransaction(transaction);
+    net_core::Message<MsgTypes> msg;
+    msg.header.id = MsgTypes::Transaction;
+    std::string msgStr;
+    keyser::utils::encodeJson(msgStr, transaction);
+    msg.push(msgStr);
+    messageNeighbors(msg);
+}
+
+void keyser::Node::sendBlock(Block& block)
+{
+    net_core::Message<MsgTypes> msg;
+    msg.header.id = MsgTypes::Block;
+    std::string msgStr;
+    keyser::utils::encodeJson(msgStr, block);
+    msg.push(msgStr);
+    messageNeighbors(msg);
+}
+
+void keyser::Node::ping()
+{
+    net_core::Message<MsgTypes> msg;
+    msg.header.id = MsgTypes::Ping;
+    messageNeighbors(msg);
+}
+
+keyser::Chain* keyser::Node::chain()
 {
     return _chain;
+}
+
+bool keyser::Node::onConnect(std::shared_ptr<net_core::Net_Connection<MsgTypes>> connection) 
+{ 
+    // TODO - version msg upon connection
+    return true; 
+}
+
+void keyser::Node::onDisconnect(std::shared_ptr<net_core::Net_Connection<MsgTypes>> connection)
+{}
+
+void keyser::Node::onMessage(std::shared_ptr<net_core::Net_Connection<MsgTypes>> connection, net_core::Message<MsgTypes>& msg)
+{
+    switch (msg.header.id)
+    {
+        case MsgTypes::Ping:
+            handlePing(connection, msg);
+            break;
+        case MsgTypes::Transaction:
+            handleTransaction(connection, msg);
+            break;
+        case MsgTypes::Block:
+            handleBlock(connection, msg);
+            break;
+        case MsgTypes::InitBlockDownload:
+            handleInitBlockDownload(connection, msg);
+            break;
+        default:
+            std::cout << "[NODE] Unknown Msg Type" << std::endl;
+            break;
+    }
+}
+
+void keyser::Node::handlePing(std::shared_ptr<net_core::Net_Connection<MsgTypes>> connection, net_core::Message<MsgTypes>& msg)
+{
+    std::cout << "[NODE] Ping: " << connection->getId() << std::endl;
+}
+
+void keyser::Node::handleTransaction(std::shared_ptr<net_core::Net_Connection<MsgTypes>> connection, net_core::Message<MsgTypes>& msg)
+{
+    std::cout << "[NODE] Transaction" << std::endl;
+    messageNeighbors(msg, connection);
+    std::string jsonStr;
+    Transaction transaction;
+    msg.pull(jsonStr);
+    utils::decodeJson(transaction, jsonStr);
+    _chain->mempool()->addTransaction(transaction);
+}
+
+void keyser::Node::handleBlock(std::shared_ptr<net_core::Net_Connection<MsgTypes>> connection, net_core::Message<MsgTypes>& msg)
+{
+    std::cout << "[NODE] Block" << std::endl;
+    messageNeighbors(msg, connection);
+    std::string jsonStr;
+    msg.pull(jsonStr);
+    Block block;
+    utils::decodeJson(block, jsonStr);
+    _chain->addBlock(block);
+}
+
+void keyser::Node::handleInitBlockDownload(std::shared_ptr<net_core::Net_Connection<MsgTypes>> connection, net_core::Message<MsgTypes>& msg)
+{
+    // TODO - make better and test more
+
+    std::cout << "Recieved init download req" << std::endl;
+
+    for (int i = 1 ; i < _chain->blocks().size() ; i++)
+    {
+        net_core::Message<MsgTypes> msg;
+        msg.header.id = MsgTypes::Block;
+        std::string msgStr;
+        keyser::utils::encodeJson(msgStr, *_chain->blocks().at(i));
+        msg.push(msgStr);
+        message(connection, msg);
+    }
 }

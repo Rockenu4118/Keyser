@@ -11,8 +11,8 @@
 // Constructors
 keyser::Wallet::Wallet()
 {
-    _name    = "";
-    _keyPair = nullptr;
+    _name          = "";
+    _keyPair       = nullptr;
     _publicAddress = "";
 }
 

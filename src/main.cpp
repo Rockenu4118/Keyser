@@ -11,7 +11,10 @@
 #include <vector>
 #include <unistd.h>
 #include <net_message.hpp>
+#include <Net_Connection.hpp>
+#include <Net_Interface.hpp>
 #include <nlohmann/json.hpp>
+
 
 #include "./net/Server.hpp"
 #include "./net/Client.hpp"
@@ -19,17 +22,18 @@
 #include "./chain/Block.hpp"
 #include "./net/MsgTypes.hpp"
 #include "./views/cli/Prompt.hpp"
-#include "./chain/Wallet.hpp"
-#include "./chain/WalletManager.hpp"
+#include "./wallet/Wallet.hpp"
+#include "./wallet/WalletManager.hpp"
 #include "./views/cli/TransactionView.hpp"
 #include "./views/cli/ChainView.hpp"
 #include "./views/cli/WalletView.hpp"
+#include "./views/cli/NetworkView.hpp"
 #include "./node/Node.hpp"
 #include "./data/keys.hpp"
 
 
 int main()
-{    
+{   
     keyser::WalletManager wallets;
 
     keyser::Wallet ajWallet("AJ", key1);
@@ -39,29 +43,26 @@ int main()
     wallets.addWallet(guyWallet);
 
     int  serverPort;
-    int  clientPort;
     char selection;
-    bool miningStatus = false;
+    bool falseVal = false;
 
     std::cout << "Server port: ";
     std::cin  >> serverPort;
-    std::cout << "Client port: ";
-    std::cin  >> clientPort;
             
-    keyser::node::Node* node;
+    keyser::Node* node;
     
-    node = new keyser::node::Node(serverPort, miningStatus);
-    node->start(clientPort);        
+    node = new keyser::Node(serverPort);
+    node->start();
 
     do
     {
-        keyser::cli::promptMainMenu(selection, miningStatus);
+        keyser::cli::promptMainMenu(selection);
 
         switch (selection)
         {
             case '1':
             {
-                keyser::cli::ChainView view = keyser::cli::ChainView(node, miningStatus);
+                keyser::cli::ChainView view = keyser::cli::ChainView(node);
             }
                 break;
             case '2':
@@ -78,6 +79,14 @@ int main()
             {
                 node->ping();
             }
+                break;
+            case '5':
+            {
+                keyser::cli::NetworkView view = keyser::cli::NetworkView(node);
+            }
+                break;
+            case '6':
+                node->InitBlockDownload();
                 break;
             default:
                 std::cout << "Exiting program..." << std::endl;

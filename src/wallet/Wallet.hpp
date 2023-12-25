@@ -21,9 +21,9 @@ namespace keyser
         Wallet(std::string name, std::string privateKey);
 
         // Accessors
-        std::string getName();
-        std::string getPublicAddress();
-        cryptography::ECKeyPair*  getKeyPair();
+        std::string              getName();
+        std::string              getPublicAddress();
+        cryptography::ECKeyPair* getKeyPair();
 
     private:
         std::string               _name;

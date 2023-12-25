@@ -3,7 +3,7 @@
 
 #include <CLI_View.hpp>
 
-#include "../../chain/WalletManager.hpp"
+#include "../../wallet/WalletManager.hpp"
 #include "../../chain/Transaction.hpp"
 #include "../../node/Node.hpp"
 
@@ -14,7 +14,7 @@ namespace keyser
         class TransactionView : public cli_core::CLI_View
         {
             public:
-                TransactionView(WalletManager& wallets, node::Node* node);
+                TransactionView(WalletManager& wallets, Node* node);
 
             protected:
                 void display();
@@ -23,7 +23,7 @@ namespace keyser
                 void newTransaction();
 
                 WalletManager& _wallets;
-                node::Node*    _node;
+                Node*    _node;
         };
     }
 }

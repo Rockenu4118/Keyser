@@ -8,24 +8,20 @@
 #include <cstring>
 
 #include "./Connection.hpp"
+#include "./Net_Connection.hpp"
 
 
 namespace net_core
 {
     // Forwrard declare 
     template <typename T>
-    class Connection;
+    class Net_Connection;
 
     template <typename T>
-    class MessageHeader
+    struct MessageHeader
     {
-        public:
-            // Constructor
-            MessageHeader() = default;
-
-            // Members
-            T        id{};
-            uint32_t size = 0;
+        T        id{};
+        uint32_t size = 0;
     };
 
     template <typename T>
@@ -37,10 +33,8 @@ namespace net_core
         }
 
         public:
-            // Constructor
             Message() = default;
 
-            // Utility
             size_t size() const
             {
                 return body.size();
@@ -58,9 +52,9 @@ namespace net_core
 
             void push(const std::string& msg)
             {
-                size_t strlen = msg.size();
+                int len = msg.size();
 
-                for (int i = 0 ; i < strlen ; i++)
+                for (int i = 0 ; i < len ; i++)
                 {
                     body.push_back(msg[i]);
                 }
@@ -70,7 +64,7 @@ namespace net_core
 
             void pull(std::string& msg)
             {
-                size_t len = body.size();
+                int len = body.size();
 
                 for (int i = 0 ; i < len ; i++)
                 {
@@ -78,7 +72,6 @@ namespace net_core
                 }
             }
 
-            // Members
             MessageHeader<T>  header{};
             std::vector<char> body;
     };
@@ -92,17 +85,14 @@ namespace net_core
         }
 
         public:
-            // Constructor
-            OwnedMessage(std::shared_ptr<Connection<T>> remote, Message<T> msg)
+            OwnedMessage(std::shared_ptr<Net_Connection<T>> remote, Message<T> msg)
             {
                 _remote = remote;
                 _msg    = msg;
             }
 
-            // Members
-            std::shared_ptr<Connection<T>> _remote = nullptr;
-            Message<T>                     _msg;
-
+            std::shared_ptr<Net_Connection<T>> _remote = nullptr;
+            Message<T>                         _msg;
     };
 }
 

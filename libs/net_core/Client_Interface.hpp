@@ -66,8 +66,8 @@ namespace net_core
                     _thrContext.join();
                 }
 
-                // Destroy connection object, release unique pointer
-                _connection.release();
+                // Destroy connection object, release shared pointer
+                _connection.reset();
             }
 
             bool isConnected()

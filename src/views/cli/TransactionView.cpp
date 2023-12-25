@@ -3,10 +3,10 @@
 
 #include "./TransactionView.hpp"
 #include "../../chain/Transaction.hpp"
-#include "../../chain/WalletManager.hpp"
+#include "../../wallet/WalletManager.hpp"
 
 
-keyser::cli::TransactionView::TransactionView(WalletManager& wallets, node::Node* node) : _wallets(wallets)
+keyser::cli::TransactionView::TransactionView(WalletManager& wallets, Node* node) : _wallets(wallets)
 {
     _node = node;
 

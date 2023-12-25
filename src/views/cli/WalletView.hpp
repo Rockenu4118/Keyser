@@ -3,7 +3,7 @@
 
 #include <CLI_View.hpp>
 
-#include "../../chain/WalletManager.hpp"
+#include "../../wallet/WalletManager.hpp"
 
 
 namespace keyser

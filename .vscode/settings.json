@@ -82,6 +82,7 @@
         "socket": "cpp",
         "timer": "cpp",
         "ranges": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "qapplication": "cpp"
     }
 }

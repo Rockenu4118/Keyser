@@ -2,7 +2,7 @@
 #include <iomanip>
 
 #include "./WalletView.hpp"
-#include "../../chain/WalletManager.hpp"
+#include "../../wallet/WalletManager.hpp"
 
 
 keyser::cli::WalletView::WalletView(WalletManager& wallets) : _wallets(wallets)

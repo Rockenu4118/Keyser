@@ -31,7 +31,13 @@ std::shared_ptr<keyser::Block> keyser::Chain::getCurrBlock()
 // Modifiers
 void keyser::Chain::createGenesisBlock()
 {
-    std::shared_ptr<Block> genesisBlock = std::make_shared<Block>(0, 0, "None", _mempool->popLeadingTransactions());
+    std::vector<Transaction> initialBalances{};
+    Transaction balance1(500, "0xc6d8a2c830495d07318212e9f2cad16f", "None");
+    Transaction balance2(500, "0x183944191006324a447bdb2d98d4b408", "None");
+    initialBalances.push_back(balance1);
+    initialBalances.push_back(balance2);
+
+    std::shared_ptr<Block> genesisBlock = std::make_shared<Block>(0, 0, "None", initialBalances);
 
     genesisBlock->calcHash();
 
@@ -113,6 +119,11 @@ bool keyser::Chain::isValid()
     }
 
     return true;
+}
+
+std::vector<std::shared_ptr<keyser::Block>>& keyser::Chain::blocks()
+{
+    return _blocks;
 }
 
 keyser::Mempool* keyser::Chain::mempool()

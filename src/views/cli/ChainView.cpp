@@ -5,7 +5,7 @@
 #include "../../node/Node.hpp"
 
 
-keyser::cli::ChainView::ChainView(node::Node* node, bool& miningStatus) : _miningStatus(miningStatus)
+keyser::cli::ChainView::ChainView(Node* node)
 {
     _node = node;
 
@@ -44,6 +44,7 @@ void keyser::cli::ChainView::display()
                 break;
             case '4':
                 _node->beginMining(false);
+                break;
             default:
                 std::cout << "Invalid selection." << std::endl;
                 break;

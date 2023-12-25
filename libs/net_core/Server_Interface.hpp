@@ -124,7 +124,7 @@ namespace net_core
                             client->send(msg);
                         }
                     } 
-                    else 
+                    else
                     {
                         // Could not connect, assume it disconnected.
                         onClientDisconnect(client);

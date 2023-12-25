@@ -1,6 +1,7 @@
-#ifndef CHAIN_VIEW_H
-#define CHAIN_VIEW_H
+#ifndef NETWORK_VIEW_H
+#define NETWORK_VIEW_H
 
+#include <iostream>
 #include <CLI_View.hpp>
 
 #include "../../node/Node.hpp"
@@ -10,18 +11,18 @@ namespace keyser
 {
     namespace cli
     {
-        class ChainView : public cli_core::CLI_View
+        class NetworkView : public cli_core::CLI_View
         {
             public:
-                ChainView(Node* node);
+                NetworkView(Node* node);
 
             protected:
                 void display();
 
+                void newConnection();
+
             private:
                 Node* _node;
-
-                // bool& _miningStatus;
         };
     }
 }
