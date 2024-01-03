@@ -19,7 +19,7 @@ namespace keyser
             void printMempool();
 
         private:
-            net_core::tsqueue<Transaction> _pendingTransactions;
+            tsqueue<Transaction> _pendingTransactions;
 
     };
 }

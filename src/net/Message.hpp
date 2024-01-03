@@ -1,5 +1,5 @@
-#ifndef NET_MESSAGE_H
-#define NET_MESSAGE_H
+#ifndef MESSAGE_H
+#define MESSAGE_H
 
 #include <iostream>
 #include <string>
@@ -8,14 +8,13 @@
 #include <cstring>
 
 #include "./Connection.hpp"
-#include "./Net_Connection.hpp"
 
 
-namespace net_core
+namespace keyser
 {
     // Forwrard declare 
     template <typename T>
-    class Net_Connection;
+    class Connection;
 
     template <typename T>
     struct MessageHeader
@@ -85,13 +84,13 @@ namespace net_core
         }
 
         public:
-            OwnedMessage(std::shared_ptr<Net_Connection<T>> remote, Message<T> msg)
+            OwnedMessage(std::shared_ptr<Connection<T>> remote, Message<T> msg)
             {
                 _remote = remote;
                 _msg    = msg;
             }
 
-            std::shared_ptr<Net_Connection<T>> _remote = nullptr;
+            std::shared_ptr<Connection<T>> _remote = nullptr;
             Message<T>                         _msg;
     };
 }

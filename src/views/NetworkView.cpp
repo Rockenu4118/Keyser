@@ -54,6 +54,8 @@ void keyser::cli::NetworkView::newConnection()
     std::string ip = "127.0.0.1";
     uint16_t    port;
 
+    // std::cout << "Ip: ";
+    // std::cin >> ip;
     std::cout << "Port: ";
     std::cin >> port;
 

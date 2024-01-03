@@ -1,26 +1,29 @@
-#ifndef NET_INTERFACE_H
-#define NET_INTERFACE_H
+#ifndef NODE_INTERFACE_H
+#define NODE_INTERFACE_H
 
+#include <set>
+#include <string>
 #include <mutex>
 #include <condition_variable>
 
 #include <boost/asio.hpp>
 
-#include "./tsqueue.hpp"
-#include "./Net_Connection.hpp"
-#include "./net_message.hpp"
+#include <tsqueue.hpp>
+
+#include "../net/Connection.hpp"
+#include "../net/Message.hpp"
 
 
-namespace net_core
+namespace keyser
 {
     template <typename T>
-    class Net_Connection;
+    class Connection;
 
     template <typename T>
-    class Net_Interface
+    class Node_Interface
     {
         public:
-            Net_Interface(uint16_t port) : _acceptor(_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+            Node_Interface(uint16_t port) : _acceptor(_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
             {
                 // Save port number
                 _port = port;
@@ -29,7 +32,7 @@ namespace net_core
                 _responseThread = std::thread([this]() { update(); }); 
             }
             
-            virtual ~Net_Interface() { shutdown(); } 
+            virtual ~Node_Interface() { shutdown(); } 
 
             bool start()
             {
@@ -63,9 +66,7 @@ namespace net_core
                     boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(host, std::to_string(port));
 
                     // Create connection
-                    std::shared_ptr<Net_Connection<T>> newConn = std::make_shared<Net_Connection<T>>(_context, boost::asio::ip::tcp::socket(_context), _messagesIn, _cvBlocking, _idCounter++);
-
-                    // TODO - dont add connection if unable to connect
+                    std::shared_ptr<Connection<T>> newConn = std::make_shared<Connection<T>>(_context, boost::asio::ip::tcp::socket(_context), _messagesIn, _cvBlocking, _idCounter++);
 
                     // Connection pushed to back of connection container
                     _connections.push_back(std::move(newConn));
@@ -103,8 +104,8 @@ namespace net_core
                         {
                             std::cout << "[NODE] New connection: " << socket.remote_endpoint() << std::endl;
 
-                            std::shared_ptr<Net_Connection<T>> newConn =
-                                std::make_shared<Net_Connection<T>>(_context, std::move(socket), _messagesIn, _cvBlocking, _idCounter++);
+                            std::shared_ptr<Connection<T>> newConn =
+                                std::make_shared<Connection<T>>(_context, std::move(socket), _messagesIn, _cvBlocking, _idCounter++);
 
                             // Give node a chance to deny connection
                             if (onConnect(newConn))
@@ -133,7 +134,7 @@ namespace net_core
                 );
             }
 
-            void message(std::shared_ptr<Net_Connection<T>> connection, const Message<T>& msg)
+            void message(std::shared_ptr<Connection<T>> connection, const Message<T>& msg)
             {
                 // Send message if peer is connected
                 if (connection && connection->isConnected())
@@ -148,7 +149,7 @@ namespace net_core
                 }
             }
 
-            void messageNeighbors(const Message<T>& msg, std::shared_ptr<Net_Connection<T>> ignoreConnection = nullptr)
+            void messageNeighbors(const Message<T>& msg, std::shared_ptr<Connection<T>> ignoreConnection = nullptr)
             {
                 bool invalidConnectionExists = false;
 
@@ -234,13 +235,13 @@ namespace net_core
             }
 
         protected:
-            virtual bool onConnect(std::shared_ptr<Net_Connection<T>> connection)
+            virtual bool onConnect(std::shared_ptr<Connection<T>> connection)
             { return true; }
 
-            virtual void onDisconnect(std::shared_ptr<Net_Connection<T>> connection)
+            virtual void onDisconnect(std::shared_ptr<Connection<T>> connection)
             {}
 
-            virtual void onMessage(std::shared_ptr<Net_Connection<T>> connection, Message<T>& msg)
+            virtual void onMessage(std::shared_ptr<Connection<T>> connection, Message<T>& msg)
             {}
 
             // Thread safe queue for incoming messages
@@ -250,10 +251,11 @@ namespace net_core
             std::thread _responseThread;
 
             // Container for active validated connections
-            std::deque<std::shared_ptr<Net_Connection<T>>> _connections{};
+            std::deque<std::shared_ptr<Connection<T>>> _connections{};
 
-            // All active node addresses
-            // std::vector<> _activeNodes;
+            // Addresses of active nodes on network
+            // std::set<std::string> _activeAddrList;
+
 
             // Asio context as well as its own thread to run in
             boost::asio::io_context _context;

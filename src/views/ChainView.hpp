@@ -15,6 +15,8 @@ namespace keyser
             public:
                 ChainView(Node* node);
 
+                void viewBlockTransactions();
+
             protected:
                 void display();
 

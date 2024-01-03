@@ -20,11 +20,12 @@ void keyser::cli::ChainView::display()
     {
         displayTitle("Chain Menu");
 
-        std::cout << "[1] View chain"        << std::endl;
-        std::cout << "[2] View mempool"      << std::endl;  
-        std::cout << "[3] Mine continuously" << std::endl;
-        std::cout << "[4] Mine single block" << std::endl;
-        std::cout << "[0] Exit"              << std::endl;
+        std::cout << "[1] View chain"              << std::endl;
+        std::cout << "[2] View block transactions" << std::endl;
+        std::cout << "[3] View mempool"            << std::endl;  
+        std::cout << "[4] Mine continuously"       << std::endl;
+        std::cout << "[5] Mine single block"       << std::endl;
+        std::cout << "[0] Exit"                    << std::endl;
         std::cout << std::endl;
 
         promptSelection(selection);
@@ -37,14 +38,17 @@ void keyser::cli::ChainView::display()
                 continueMsg();
                 break;
             case '2':
+                viewBlockTransactions();
+                break;
+            case '3':
                 displayTitle("Mempool");
                 _node->chain()->mempool()->printMempool();
                 continueMsg();
                 break;
-            case '3':
+            case '4':
                 _node->beginMining(true);
                 break;
-            case '4':
+            case '5':
                 _node->beginMining(false);
                 break;
             default:
@@ -55,4 +59,21 @@ void keyser::cli::ChainView::display()
         clearScreen();
     }
     while (selection != '0');
+}
+
+void keyser::cli::ChainView::viewBlockTransactions()
+{
+    int index;
+
+    std::cout << "Block #: ";
+    std::cin >> index;
+
+    std::cout << std::endl;
+
+    if (index < _node->chain()->blocks().size())
+        _node->chain()->getBlock(index)->printTransactions();
+    else
+        std::cout << "Invalid block." << std::endl;
+        
+    continueMsg();
 }

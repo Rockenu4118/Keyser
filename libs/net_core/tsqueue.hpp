@@ -5,7 +5,7 @@
 #include <condition_variable>
 #include <deque>
 
-namespace net_core
+namespace keyser
 {
     template<typename T>
     class tsqueue

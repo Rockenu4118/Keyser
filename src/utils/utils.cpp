@@ -5,6 +5,8 @@
 #include <sstream>
 #include <stdio.h>
 #include <string.h>
+#include <ctime>
+#include <algorithm>
 #include <cryptography.hpp>
 #include <nlohmann/json.hpp>
 
@@ -119,4 +121,25 @@ void keyser::utils::decodeJson(Block& block, std::string& jsonStr)
         decodeJson(tx, txStr);
         block._transactions.push_back(tx);
     }
+}
+
+std::string keyser::utils::localTimestamp()
+{
+    time_t t = time(NULL);
+    struct tm *tmp = localtime(&t);
+
+    std::string hourStr = std::to_string(tmp->tm_hour);
+    std::string minStr  = std::to_string(tmp->tm_min);
+    std::string secStr  = std::to_string(tmp->tm_sec);
+
+    int hourStrLen = hourStr.size();
+    int minStrLen  = minStr.size();
+    int secStrLen  = secStr.size();
+
+    std::string timestamp = "[" + 
+                            std::string(2 - std::min(2, hourStrLen), '0') + hourStr + ":" +
+                            std::string(2 - std::min(2, minStrLen), '0')  + minStr  + ":" +
+                            std::string(2 - std::min(2, secStrLen), '0')  + secStr  + "] ";
+
+    return timestamp;
 }

@@ -15,8 +15,12 @@ namespace keyser
             WalletManager() = default;
 
             void addWallet(Wallet wallet);
-            void getWallet(Wallet& wallet, uint index);
+            void createWallet(std::string name);
             void displayWallets();
+
+            Wallet at(int index);
+
+            size_t count();
 
         private:
             std::vector<Wallet> _wallets;

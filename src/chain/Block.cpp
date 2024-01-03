@@ -68,19 +68,11 @@ bool keyser::Block::hasValidTransactions()
 }
 
 void keyser::Block::printTransactions()
-{
-    std::cout << std::endl;
-    std::cout << "Transactions, Block #" << _index << "" << std::endl;
-    
+{   
     for (uint i = 0 ; i < _transactions.size() ; i++)
     {
-        std::cout << "Transaction # " << std::to_string(i + 1) << std::endl;
-
-        std::cout << "Amount: "     << _transactions.at(i)._amount;
-        std::cout << ", Reciever: " << _transactions.at(i)._recieverAddress;
-        std::cout << ", Sender: "   << _transactions.at(i)._senderAddress;
-    
-        std::cout << std::endl;
+        std::cout << "#" << std::to_string(i + 1) << ", ";
+        std::cout << _transactions.at(i) << std::endl;
     }
 }
 

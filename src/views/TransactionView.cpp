@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <vector>
 
 #include "./TransactionView.hpp"
 #include "../chain/Transaction.hpp"
@@ -45,40 +46,34 @@ void keyser::cli::TransactionView::display()
 
 void keyser::cli::TransactionView::newTransaction()
 {
-    uint        walletIndex;
+    uint        index;
     double      amount;
     std::string recievingAddress;
-    Wallet      sendingWallet;
     char        confirmation;
 
     displayTitle("Creating Transaction");
 
-    promptInput("Recieving address: ", recievingAddress);
-
-    std::cout << "Wallets:" << std::endl;
+    displayTitle("Wallets");
 
     _wallets.displayWallets();
 
-    promptInput("Sending wallet: ", walletIndex);
-
-    _wallets.getWallet(sendingWallet, walletIndex);
-
-    if (sendingWallet.getKeyPair() == nullptr)
+    promptInput("Recieving address: ", recievingAddress);
+    promptInput("Sending wallet: ", index);
+    
+    if (index >= _wallets.count())
         return;
 
     promptInput("Amount: ", amount);
 
-    std::cout << "Amount, "           << amount 
-              << ", Reciever: "       << recievingAddress 
-              << ", Sending wallet: " << sendingWallet.getName() 
-              << std::endl;
-
+    Transaction transaction = Transaction(amount, recievingAddress, _wallets.at(index).getKeyPair()->getUPublicKey());
+    transaction.sign(_wallets.at(index).getKeyPair());
+    
+    std::cout << transaction << std::endl;
+    
     promptConfirmation(confirmation);
 
     if (confirmation == 'y')
     {
-        Transaction transaction = Transaction(amount, recievingAddress, sendingWallet.getKeyPair()->getUPublicKey());
-        transaction.sign(sendingWallet.getKeyPair());
         _node->sendTransaction(transaction);
     }
 }

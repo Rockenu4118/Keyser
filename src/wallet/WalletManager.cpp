@@ -10,18 +10,33 @@ void keyser::WalletManager::addWallet(Wallet wallet)
     _wallets.push_back(wallet);
 }
 
-void keyser::WalletManager::getWallet(Wallet& wallet, uint index)
+void keyser::WalletManager::createWallet(std::string name)
 {
-    if (index >= _wallets.size())
-        return;
-    
-    wallet = _wallets.at(index);
+    Wallet newWallet(name);
+
+    _wallets.push_back(newWallet);
+}
+
+keyser::Wallet keyser::WalletManager::at(int index)
+{
+    return _wallets.at(index);
 }
 
 void keyser::WalletManager::displayWallets()
 {
-    for (int i = 0 ; i < _wallets.size() ; i++)
+    if (count() == 0)
     {
-        std::cout << "#" << i << " - " << _wallets.at(i) << std::endl;
+        std::cout << "No wallets." << std::endl;
+        return;
     }
+
+    for (int i = 0 ; i < count() ; i++)
+    {
+        std::cout << "#" << i << ", " << _wallets.at(i) << std::endl;
+    }
+}
+
+size_t keyser::WalletManager::count()
+{
+    return _wallets.size();
 }

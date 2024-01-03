@@ -1,76 +1,78 @@
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
+#include <condition_variable>
+
 #include <boost/asio.hpp>
 
-#include "./net_message.hpp"
-#include "./tsqueue.hpp"
+#include <tsqueue.hpp>
+
+#include "./Message.hpp"
 
 
 
-namespace net_core
+
+namespace keyser
 {
-    // Forward declare classes
-    template <typename T>
-    class MessageHeader;
-
-    template <typename T>
-    class Message;
-
-    template <typename T>
-    class OwnedMessage;
-
-
     template <typename T>
     class Connection: public std::enable_shared_from_this<Connection<T>>
     {
         public:
-            enum class owner
-            {
-                server,
-                client
-            };
-
             // Constructor and destructor
-            Connection(owner parent, boost::asio::io_context& asioContext, boost::asio::ip::tcp::socket socket, tsqueue<OwnedMessage<T>>& qMessagesIn)
-                : _asioContext(asioContext), _socket(std::move(socket)), _qMessagesIn(qMessagesIn)
+            Connection(boost::asio::io_context& asioContext, 
+                           boost::asio::ip::tcp::socket socket, 
+                           tsqueue<OwnedMessage<T>>& qMessagesIn, 
+                           std::condition_variable& cvBlocking, 
+                           uint16_t uid) : 
+                           _asioContext(asioContext),
+                           _socket(std::move(socket)), 
+                           _cvBlocking(cvBlocking), 
+                           _qMessagesIn(qMessagesIn)
             {
-                _ownerType = parent;
+                _id = uid;
             }
 
             virtual ~Connection() = default;
 
-            uint32_t getId() const
+            uint16_t getId() const
             {
                 return _id;
             }
 
-            void connectToClient(uint32_t uid = 0)
+            boost::asio::ip::tcp::endpoint getEndpoint() const
             {
-                if (_ownerType == owner::server) 
+                return _socket.remote_endpoint();
+            }
+
+            bool isConnected() const
+            {
+                return _socket.is_open();
+            }
+
+            void listen()
+            {
+                if (_socket.is_open()) 
                 {
-                    if (_socket.is_open()) 
-                    {
-                        _id = uid;
-                        readHeader();
-                    }
+                    readHeader();
                 }
             }
 
-            void connectToServer(const boost::asio::ip::tcp::resolver::results_type& endpoints)
+            void connect(const boost::asio::ip::tcp::resolver::results_type& endpoints)
             {
-                if (_ownerType == owner::client)
-                {
-                    boost::asio::async_connect(_socket, endpoints,
-                        [this](std::error_code ec, boost::asio::ip::tcp::endpoint endpoint)
+                boost::asio::async_connect(_socket, endpoints,
+                    [this](std::error_code ec, boost::asio::ip::tcp::endpoint endpoint)
+                    {
+                        if (!ec)
                         {
-                            if (!ec)
-                            {
-                                readHeader();
-                            }
+                            readHeader();
                         }
-                    );
-                }
+                        else
+                        {
+                            std::cout << "didnt work" << std::endl;
+                            disconnect();
+                        }    
+                    }
+                );
             }
 
             void disconnect()
@@ -78,12 +80,9 @@ namespace net_core
                 if (isConnected())
                 {
                     boost::asio::post(_asioContext, [this]() { _socket.close(); });
-                }
-            }
+                }   
 
-            bool isConnected() const
-            {
-                return _socket.is_open();
+                _cvBlocking.notify_one();
             }
 
             void send(const Message<T>& msg)
@@ -124,7 +123,7 @@ namespace net_core
                             else
                             {
                                 std::cout << "[" << _id << "] Read Header Fail." << std::endl;
-                                _socket.close();
+                                disconnect();
                             }
                         }
                     );
@@ -142,7 +141,7 @@ namespace net_core
                             else
                             {
                                 std::cout << "[" << _id << "] Read Body Fail." << std::endl;
-                                _socket.close(); 
+                                disconnect();
                             }
                         }
                     );
@@ -172,7 +171,7 @@ namespace net_core
                             else
                             {
                                 std::cout << "[" << _id << "] Write Header Fail." << std::endl;
-                                _socket.close(); 
+                                disconnect();
                             }
                         }
                     );
@@ -195,23 +194,16 @@ namespace net_core
                             else
                             {
                                 std::cout << "[" << _id << "] Write Body Fail." << std::endl;
-                                _socket.close();
+                                disconnect();
                             }
                         }
                     );
                 }
 
                 void addToIncomingMessageQueue()
-                {
-                    if (_ownerType == owner::server)
-                    {
-                        _qMessagesIn.pushBack(OwnedMessage<T>(this->shared_from_this(), _msgTemporaryIn));
-                    }
-                    else 
-                    {
-                        _qMessagesIn.pushBack(OwnedMessage<T>(nullptr, _msgTemporaryIn));
-                    }
-
+                { 
+                    _qMessagesIn.pushBack(OwnedMessage<T>(this->shared_from_this(), _msgTemporaryIn));
+                    
                     readHeader();
                 }
 
@@ -222,10 +214,11 @@ namespace net_core
             tsqueue<OwnedMessage<T>>&    _qMessagesIn;
             Message<T>                   _msgTemporaryIn;
 
-            owner    _ownerType = owner::server;
-            uint32_t _id        = 0;
+            // Notify Node to delete connection if it disconnects
+            std::condition_variable& _cvBlocking;
+
+            uint16_t _id = 0;
     };
 }
-
 
 #endif

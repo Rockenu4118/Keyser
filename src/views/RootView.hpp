@@ -1,6 +1,8 @@
 #ifndef ROOT_VIEW_H
 #define ROOT_VIEW_H
 
+#include <vector>
+
 #include <CLI_View.hpp>
 
 #include "../node/Node.hpp"
@@ -16,13 +18,11 @@ namespace keyser
             public:
                 RootView(Node* node, WalletManager& wallets);
 
-
             protected:
                 void display();
 
-
             private:
-                Node* _node;
+                Node*                _node;
                 WalletManager& _wallets;
 
         };

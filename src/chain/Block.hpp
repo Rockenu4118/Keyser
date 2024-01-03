@@ -29,7 +29,7 @@ namespace keyser
         public:
             uint        _index;
             time_t      _time;
-            uint32_t    _nonce;
+            uint64_t    _nonce;
             std::string _prevHash;
             std::string _hash;
 

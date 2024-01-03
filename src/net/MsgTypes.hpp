@@ -3,12 +3,24 @@
 
 enum class MsgTypes : uint32_t 
 {
-    MinedBlock,
-    Transaction,
     Ping,
-    Version,
-    InitBlockDownload,
-    Block,
+
+    DistributeAddr,
+    DistributeBlock,
+    DistributeTransaction,
+
+    RelayAddr,
+    RelayBlock,
+    RelayTransaction,
+
+    VersionReq,
+    VersionRes,
+    
+    InitBlockDownloadReq,
+    InitBlockDownloadRes,
+
+    AddrListReq,
+    AddrListRes,
 };
 
 #endif

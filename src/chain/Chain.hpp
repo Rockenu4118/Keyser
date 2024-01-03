@@ -16,6 +16,7 @@ namespace keyser
         Chain(uint8_t difficulty, uint8_t miningReward);
 
         std::shared_ptr<Block> getCurrBlock();
+        std::shared_ptr<Block> getBlock(int index);
 
         void printChain();
         void createGenesisBlock();
@@ -29,7 +30,7 @@ namespace keyser
         
     private:
         std::vector<std::shared_ptr<Block>> _blocks;
-        Mempool*                            _mempool;
+        Mempool*                            _mempool = nullptr;
         
         uint8_t _difficulty;
         uint8_t _miningReward;

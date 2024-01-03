@@ -15,11 +15,14 @@ namespace keyser
             public:
                 WalletView(WalletManager& wallets);
 
+                void viewWallets();
+
             protected:
                 void display();
 
             private:
                 WalletManager& _wallets;
+                
         };
     }
 }

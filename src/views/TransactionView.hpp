@@ -23,7 +23,7 @@ namespace keyser
                 void newTransaction();
 
                 WalletManager& _wallets;
-                Node*    _node;
+                Node*          _node;
         };
     }
 }

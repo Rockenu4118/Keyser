@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include "./RootView.hpp"
 #include "./ChainView.hpp"

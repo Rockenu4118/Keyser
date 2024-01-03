@@ -28,6 +28,11 @@ std::shared_ptr<keyser::Block> keyser::Chain::getCurrBlock()
     return _blocks.back();
 }
 
+std::shared_ptr<keyser::Block> keyser::Chain::getBlock(int index)
+{
+    return _blocks.at(index);
+}
+
 // Modifiers
 void keyser::Chain::createGenesisBlock()
 {
@@ -59,8 +64,13 @@ void keyser::Chain::addBlock(Block block)
 {
     std::shared_ptr<Block> newBlock = std::make_shared<Block>(block);
     
-    if (newBlock->hasValidTransactions())
-        _blocks.push_back(newBlock);
+    if (!newBlock->hasValidTransactions())
+        return;
+
+    if (_blocks.back()->_hash != newBlock->_prevHash)
+        return;
+
+    _blocks.push_back(newBlock);
 }
 
 void keyser::Chain::printChain()

@@ -8,8 +8,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <set>
 
-#include "./wallet/Wallet.hpp"
 #include "./wallet/WalletManager.hpp"
 #include "./views/RootView.hpp"
 #include "./node/Node.hpp"

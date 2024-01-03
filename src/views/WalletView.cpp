@@ -29,8 +29,7 @@ void keyser::cli::WalletView::display()
         switch (selection)
         {
             case '1':
-                displayTitle("Wallets");
-                _wallets.displayWallets();
+                viewWallets();
                 continueMsg();
                 break;
             case '2':
@@ -47,4 +46,10 @@ void keyser::cli::WalletView::display()
         clearScreen();
     }
     while (selection != '0');
+}
+
+void keyser::cli::WalletView::viewWallets()
+{
+    displayTitle("Wallets");
+    _wallets.displayWallets();
 }
