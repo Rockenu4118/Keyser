@@ -4,6 +4,7 @@
 
 #include "./NetworkView.hpp"
 #include "../node/Node.hpp"
+#include "../node/NodeInfo.hpp"
 
 
 keyser::cli::NetworkView::NetworkView(Node* node)
@@ -21,9 +22,10 @@ void keyser::cli::NetworkView::display()
     {
         displayTitle("Network Menu");
 
-        std::cout << "[1] View connections" << std::endl;
-        std::cout << "[2] New connection"   << std::endl;
-        std::cout << "[0] Exit"             << std::endl;
+        std::cout << "[1] View connections"  << std::endl;
+        std::cout << "[2] View active nodes" << std::endl;
+        std::cout << "[3] New connection"    << std::endl;
+        std::cout << "[0] Exit"              << std::endl;
         std::cout << std::endl;
 
         promptSelection(selection);
@@ -36,6 +38,11 @@ void keyser::cli::NetworkView::display()
                 continueMsg();
                 break;
             case '2':
+                displayTitle("Active Nodes");
+                _node->displayActiveNodes();
+                continueMsg();
+                break;
+            case '3':
                 newConnection();
                 continueMsg();
                 break;
@@ -51,13 +58,13 @@ void keyser::cli::NetworkView::display()
 
 void keyser::cli::NetworkView::newConnection()
 {
-    std::string ip = "127.0.0.1";
-    uint16_t    port;
+    NodeInfo nodeInfo;
+    nodeInfo._address = "127.0.0.1";
 
-    // std::cout << "Ip: ";
-    // std::cin >> ip;
+    std::cout << "Ip: ";
+    std::cin >> nodeInfo._address;
     std::cout << "Port: ";
-    std::cin >> port;
+    std::cin >> nodeInfo._port;
 
-    _node->connect(ip, port);
+    _node->connect(nodeInfo);
 }

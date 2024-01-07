@@ -36,7 +36,8 @@ void keyser::cli::WalletView::display()
                 // TODO
                 break;
             case '3':
-                // TODO
+                createWallet();
+                continueMsg();
                 break;
             default:
                 std::cout << "Invalid selection." << std::endl;
@@ -52,4 +53,14 @@ void keyser::cli::WalletView::viewWallets()
 {
     displayTitle("Wallets");
     _wallets.displayWallets();
+}
+
+void keyser::cli::WalletView::createWallet()
+{
+    std::string name;
+
+    displayTitle("New Wallet");
+    std::cout << "Name: ";
+    std::cin >> name;
+    _wallets.createWallet(name);
 }

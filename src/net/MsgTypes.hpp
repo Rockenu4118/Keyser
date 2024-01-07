@@ -3,24 +3,28 @@
 
 enum class MsgTypes : uint32_t 
 {
+    Generic,
+
     Ping,
 
-    DistributeAddr,
+    // One to many Msgs
+    DistributeNodeInfo,
     DistributeBlock,
     DistributeTransaction,
-
-    RelayAddr,
-    RelayBlock,
-    RelayTransaction,
-
-    VersionReq,
-    VersionRes,
     
-    InitBlockDownloadReq,
-    InitBlockDownloadRes,
+    // One to One Msgs
+    NodeInfoReq,
+    NodeInfoRes,
 
-    AddrListReq,
-    AddrListRes,
+    ChainReq,
+    ChainRes,
+
+    ActiveNodeListReq,
+    ActiveNodeListRes,
+
+    // Used for InitBlockDownload or Retrieving active node list
+    BlockStream,
+    NodeInfoStream,
 };
 
 #endif

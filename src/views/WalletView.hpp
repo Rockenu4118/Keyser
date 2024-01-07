@@ -16,6 +16,7 @@ namespace keyser
                 WalletView(WalletManager& wallets);
 
                 void viewWallets();
+                void createWallet();
 
             protected:
                 void display();

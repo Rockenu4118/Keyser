@@ -13,6 +13,7 @@
 #include "./utils.hpp"
 #include "../chain/Transaction.hpp"
 #include "../chain/Block.hpp"
+#include "../node/NodeInfo.hpp"
 
 
 std::string keyser::utils::pubKeytoAddress(const std::string& uPublicKey)
@@ -121,6 +122,28 @@ void keyser::utils::decodeJson(Block& block, std::string& jsonStr)
         decodeJson(tx, txStr);
         block._transactions.push_back(tx);
     }
+}
+
+void keyser::utils::encodeJson(std::string& jsonStr, NodeInfo& nodeInfo)
+{
+    nlohmann::json doc;
+
+    doc["version"] = nodeInfo._version;
+    doc["alias"]   = nodeInfo._alias;
+    doc["address"] = nodeInfo._address;
+    doc["port"]    = nodeInfo._port;
+
+    jsonStr = doc.dump();
+}
+
+void keyser::utils::decodeJson(NodeInfo& nodeInfo, std::string& jsonStr)
+{
+    nlohmann::json json = nlohmann::json::parse(jsonStr);
+
+    nodeInfo._version = json["version"];
+    nodeInfo._alias   = json["alias"];
+    nodeInfo._address = json["address"];
+    nodeInfo._port    = json["port"];
 }
 
 std::string keyser::utils::localTimestamp()

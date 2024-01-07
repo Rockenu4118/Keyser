@@ -15,6 +15,10 @@
 #include "./node/Node.hpp"
 #include "./data/keys.hpp"
 
+#include "./node/NodeInfo.hpp"
+
+
+
 
 int main()
 {   

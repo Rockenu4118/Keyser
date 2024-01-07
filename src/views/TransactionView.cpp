@@ -74,6 +74,6 @@ void keyser::cli::TransactionView::newTransaction()
 
     if (confirmation == 'y')
     {
-        _node->sendTransaction(transaction);
+        _node->distributeTransaction(transaction);
     }
 }

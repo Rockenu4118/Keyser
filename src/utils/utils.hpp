@@ -2,10 +2,10 @@
 #define UTILS_H
 
 #include <string>
-#include <set>
 
 #include "../chain/Transaction.hpp"
 #include "../chain/Block.hpp"
+#include "../node/NodeInfo.hpp"
 
 namespace keyser
 {
@@ -22,8 +22,9 @@ namespace keyser
         void encodeJson(std::string& jsonStr, Block& block);
         void decodeJson(Block& block, std::string& jsonStr);
 
-        // Addr List Encoding/Decoding
-        
+        // NodeInfo Encoding/Decoding
+        void encodeJson(std::string& jsonStr, NodeInfo& nodeInfo);
+        void decodeJson(NodeInfo& nodeInfo, std::string& jsonStr);        
 
         std::string localTimestamp();
 

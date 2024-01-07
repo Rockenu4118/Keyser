@@ -8,90 +8,70 @@
 #include <cstring>
 
 #include "./Connection.hpp"
+#include "./MsgTypes.hpp"
+#include "../chain/Block.hpp"
+#include "../chain/Transaction.hpp"
+#include "../node/NodeInfo.hpp"
 
 
 namespace keyser
 {
     // Forwrard declare 
-    template <typename T>
     class Connection;
 
-    template <typename T>
     struct MessageHeader
     {
-        T        id{};
+        MsgTypes id = MsgTypes::Generic;
         uint32_t size = 0;
     };
 
-    template <typename T>
     class Message
     {
-        friend std::ostream& operator<<(std::ostream& out, const Message<T>& msg) {
+        friend std::ostream& operator<<(std::ostream& out, const Message& msg) {
             out << "ID: " << int(msg.header.id) << ", Size: " << msg.header.size << std::endl;
             return out;
         }
 
         public:
             Message() = default;
+            Message(MsgTypes id);
 
-            size_t size() const
-            {
-                return body.size();
-            }
+        private:
+            void push(const std::string& msg);
+            void pull(std::string& msg);
 
-            void print()
-            {
-                for (int i = 0 ; i < header.size ; i++)
-                {
-                    std::cout << body.at(i);
-                }
+        public:
+            void insert(Block& block);
+            void insert(Transaction& transaction);
+            void insert(NodeInfo& NodeInfo);
 
-                std::cout << std::endl;
-            }
+            void extract(Block& block);
+            void extract(Transaction& transaction);
+            void extract(NodeInfo& nodeInfo);
 
-            void push(const std::string& msg)
-            {
-                int len = msg.size();
+            size_t size() const;
+            void print();
+            
 
-                for (int i = 0 ; i < len ; i++)
-                {
-                    body.push_back(msg[i]);
-                }
-
-                header.size = size();
-            }
-
-            void pull(std::string& msg)
-            {
-                int len = body.size();
-
-                for (int i = 0 ; i < len ; i++)
-                {
-                    msg += body.at(i);
-                }
-            }
-
-            MessageHeader<T>  header{};
+            MessageHeader     header{};
             std::vector<char> body;
     };
 
-    template <typename T>
-    class OwnedMessage
+    struct OwnedMessage
     {
-        friend std::ostream& operator<<(std::ostream& out, const OwnedMessage<T>& msg) {
+        friend std::ostream& operator<<(std::ostream& out, const OwnedMessage& msg) {
             out << msg._msg;
             return out;
         }
 
-        public:
-            OwnedMessage(std::shared_ptr<Connection<T>> remote, Message<T> msg)
-            {
-                _remote = remote;
-                _msg    = msg;
-            }
+        OwnedMessage(std::shared_ptr<Connection> remote, Message msg)
+        {
+            _remote = remote;
+            _msg    = msg;
+        }
 
-            std::shared_ptr<Connection<T>> _remote = nullptr;
-            Message<T>                         _msg;
+        std::shared_ptr<Connection> _remote = nullptr;
+        Message                     _msg;
     };
 }
 

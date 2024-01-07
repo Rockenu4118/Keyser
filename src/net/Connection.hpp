@@ -2,26 +2,21 @@
 #define CONNECTION_H
 
 #include <condition_variable>
-
 #include <boost/asio.hpp>
-
 #include <tsqueue.hpp>
 
 #include "./Message.hpp"
 
 
-
-
 namespace keyser
 {
-    template <typename T>
-    class Connection: public std::enable_shared_from_this<Connection<T>>
+    class Connection: public std::enable_shared_from_this<Connection>
     {
         public:
             // Constructor and destructor
             Connection(boost::asio::io_context& asioContext, 
                            boost::asio::ip::tcp::socket socket, 
-                           tsqueue<OwnedMessage<T>>& qMessagesIn, 
+                           tsqueue<OwnedMessage>& qMessagesIn, 
                            std::condition_variable& cvBlocking, 
                            uint16_t uid) : 
                            _asioContext(asioContext),
@@ -57,18 +52,20 @@ namespace keyser
                 }
             }
 
-            void connect(const boost::asio::ip::tcp::resolver::results_type& endpoints)
+            template <typename Func>
+            void connect(const boost::asio::ip::tcp::resolver::results_type& endpoints, Func onOutConnect)
             {
                 boost::asio::async_connect(_socket, endpoints,
-                    [this](std::error_code ec, boost::asio::ip::tcp::endpoint endpoint)
+                    [this, onOutConnect](std::error_code ec, boost::asio::ip::tcp::endpoint endpoint)
                     {
                         if (!ec)
                         {
                             readHeader();
+                            onOutConnect();
                         }
                         else
                         {
-                            std::cout << "didnt work" << std::endl;
+                            std::cout << "[NODE] Failed to connect." << std::endl;
                             disconnect();
                         }    
                     }
@@ -76,16 +73,16 @@ namespace keyser
             }
 
             void disconnect()
-            {
+            {   
                 if (isConnected())
                 {
-                    boost::asio::post(_asioContext, [this]() { _socket.close(); });
+                    _socket.close();
                 }   
 
                 _cvBlocking.notify_one();
             }
 
-            void send(const Message<T>& msg)
+            void send(const Message& msg)
             {
                 boost::asio::post(_asioContext,
                     [this, msg]()
@@ -105,7 +102,7 @@ namespace keyser
             private:
                 void readHeader()
                 {
-                    boost::asio::async_read(_socket, boost::asio::buffer(&_msgTemporaryIn.header, sizeof(MessageHeader<T>)),
+                    boost::asio::async_read(_socket, boost::asio::buffer(&_msgTemporaryIn.header, sizeof(MessageHeader)),
                         [this](std::error_code ec, size_t length)
                         {
                             if (!ec)
@@ -149,7 +146,7 @@ namespace keyser
 
                 void writeHeader()
                 {
-                    boost::asio::async_write(_socket, boost::asio::buffer(&_qMessagesOut.front().header, sizeof(MessageHeader<T>)),
+                    boost::asio::async_write(_socket, boost::asio::buffer(&_qMessagesOut.front().header, sizeof(MessageHeader)),
                         [this](std::error_code ec, size_t length)
                         {
                             if (!ec)
@@ -202,7 +199,7 @@ namespace keyser
 
                 void addToIncomingMessageQueue()
                 { 
-                    _qMessagesIn.pushBack(OwnedMessage<T>(this->shared_from_this(), _msgTemporaryIn));
+                    _qMessagesIn.pushBack(OwnedMessage(this->shared_from_this(), _msgTemporaryIn));
                     
                     readHeader();
                 }
@@ -210,9 +207,9 @@ namespace keyser
         protected:
             boost::asio::ip::tcp::socket _socket;
             boost::asio::io_context&     _asioContext;
-            tsqueue<Message<T>>          _qMessagesOut;
-            tsqueue<OwnedMessage<T>>&    _qMessagesIn;
-            Message<T>                   _msgTemporaryIn;
+            tsqueue<Message>             _qMessagesOut;
+            tsqueue<OwnedMessage>&       _qMessagesIn;
+            Message                      _msgTemporaryIn;
 
             // Notify Node to delete connection if it disconnects
             std::condition_variable& _cvBlocking;
