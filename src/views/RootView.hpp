@@ -22,7 +22,10 @@ namespace keyser
                 void display();
 
             private:
-                Node*                _node;
+                void initSetup();
+                void initConnection();
+
+                Node*          _node;
                 WalletManager& _wallets;
 
         };

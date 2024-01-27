@@ -11,7 +11,8 @@ keyser::cli::TransactionView::TransactionView(WalletManager& wallets, Node* node
 {
     _node = node;
 
-    display();
+    newTransaction();
+    clearScreen();
 }
 
 void keyser::cli::TransactionView::display()
@@ -52,7 +53,6 @@ void keyser::cli::TransactionView::newTransaction()
     char        confirmation;
 
     displayTitle("Creating Transaction");
-
     displayTitle("Wallets");
 
     _wallets.displayWallets();
@@ -65,6 +65,8 @@ void keyser::cli::TransactionView::newTransaction()
 
     promptInput("Amount: ", amount);
 
+    _node->chain()->getAddressBalance(_wallets.at(index).getPublicAddress());
+
     Transaction transaction = Transaction(amount, recievingAddress, _wallets.at(index).getKeyPair()->getUPublicKey());
     transaction.sign(_wallets.at(index).getKeyPair());
     
@@ -72,8 +74,11 @@ void keyser::cli::TransactionView::newTransaction()
     
     promptConfirmation(confirmation);
 
-    if (confirmation == 'y')
-    {
-        _node->distributeTransaction(transaction);
-    }
+    if (confirmation != 'y')
+        return;
+
+    bool success = _node->createTransaction(transaction);
+
+    if (!success)
+        std::cout << "Insufficient balance!" << std::endl;
 }

@@ -6,6 +6,7 @@ enum class MsgTypes : uint32_t
     Generic,
 
     Ping,
+    Pong,
 
     // One to many Msgs
     DistributeNodeInfo,
@@ -13,18 +14,16 @@ enum class MsgTypes : uint32_t
     DistributeTransaction,
     
     // One to One Msgs
-    NodeInfoReq,
-    NodeInfoRes,
+    Version,
+    Verack,
 
-    ChainReq,
-    ChainRes,
+    GetNodeList,
+    NodeInfo,
 
-    ActiveNodeListReq,
-    ActiveNodeListRes,
+    GetBlocks,
+    Block,
 
-    // Used for InitBlockDownload or Retrieving active node list
-    BlockStream,
-    NodeInfoStream,
+    
 };
 
 #endif

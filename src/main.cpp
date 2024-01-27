@@ -22,6 +22,41 @@
 
 int main()
 {   
+    // std::set<keyser::NodeInfo> info;
+
+    // keyser::NodeInfo info1;
+    // info1._address = "127.0.0.1";
+    // info1._port = 6000;
+
+
+    // keyser::NodeInfo info2;
+    // info2._address = "127.0.0.1";
+    // info2._port = 6001;
+
+    // keyser::NodeInfo info3;
+    // info3._address = "127.0.0.1";
+    // info3._port = 6000;
+
+    // keyser::NodeInfo info4;
+    // info4._address = "127.0.0.1";
+    // info4._port = 6001;
+
+    // keyser::NodeInfo info5;
+    // info5._address = "192.168.2.22";
+    // info5._port = 6001;
+
+    // info.insert(info1);
+    // info.insert(info2);
+    // info.insert(info3);
+    // info.insert(info4);
+
+    // for (auto& node : info)
+    //     std::cout << node._address << ":" << node._port << std::endl;
+
+    // std::cout << info.count(info4) << std::endl;
+
+
+
     // Initialize wallet manager and test wallets
     keyser::WalletManager wallets;
 

@@ -11,13 +11,6 @@
 #include <boost/asio/ts/buffer.hpp>
 #include <boost/asio/ts/internet.hpp>
 
-class InitChain
-{
-    public:
-        int initChain();
-
-};
-
 class InitNet
 {
     public:

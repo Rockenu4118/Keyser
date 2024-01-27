@@ -17,62 +17,55 @@ namespace keyser
         public:
             Node(uint16_t port);
 
+            // Node actions
             void beginMining(bool continuous);
-            void mineSingleBlock();
-            void mineContinuously();
+
+            bool createTransaction(Transaction& transaction);
+
+            // void connectToNetwork();
 
             void ping();
 
-            void distributeNodeInfo(NodeInfo& nodeInfo);
-            void distributeBlock(Block& block);
-            void distributeTransaction(Transaction& transaction);
+            void getBlocks();
+            void sendBlocks(std::shared_ptr<Connection> connection);
 
-            void nodeInfoReq();
-            void nodeInfoRes();
-
-            void chainReq();
-            void chainRes();
-
-            void activeNodeListReq();
-            void activeNodeListRes();
-
-            // void firstTimeSetup();
-
-            void sendActiveNodeList();
-            void InitBlockDownload();
-
-            void sendNodeInfo(NodeInfo& nodeInfo);
-            void sendTransaction(Transaction& transaction);
-            void sendBlock(Block& block);
+            void nodeInfoStream(std::shared_ptr<Connection> connection);
             
-
             Chain* chain();
 
         protected:
-            virtual void onOutgoingConnect(std::shared_ptr<Connection> connection);
             virtual bool allowConnect(std::shared_ptr<Connection> connection);
             virtual void onIncomingConnect(std::shared_ptr<Connection> connection);
             virtual void onDisconnect(std::shared_ptr<Connection> connection);
             virtual void onMessage(std::shared_ptr<Connection> connection, Message& msg);
 
         private:
+            // Called by beginMining
+            void mineSingleBlock();
+            void mineContinuously();
+
+            // Distribution msgs only called by public functions
+            void distributeNodeInfo(NodeInfo& nodeInfo);
+            void distributeBlock(Block& block);
+            void distributeTransaction(Transaction& transaction);
+
             // Msg Handlers
             void handlePing(std::shared_ptr<Connection> connection, Message& msg);
+            void handlePong(std::shared_ptr<Connection> connection, Message& msg);
             void handleDistributeNodeInfo(std::shared_ptr<Connection> connection, Message& msg);
             void handleDistributeBlock(std::shared_ptr<Connection> connection, Message& msg);
             void handleDistributeTransaction(std::shared_ptr<Connection> connection, Message& msg);
-    
-            void handleNodeInfoReq(std::shared_ptr<Connection> connection, Message& msg);
-            void handleNodeInfoRes(std::shared_ptr<Connection> connection, Message& msg);
-            
-            void handleInitBlockDownload(std::shared_ptr<Connection> connection, Message& msg);
+            void handleVersion(std::shared_ptr<Connection> connection, Message& msg);
+            void handleVerack(std::shared_ptr<Connection> connection, Message& msg);
+            void handleGetBlocks(std::shared_ptr<Connection> connection, Message& msg);
+            void handleBlocks(std::shared_ptr<Connection> connection, Message& msg);
+            void handleGetNodeList(std::shared_ptr<Connection> connection, Message& msg);
+            void handleNodeInfo(std::shared_ptr<Connection> connection, Message& msg);
 
             // Node members
-            Chain* _chain = nullptr;
-            
+            Chain*      _chain = nullptr;
             std::thread _miningThr;
-
-            bool _miningStatus = false;
+            bool        _miningStatus = false;
         };
 }
 

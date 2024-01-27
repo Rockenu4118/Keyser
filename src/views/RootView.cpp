@@ -19,6 +19,8 @@ keyser::cli::RootView::RootView(Node* node, WalletManager& wallets) : _wallets(w
 
 void keyser::cli::RootView::display()
 {
+    initSetup();
+
     char selection;
 
     do
@@ -63,9 +65,6 @@ void keyser::cli::RootView::display()
                 keyser::cli::NetworkView view = keyser::cli::NetworkView(_node);
             }
                 break;
-            case '6':
-                _node->InitBlockDownload();
-                break;
             default:
                 std::cout << "Exiting program..." << std::endl;
                 break;
@@ -74,4 +73,38 @@ void keyser::cli::RootView::display()
         clearScreen();
     }
     while (selection != '0');
+}
+
+void keyser::cli::RootView::initSetup()
+{
+    displayTitle("Keyser Protocol Initial Connection");
+
+    char selection;
+
+    std::cout << "Establish init connect (y/n): ";
+    std::cin >> selection;
+
+    if (selection == 'y') 
+    {
+        initConnection();
+    }
+}
+
+void keyser::cli::RootView::initConnection()
+{
+    bool success = false;
+
+    do
+    {
+        NodeInfo nodeInfo;
+        nodeInfo._address = "127.0.0.1";
+
+        std::cout << "Ip: ";
+        std::cin >> nodeInfo._address;
+        std::cout << "Port: ";
+        std::cin >> nodeInfo._port;
+
+        success = _node->connect(nodeInfo);
+    }
+    while (!success);
 }

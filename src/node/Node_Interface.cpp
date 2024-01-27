@@ -5,6 +5,8 @@
 #include <boost/asio.hpp>
 #include <tsqueue.hpp>
 
+#include "../data/version.hpp"
+#include "../net/MsgTypes.hpp"
 #include "./Node_Interface.hpp"
 #include "../net/Connection.hpp"
 #include "../net/Message.hpp"
@@ -15,6 +17,11 @@ keyser::Node_Interface::Node_Interface(uint16_t port) : _acceptor(_context, boos
 {
     // Save port number
     _port = port;
+
+    _selfInfo._version = KEYSER_VERSION;
+    _selfInfo._alias   = "whatev";
+    _selfInfo._address = "";
+    _selfInfo._port    = port;
 
     // Run thread to handle messsages
     _responseThread = std::thread([this]() { update(); }); 
@@ -34,6 +41,8 @@ bool keyser::Node_Interface::start()
 
         // Run the context in its own thread
         _contextThread = std::thread([this]() { _context.run(); });
+        // Activate thread to manage peer connections
+        _peerConnectionThread = std::thread([this]() { managePeerConnections(); });
         // Activate thread to dispose of invalid connections
         _connectionRemovalThread = std::thread([this]() { removeInvalidConnections(); });
     }
@@ -48,19 +57,13 @@ bool keyser::Node_Interface::start()
 }
 
 bool keyser::Node_Interface::connect(const NodeInfo nodeInfo)
-{
-    // TODO - dont allow multiple connections to same host
-    if (_activeNodeList.count(nodeInfo) == 1)
-    {
-        std::cout << "[NODE] Already connected." << std::endl;
-        return false;
-    }
-
+{   
     try
     {
         // Resolve hostname/ip-address into physical address
-        boost::asio::ip::tcp::resolver               resolver(_context);
-        boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(nodeInfo._address, std::to_string(nodeInfo._port));
+        // boost::asio::ip::tcp::resolver               resolver(_context);
+        // boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(nodeInfo._address, std::to_string(nodeInfo._port));
+        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::make_address(nodeInfo._address), nodeInfo._port);
 
         // Create connection
         std::shared_ptr<Connection> newConn = std::make_shared<Connection>(_context, boost::asio::ip::tcp::socket(_context), _messagesIn, _cvBlocking, _idCounter++);
@@ -68,8 +71,15 @@ bool keyser::Node_Interface::connect(const NodeInfo nodeInfo)
         // Connection pushed to back of connection container
         _connections.push_back(std::move(newConn));
 
-        // Tell connection object to connect
-        _connections.back()->connect(endpoints, [this](){ onOutgoingConnect(_connections.back()); });
+        // Tell connection object to connect, if failed return false and remove connection
+        if (!_connections.back()->connect(endpoint))
+        {
+            _connections.back().reset();
+            _connections.erase(std::remove(_connections.begin(), _connections.end(), nullptr), _connections.end());
+            return false;
+        }
+
+        version(_connections.back());
     }
     catch (std::exception& e)
     {
@@ -152,6 +162,18 @@ void keyser::Node_Interface::messageNeighbors(const Message& msg, std::shared_pt
     }
 }
 
+void keyser::Node_Interface::managePeerConnections()
+{
+    // Wait until external address is obtained
+    // while (_selfInfo._address == "" || _connections.size() == 0)
+    //     sleep(1);
+
+    // Message msg(MsgTypes::GetNodeList);
+    // message(_connections.front(), msg);
+
+
+}
+
 void keyser::Node_Interface::removeInvalidConnections()
 {
     while (1)
@@ -195,6 +217,18 @@ void keyser::Node_Interface::update(uint8_t maxMessages, bool wait)
     }
 }
 
+void keyser::Node_Interface::version(std::shared_ptr<Connection> connection)
+{
+    // Send self info as well as their external address
+    Message msg(MsgTypes::Version);
+    msg.edit("Outbound version", KEYSER_VERSION);
+    msg.edit("Outbound alias", "self");
+    msg.edit("Outbound port", _port);
+    msg.edit("address", connection->getEndpoint().address().to_string());
+    msg.serialize();
+    message(connection, msg);
+}
+
 void keyser::Node_Interface::displayConnections()
 {
     if (_connections.size() == 0)
@@ -223,8 +257,24 @@ void keyser::Node_Interface::displayActiveNodes()
     }
 }
 
-void keyser::Node_Interface::onOutgoingConnect(std::shared_ptr<Connection> connection)
-{}
+void keyser::Node_Interface::displayConnectedNodes()
+{
+    if (_connectedNodeList.size() == 0)
+    {
+        std::cout << "No connected nodes." << std::endl;
+        return;
+    }
+
+    for (auto& nodeInfo : _connectedNodeList)
+    {
+        std::cout << nodeInfo._address << ":" << nodeInfo._port << std::endl;
+    }
+}
+
+void keyser::Node_Interface::displaySelfInfo()
+{
+    std::cout << _selfInfo << std::endl;
+}
 
 bool keyser::Node_Interface::allowConnect(std::shared_ptr<Connection> connection)
 { return true; }

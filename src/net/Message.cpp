@@ -18,6 +18,8 @@ keyser::Message::Message(MsgTypes id)
     header.id = id;
 }
 
+
+
 void keyser::Message::push(const std::string& msg)
 {
     int len = msg.size();
@@ -38,6 +40,63 @@ void keyser::Message::pull(std::string& msg)
     {
         msg += body.at(i);
     }
+}
+
+void keyser::Message::serialize()
+{
+    push(doc.dump());
+}
+
+void keyser::Message::deserialize()
+{
+    std::string msg;
+    pull(msg);
+    doc = nlohmann::json::parse(msg);
+}
+
+void keyser::Message::edit(std::string key, std::string value)
+{
+    doc[key] = value;
+}
+
+void keyser::Message::edit(std::string key, int value)
+{
+    doc[key] = value;
+}
+
+void keyser::Message::edit(std::string key, double value)
+{
+    doc[key] = value;
+}
+
+void keyser::Message::edit(std::string key, time_t value)
+{
+    doc[key] = value;
+}
+
+void keyser::Message::get(std::string key, std::string& value)
+{
+    value = doc[key];
+}
+
+void keyser::Message::get(std::string key, int& value)
+{
+    value = doc[key];
+}
+
+void keyser::Message::get(std::string key, uint16_t& value)
+{
+    value = doc[key];
+}
+
+void keyser::Message::get(std::string key, double& value)
+{
+    value = doc[key];
+}
+
+void keyser::Message::get(std::string key, time_t& value)
+{
+    value = doc[key];
 }
 
 void keyser::Message::insert(Block& block)

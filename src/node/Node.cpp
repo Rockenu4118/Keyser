@@ -4,13 +4,13 @@
 
 #include "./Node.hpp"
 #include "../data/version.hpp"
+#include "../data/nodeAddresses.hpp"
 #include "../net/MsgTypes.hpp"
 #include "../utils/utils.hpp"
 #include "../chain/Chain.hpp"
 #include "../chain/Block.hpp"
 #include "../chain/Transaction.hpp"
 #include "../node/NodeInfo.hpp"
-#include "../data/version.hpp"
 
 
 
@@ -55,18 +55,56 @@ void keyser::Node::mineSingleBlock()
     _miningStatus = false;
 }
 
-void keyser::Node::sendActiveNodeList()
+bool keyser::Node::createTransaction(Transaction& transaction)
 {
-    for (auto nodeInfo : _activeNodeList)
-    {
-        distributeNodeInfo(nodeInfo);
-    }
+    double balance = _chain->getAddressBalance(transaction._senderAddress) + _chain->mempool()->getPendingBalance(transaction._senderAddress);
+
+    if (transaction._amount > balance)
+        return false;
+
+    _chain->mempool()->addTransaction(transaction);
+    distributeTransaction(transaction);
+    return true;
 }
 
-void keyser::Node::InitBlockDownload()
+// void keyser::Node::connectToNetwork()
+// {
+//     getNodeList();
+//
+//     sleep(1);
+//
+//     uint8_t connections = 0;
+//
+//     for (auto& nodeInfo : _activeNodeList)
+//     {
+//         if (_selfInfo == nodeInfo)
+//         {
+//             std::cout << "[NODE] Cannot self connect" << std::endl;
+//             continue;
+//         }
+//
+//         if (_connectedNodeList.count(nodeInfo) == 1)
+//         {
+//             std::cout << "[NODE] No duplicate connections" << std::endl;
+//             continue;
+//         }
+//
+//         if (connect(nodeInfo))
+//         {
+//             _connectedNodeList.insert(nodeInfo);
+//             connections++;
+//         }
+//     }
+//
+//     std::cout << "Successfully made " << std::to_string(connections) << " connections, distributing self info." << std::endl;
+//
+//     distributeNodeInfo(_selfInfo);
+// }
+
+void keyser::Node::ping()
 {
-    Message msg(MsgTypes::ChainReq);
-    message(_connections.front(), msg);
+    Message msg(MsgTypes::Ping);
+    messageNeighbors(msg);
 }
 
 void keyser::Node::distributeNodeInfo(NodeInfo& nodeInfo)
@@ -78,7 +116,6 @@ void keyser::Node::distributeNodeInfo(NodeInfo& nodeInfo)
 
 void keyser::Node::distributeTransaction(Transaction& transaction)
 {
-    _chain->mempool()->addTransaction(transaction);
     Message msg(MsgTypes::DistributeTransaction);
     msg.insert(transaction);
     messageNeighbors(msg);
@@ -91,10 +128,25 @@ void keyser::Node::distributeBlock(Block& block)
     messageNeighbors(msg);
 }
 
-void keyser::Node::ping()
+void keyser::Node::getBlocks()
 {
-    Message msg(MsgTypes::Ping);
-    messageNeighbors(msg);
+    Message msg(MsgTypes::GetBlocks);
+    message(_connections.front(), msg);
+}
+
+void keyser::Node::sendBlocks(std::shared_ptr<Connection> connection)
+{
+
+}
+
+void keyser::Node::nodeInfoStream(std::shared_ptr<Connection> connection)
+{
+    for (NodeInfo nodeInfo : _activeNodeList)
+    {
+        Message msg(MsgTypes::NodeInfo);
+        msg.insert(nodeInfo);
+        message(connection, msg);
+    }
 }
 
 keyser::Chain* keyser::Node::chain()
@@ -102,22 +154,11 @@ keyser::Chain* keyser::Node::chain()
     return _chain;
 }
 
-void keyser::Node::onOutgoingConnect(std::shared_ptr<Connection> connection)
-{}
-
-bool keyser::Node::allowConnect(std::shared_ptr<Connection> connection) { return true; }
+bool keyser::Node::allowConnect(std::shared_ptr<Connection> connection)
+{ return true; }
 
 void keyser::Node::onIncomingConnect(std::shared_ptr<Connection> connection) 
-{
-    // TODO - add connection to active node list
-    Message msg(MsgTypes::NodeInfoReq);
-    NodeInfo nodeInfo;
-    nodeInfo._version = KEYSER_VERSION;
-    nodeInfo._alias = "myMFNode";
-    nodeInfo._port = _port;
-    msg.insert(nodeInfo);
-    message(connection, msg);
-}
+{}
 
 void keyser::Node::onDisconnect(std::shared_ptr<Connection> connection)
 {
@@ -143,14 +184,23 @@ void keyser::Node::onMessage(std::shared_ptr<Connection> connection, Message& ms
         case MsgTypes::DistributeTransaction:
             handleDistributeTransaction(connection, msg);
             break;
-        case MsgTypes::NodeInfoReq:
-            handleNodeInfoReq(connection, msg);
+        case MsgTypes::Version:
+            handleVersion(connection, msg);
             break;
-        case MsgTypes::NodeInfoRes:
-            handleNodeInfoRes(connection, msg);
+        case MsgTypes::Verack:
+            handleVerack(connection, msg);
             break;
-        case MsgTypes::ChainReq:
-            handleInitBlockDownload(connection, msg);
+        case MsgTypes::GetBlocks:
+            handleGetBlocks(connection, msg);
+            break;
+        case MsgTypes::Block:
+            handleBlocks(connection, msg);
+            break;
+        case MsgTypes::GetNodeList:
+            handleGetNodeList(connection, msg);
+            break;
+        case MsgTypes::NodeInfo:
+            handleNodeInfo(connection, msg);
             break;
         default:
             std::cout << "[NODE] Unknown Msg Type" << std::endl;
@@ -163,40 +213,61 @@ void keyser::Node::handlePing(std::shared_ptr<Connection> connection, Message& m
     std::cout << utils::localTimestamp() << "Ping: " << connection->getId() << std::endl;
 }
 
-void keyser::Node::handleNodeInfoReq(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleVersion(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << "[NODE] Node Info Req" << std::endl;
-    NodeInfo incomingNodeInfo;
-    msg.extract(incomingNodeInfo);
-    incomingNodeInfo._address = connection->getEndpoint().address().to_string();
-    _activeNodeList.insert(incomingNodeInfo);
+    std::cout << "[NODE] Version" << std::endl;
+    // Save external address
+    msg.deserialize();
+    msg.get("address", _selfInfo._address);
 
-    Message newMsg(MsgTypes::NodeInfoRes);
-    NodeInfo outgoingNodeInfo;
-    outgoingNodeInfo._version = KEYSER_VERSION;
-    outgoingNodeInfo._alias = "node";
-    outgoingNodeInfo._port = _port;
-    newMsg.insert(outgoingNodeInfo);
+    // Deserialize incoming node info
+    NodeInfo nodeInfo;
+    msg.get("Outbound version", nodeInfo._version);
+    msg.get("Outbound alias", nodeInfo._alias);
+    nodeInfo._address = connection->getEndpoint().address().to_string();
+    msg.get("Outbound port", nodeInfo._port);
+    _connectedNodeList.insert(nodeInfo);
+
+    // Send self info as well as their external ip
+    Message newMsg(MsgTypes::Verack);
+    newMsg.edit("Outbound version", _selfInfo._version);
+    newMsg.edit("Outbound alias", _selfInfo._alias);
+    newMsg.edit("Outbound port", _selfInfo._port);
+    newMsg.edit("address", nodeInfo._address);
+    newMsg.serialize();
+
     message(connection, newMsg);
 }
 
-void keyser::Node::handleNodeInfoRes(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleVerack(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << "[NODE] Node Info Res" << std::endl;
+    std::cout << "[NODE] Verack" << std::endl;
+    // Deserialize incoming info
+    msg.deserialize();
     NodeInfo nodeInfo;
-    msg.extract(nodeInfo);
+    msg.get("Outbound version", nodeInfo._version);
+    msg.get("Outbound alias", nodeInfo._alias);
     nodeInfo._address = connection->getEndpoint().address().to_string();
-    _activeNodeList.insert(nodeInfo);
-    distributeNodeInfo(nodeInfo);
+    msg.get("Outbound port", nodeInfo._port);
+    
+    // Save external address
+    msg.get("address", _selfInfo._address);
+
+    // Add self to list of active nodes
+    _activeNodeList.insert(_selfInfo);
 }
 
 void keyser::Node::handleDistributeNodeInfo(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << "[NODE] Node Info" << std::endl;
-    messageNeighbors(msg, connection);
+    std::cout << "[NODE] Distribute Node Info" << std::endl;
     NodeInfo nodeInfo;
     msg.extract(nodeInfo);
+
+    if (_activeNodeList.count(nodeInfo) == 1)
+        return;
+
     _activeNodeList.insert(nodeInfo);
+    messageNeighbors(msg, connection);
 }
 
 void keyser::Node::handleDistributeTransaction(std::shared_ptr<Connection> connection, Message& msg)
@@ -217,19 +288,37 @@ void keyser::Node::handleDistributeBlock(std::shared_ptr<Connection> connection,
     _chain->addBlock(block);
 }
 
-void keyser::Node::handleInitBlockDownload(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleGetBlocks(std::shared_ptr<Connection> connection, Message& msg)
 {
     // TODO - make better and test more
+    std::cout << "Recieved chain req" << std::endl;
 
-    std::cout << "Recieved init download req" << std::endl;
+    // blockStream();
 
     // for (int i = 1 ; i < _chain->blocks().size() ; i++)
     // {
     //     Message msg;
-    //     // msg.header.id = MsgTypes::DistributeBlock;
+    //     msg.header.id = MsgTypes::DistributeBlock;
     //     std::string msgStr;
     //     keyser::utils::encodeJson(msgStr, *_chain->blocks().at(i));
     //     // msg.push(msgStr);
     //     message(connection, msg);
     // }
+}
+
+void keyser::Node::handleBlocks(std::shared_ptr<Connection> connection, Message& msg)
+{}
+
+void keyser::Node::handleGetNodeList(std::shared_ptr<Connection> connection, Message& msg)
+{
+    std::cout << "[NODE] Get Node List" << std::endl;
+    nodeInfoStream(connection);
+}
+
+void keyser::Node::handleNodeInfo(std::shared_ptr<Connection> connection, Message& msg)
+{
+    std::cout << "[NODE] Node Info" << std::endl;
+    NodeInfo nodeInfo;
+    msg.extract(nodeInfo);
+    _activeNodeList.insert(nodeInfo);
 }

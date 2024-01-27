@@ -16,6 +16,8 @@ namespace keyser
 
             std::vector<Transaction> popLeadingTransactions();
 
+            double getPendingBalance(std::string address);
+
             void printMempool();
 
         private:

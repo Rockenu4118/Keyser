@@ -29,6 +29,7 @@ namespace keyser
 
         public:
             double      _amount;
+            time_t      _time;
             std::string _recieverAddress;
             std::string _senderAddress;
             std::string _senderPublicKey;

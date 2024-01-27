@@ -30,16 +30,21 @@ namespace keyser
             void waitForConnection();
             void message(std::shared_ptr<Connection> connection, const Message& msg);
             void messageNeighbors(const Message& msg, std::shared_ptr<Connection> ignoreConnection = nullptr);
+            void managePeerConnections();
             void removeInvalidConnections();
 
             // Handle incoming messages
             void update(uint8_t maxMessages = -1, bool wait = true);
 
+            // Initial msg sent to establish handshake from a new node
+            void version(std::shared_ptr<Connection> connection);
+
             void displayConnections();
             void displayActiveNodes();
+            void displayConnectedNodes();
+            void displaySelfInfo();
 
         protected:
-            virtual void onOutgoingConnect(std::shared_ptr<Connection> connection);
             virtual bool allowConnect(std::shared_ptr<Connection> connection);
             virtual void onIncomingConnect(std::shared_ptr<Connection> connection);
             virtual void onDisconnect(std::shared_ptr<Connection> connection);
@@ -54,8 +59,10 @@ namespace keyser
             // Container for active validated connections
             std::deque<std::shared_ptr<Connection>> _connections{};
 
-            // Addresses of active nodes on network
+            // Info of active nodes on network, info of connected nodes, self info
             std::set<NodeInfo> _activeNodeList;
+            std::set<NodeInfo> _connectedNodeList;
+            NodeInfo           _selfInfo;
 
             // Asio context as well as its own thread to run in
             boost::asio::io_context _context;
@@ -67,6 +74,12 @@ namespace keyser
             std::condition_variable _cvBlocking;
             std::mutex              _muxBlocking;
             std::thread             _connectionRemovalThread;
+
+            // Thread for handling peer connections
+
+            std::thread _peerConnectionThread;
+            std::mutex _muxConnections;
+            std::condition_variable _cvConnections;
 
             // Asio acceptor
             boost::asio::ip::tcp::acceptor _acceptor;

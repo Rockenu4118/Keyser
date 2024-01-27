@@ -12,6 +12,7 @@ namespace keyser
         friend std::ostream& operator<<(std::ostream& out, NodeInfo& data)
         {
             out << "Version: " << data._version << ", ";
+            out << "Alias: "   << data._alias   << ", ";
             out << "Address: " << data._address << ", ";
             out << "Port: "    << data._port;
 
@@ -21,7 +22,12 @@ namespace keyser
         // Need to overload < operator to be compatible with std::set
         friend bool operator<(const NodeInfo& lhs, const NodeInfo& rhs) 
         {
-            return (lhs._address < rhs._address) || (lhs._port < rhs._port);
+            return (lhs._address != rhs._address) || (lhs._port != rhs._port);
+        }
+
+        friend bool operator==(const NodeInfo& lhs, const NodeInfo& rhs)
+        {
+            return (lhs._address == rhs._address) && (lhs._port == rhs._port);
         }
 
         std::string _version;

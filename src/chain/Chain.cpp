@@ -87,7 +87,7 @@ void keyser::Chain::printChain()
     }
 }
 
-void keyser::Chain::getAddressBalance(std::string address)
+double keyser::Chain::getAddressBalance(std::string address)
 {
     double balance = 0;
 
@@ -105,7 +105,7 @@ void keyser::Chain::getAddressBalance(std::string address)
         }
     }
     
-    std::cout << "Address: " << address << ", Balance: " << balance << std::endl;
+    return balance;
 }
 
 bool keyser::Chain::isValid()

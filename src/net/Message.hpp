@@ -6,12 +6,14 @@
 #include <vector>
 #include <memory>
 #include <cstring>
+#include <nlohmann/json.hpp>
 
 #include "./Connection.hpp"
 #include "./MsgTypes.hpp"
 #include "../chain/Block.hpp"
 #include "../chain/Transaction.hpp"
 #include "../node/NodeInfo.hpp"
+
 
 
 namespace keyser
@@ -41,6 +43,20 @@ namespace keyser
             void pull(std::string& msg);
 
         public:
+            void serialize();
+            void deserialize();
+
+            void edit(std::string key, std::string value);
+            void edit(std::string key, int value);
+            void edit(std::string key, double value);
+            void edit(std::string key, time_t);
+
+            void get(std::string key, std::string& value);
+            void get(std::string key, int& value);
+            void get(std::string key, uint16_t& value);
+            void get(std::string key, double& value);
+            void get(std::string key, time_t& value);
+
             void insert(Block& block);
             void insert(Transaction& transaction);
             void insert(NodeInfo& NodeInfo);
@@ -52,7 +68,7 @@ namespace keyser
             size_t size() const;
             void print();
             
-
+            nlohmann::json    doc;
             MessageHeader     header{};
             std::vector<char> body;
     };

@@ -12,6 +12,7 @@
 // Constructors
 keyser::Transaction::Transaction(double amount, std::string recievingAddress, std::string sendingPubKey)
 {
+    _time            = time(NULL);
     _amount          = amount;
     _recieverAddress = recievingAddress;
     _senderAddress   = keyser::utils::pubKeytoAddress(sendingPubKey);
@@ -24,7 +25,7 @@ keyser::Transaction::Transaction(double amount, std::string recievingAddress, st
 // Modifiers
 void keyser::Transaction::calcHash()
 {
-    std::string unhashed = std::to_string(_amount) + _recieverAddress + _senderAddress + _senderPublicKey;
+    std::string unhashed = std::to_string(_time) + std::to_string(_amount) + _recieverAddress + _senderAddress + _senderPublicKey;
     std::string hashed = "";
 
     cryptography::SHA256(unhashed, hashed);
@@ -73,6 +74,7 @@ bool keyser::Transaction::isValid()
 namespace keyser
 {
     std::ostream& operator<<(std::ostream& out, Transaction& data) {
+        out << "Time: "              << data._time            << ", ";
         out << "Amount: "            << data._amount          << ", ";
         out << "Recieving Address: " << data._recieverAddress << ", ";
         out << "Sender: "            << data._senderAddress;
