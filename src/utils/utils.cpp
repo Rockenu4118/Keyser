@@ -51,26 +51,20 @@ std::string keyser::utils::hexToString(const std::string& input)
     return output;
 }
 
-void keyser::utils::encodeJson(std::string& jsonStr, Transaction& transaction)
+void keyser::utils::encodeJson(nlohmann::json& json, Transaction& transaction)
 {
-    nlohmann::json doc;
-
-    doc["time"]              = transaction._time;
-    doc["amount"]            = transaction._amount;
-    doc["reciever address"]  = transaction._recieverAddress;
-    doc["sender address"]    = transaction._senderAddress;
-    doc["sender public key"] = transaction._senderPublicKey;
-    doc["hash"]              = transaction._hash;
-    doc["r sig val"]         = transaction._rSigVal;
-    doc["s sig val"]         = transaction._sSigVal;
-
-    jsonStr = doc.dump();
+    json["time"]              = transaction._time;
+    json["amount"]            = transaction._amount;
+    json["reciever address"]  = transaction._recieverAddress;
+    json["sender address"]    = transaction._senderAddress;
+    json["sender public key"] = transaction._senderPublicKey;
+    json["hash"]              = transaction._hash;
+    json["r sig val"]         = transaction._rSigVal;
+    json["s sig val"]         = transaction._sSigVal;
 }
 
-void keyser::utils::decodeJson(Transaction& transaction, std::string& jsonStr)
+void keyser::utils::decodeJson(Transaction& transaction, nlohmann::json& json)
 {
-    nlohmann::json json = nlohmann::json::parse(jsonStr);
-
     transaction._time            = json["time"];
     transaction._amount          = json["amount"];
     transaction._recieverAddress = json["reciever address"];
@@ -81,67 +75,48 @@ void keyser::utils::decodeJson(Transaction& transaction, std::string& jsonStr)
     transaction._sSigVal         = json["s sig val"];
 }
 
-void keyser::utils::encodeJson(std::string& jsonStr, Block& block)
+void keyser::utils::encodeJson(nlohmann::json& json, Block& block)
 {
-    nlohmann::json doc;
-    nlohmann::json transactionArr;
+    json["index"]     = block._index;
+    json["time"]      = block._time;
+    json["nonce"]     = block._nonce;
+    json["prev hash"] = block._prevHash;
+    json["hash"]      = block._hash;
 
-    doc["index"]     = block._index;
-    doc["time"]      = block._time;
-    doc["nonce"]     = block._nonce;
-    doc["prev hash"] = block._prevHash;
-    doc["hash"]      = block._hash;
-
-    for (int i = 0 ; i < block._transactions.size() ; i++)
+    for (Transaction tx : block._transactions)
     {
-        std::string txJsonStr;
-        encodeJson(txJsonStr, block._transactions.at(i));
-        transactionArr.push_back(txJsonStr);
+        nlohmann::json txJson;
+        encodeJson(txJson, tx);
+        json["transactions"].push_back(txJson);
     }
-
-    doc["transactions"] = transactionArr.dump();
-
-    jsonStr = doc.dump();
 }
 
-void keyser::utils::decodeJson(Block& block, std::string& jsonStr)
+void keyser::utils::decodeJson(Block& block, nlohmann::json& json)
 {
-    nlohmann::json json = nlohmann::json::parse(jsonStr);
-
     block._index    = json["index"];
     block._time     = json["time"];
     block._nonce    = json["nonce"];
     block._prevHash = json["prev hash"];
     block._hash     = json["hash"];
 
-    std::string txJsonStr = json["transactions"];
-    nlohmann::json txJson = nlohmann::json::parse(txJsonStr);
-    
-    for (int i = 0 ; i < txJson.size() ; i++)
+    for (auto& element : json["transactions"])
     {
-        std::string txStr = txJson.at(i);
         Transaction tx;
-        decodeJson(tx, txStr);
+        decodeJson(tx, element);
         block._transactions.push_back(tx);
     }
 }
 
-void keyser::utils::encodeJson(std::string& jsonStr, NodeInfo& nodeInfo)
+void keyser::utils::encodeJson(nlohmann::json& json, NodeInfo& nodeInfo)
 {
-    nlohmann::json doc;
-
-    doc["version"] = nodeInfo._version;
-    doc["alias"]   = nodeInfo._alias;
-    doc["address"] = nodeInfo._address;
-    doc["port"]    = nodeInfo._port;
-
-    jsonStr = doc.dump();
+    json["version"] = nodeInfo._version;
+    json["alias"]   = nodeInfo._alias;
+    json["address"] = nodeInfo._address;
+    json["port"]    = nodeInfo._port;
 }
 
-void keyser::utils::decodeJson(NodeInfo& nodeInfo, std::string& jsonStr)
+void keyser::utils::decodeJson(NodeInfo& nodeInfo, nlohmann::json& json)
 {
-    nlohmann::json json = nlohmann::json::parse(jsonStr);
-
     nodeInfo._version = json["version"];
     nodeInfo._alias   = json["alias"];
     nodeInfo._address = json["address"];
@@ -167,4 +142,23 @@ std::string keyser::utils::localTimestamp()
                             std::string(2 - std::min(2, secStrLen), '0')  + secStr  + "] ";
 
     return timestamp;
+}
+
+std::string keyser::utils::localTime(time_t time)
+{
+    struct tm *tmp = localtime(&time);
+
+    std::string hourStr = std::to_string(tmp->tm_hour);
+    std::string minStr  = std::to_string(tmp->tm_min);
+    std::string secStr  = std::to_string(tmp->tm_sec);
+
+    int hourStrLen = hourStr.size();
+    int minStrLen  = minStr.size();
+    int secStrLen  = secStr.size();
+
+    std::string localTime = std::string(2 - std::min(2, hourStrLen), '0') + hourStr + ":" +
+                            std::string(2 - std::min(2, minStrLen), '0')  + minStr  + ":" +
+                            std::string(2 - std::min(2, secStrLen), '0')  + secStr;
+
+    return localTime;
 }

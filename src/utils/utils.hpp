@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include <string>
+#include <nlohmann/json.hpp>
 
 #include "../chain/Transaction.hpp"
 #include "../chain/Block.hpp"
@@ -15,18 +16,20 @@ namespace keyser
         std::string hexToString(const std::string& input);
         
         // Transaction Encoding/Decoding
-        void encodeJson(std::string& jsonStr, Transaction& transaction);
-        void decodeJson(Transaction& transaction, std::string& jsonStr);
+        void encodeJson(nlohmann::json& json, Transaction& transaction);
+        void decodeJson(Transaction& transaction, nlohmann::json& json);
 
         // Block Encoding/Decoding
-        void encodeJson(std::string& jsonStr, Block& block);
-        void decodeJson(Block& block, std::string& jsonStr);
+        void encodeJson(nlohmann::json& json, Block& block);
+        void decodeJson(Block& block, nlohmann::json& json);
 
         // NodeInfo Encoding/Decoding
-        void encodeJson(std::string& jsonStr, NodeInfo& nodeInfo);
-        void decodeJson(NodeInfo& nodeInfo, std::string& jsonStr);        
+        void encodeJson(nlohmann::json&, NodeInfo& nodeInfo);
+        void decodeJson(NodeInfo& nodeInfo, nlohmann::json& json);        
 
+        // Time functions
         std::string localTimestamp();
+        std::string localTime(time_t time);
 
     }
 }

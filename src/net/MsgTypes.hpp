@@ -18,12 +18,10 @@ enum class MsgTypes : uint32_t
     Verack,
 
     GetNodeList,
-    NodeInfo,
+    NodeInfoList,
 
     GetBlocks,
     Block,
-
-    
 };
 
 #endif

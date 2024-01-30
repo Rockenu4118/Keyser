@@ -46,16 +46,7 @@ namespace keyser
             void serialize();
             void deserialize();
 
-            void edit(std::string key, std::string value);
-            void edit(std::string key, int value);
-            void edit(std::string key, double value);
-            void edit(std::string key, time_t);
-
-            void get(std::string key, std::string& value);
-            void get(std::string key, int& value);
-            void get(std::string key, uint16_t& value);
-            void get(std::string key, double& value);
-            void get(std::string key, time_t& value);
+            nlohmann::json& json() { return _doc; }
 
             void insert(Block& block);
             void insert(Transaction& transaction);
@@ -68,7 +59,7 @@ namespace keyser
             size_t size() const;
             void print();
             
-            nlohmann::json    doc;
+            nlohmann::json    _doc;
             MessageHeader     header{};
             std::vector<char> body;
     };

@@ -19,10 +19,7 @@ namespace keyser
 
             // Node actions
             void beginMining(bool continuous);
-
             bool createTransaction(Transaction& transaction);
-
-            // void connectToNetwork();
 
             void ping();
 

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <ctime>
+#include <nlohmann/json.hpp>
 
 #include "./Node.hpp"
 #include "../data/version.hpp"
@@ -11,7 +12,6 @@
 #include "../chain/Block.hpp"
 #include "../chain/Transaction.hpp"
 #include "../node/NodeInfo.hpp"
-
 
 
 keyser::Node::Node(uint16_t port) : Node_Interface(port)
@@ -67,40 +67,6 @@ bool keyser::Node::createTransaction(Transaction& transaction)
     return true;
 }
 
-// void keyser::Node::connectToNetwork()
-// {
-//     getNodeList();
-//
-//     sleep(1);
-//
-//     uint8_t connections = 0;
-//
-//     for (auto& nodeInfo : _activeNodeList)
-//     {
-//         if (_selfInfo == nodeInfo)
-//         {
-//             std::cout << "[NODE] Cannot self connect" << std::endl;
-//             continue;
-//         }
-//
-//         if (_connectedNodeList.count(nodeInfo) == 1)
-//         {
-//             std::cout << "[NODE] No duplicate connections" << std::endl;
-//             continue;
-//         }
-//
-//         if (connect(nodeInfo))
-//         {
-//             _connectedNodeList.insert(nodeInfo);
-//             connections++;
-//         }
-//     }
-//
-//     std::cout << "Successfully made " << std::to_string(connections) << " connections, distributing self info." << std::endl;
-//
-//     distributeNodeInfo(_selfInfo);
-// }
-
 void keyser::Node::ping()
 {
     Message msg(MsgTypes::Ping);
@@ -141,12 +107,21 @@ void keyser::Node::sendBlocks(std::shared_ptr<Connection> connection)
 
 void keyser::Node::nodeInfoStream(std::shared_ptr<Connection> connection)
 {
+    Message msg(MsgTypes::NodeInfoList);
+
     for (NodeInfo nodeInfo : _activeNodeList)
     {
-        Message msg(MsgTypes::NodeInfo);
-        msg.insert(nodeInfo);
-        message(connection, msg);
+        nlohmann::json json;
+        json["version"] = nodeInfo._version;
+        json["alias"]   = nodeInfo._alias;
+        json["address"] = nodeInfo._address;
+        json["port"]    = nodeInfo._port;
+        
+        msg.json()["nodeInfoList"].push_back(json);
     }
+
+    msg.serialize();
+    message(connection, msg);
 }
 
 keyser::Chain* keyser::Node::chain()
@@ -199,7 +174,7 @@ void keyser::Node::onMessage(std::shared_ptr<Connection> connection, Message& ms
         case MsgTypes::GetNodeList:
             handleGetNodeList(connection, msg);
             break;
-        case MsgTypes::NodeInfo:
+        case MsgTypes::NodeInfoList:
             handleNodeInfo(connection, msg);
             break;
         default:
@@ -216,24 +191,32 @@ void keyser::Node::handlePing(std::shared_ptr<Connection> connection, Message& m
 void keyser::Node::handleVersion(std::shared_ptr<Connection> connection, Message& msg)
 {
     std::cout << "[NODE] Version" << std::endl;
-    // Save external address
+
+    // Deserialize byte array into json doc
     msg.deserialize();
-    msg.get("address", _selfInfo._address);
+
+    // Save external address and add self to list of active nodes
+    _selfInfo._address = msg.json()["address"];
+    _activeNodeList.insert(_selfInfo);
 
     // Deserialize incoming node info
     NodeInfo nodeInfo;
-    msg.get("Outbound version", nodeInfo._version);
-    msg.get("Outbound alias", nodeInfo._alias);
+    nodeInfo._address = msg.json()["Outbound version"];
+    nodeInfo._alias   = msg.json()["Outbound alias"];
     nodeInfo._address = connection->getEndpoint().address().to_string();
-    msg.get("Outbound port", nodeInfo._port);
+    nodeInfo._port    = msg.json()["Outbound port"];
+
+    // Save the port this connection is running their server on
+    // Add this node to connectedNodeList
+    connection->setHostingPort(nodeInfo._port);
     _connectedNodeList.insert(nodeInfo);
 
     // Send self info as well as their external ip
     Message newMsg(MsgTypes::Verack);
-    newMsg.edit("Outbound version", _selfInfo._version);
-    newMsg.edit("Outbound alias", _selfInfo._alias);
-    newMsg.edit("Outbound port", _selfInfo._port);
-    newMsg.edit("address", nodeInfo._address);
+    newMsg.json()["Outbound version"] = _selfInfo._version;
+    newMsg.json()["Outbound alias"]   = _selfInfo._alias;
+    newMsg.json()["Outbound port"]    = _selfInfo._port;
+    newMsg.json()["address"]          = nodeInfo._address;
     newMsg.serialize();
 
     message(connection, newMsg);
@@ -242,19 +225,33 @@ void keyser::Node::handleVersion(std::shared_ptr<Connection> connection, Message
 void keyser::Node::handleVerack(std::shared_ptr<Connection> connection, Message& msg)
 {
     std::cout << "[NODE] Verack" << std::endl;
-    // Deserialize incoming info
+    
+    // Deserialize byte array into json doc
     msg.deserialize();
+
+    // Deserialize incoming node info
     NodeInfo nodeInfo;
-    msg.get("Outbound version", nodeInfo._version);
-    msg.get("Outbound alias", nodeInfo._alias);
+    nodeInfo._version = msg.json()["Outbound version"];
+    nodeInfo._alias   = msg.json()["Outbound alias"];
     nodeInfo._address = connection->getEndpoint().address().to_string();
-    msg.get("Outbound port", nodeInfo._port);
+    nodeInfo._port    = msg.json()["Outbound port"];
+
+    // Add info to connected node list and active node list
+    _connectedNodeList.insert(nodeInfo);
+    _activeNodeList.insert(nodeInfo);
     
     // Save external address
-    msg.get("address", _selfInfo._address);
+    _selfInfo._address = msg.json()["address"];
 
     // Add self to list of active nodes
     _activeNodeList.insert(_selfInfo);
+
+    // Get node list if needed
+    if (!_recievedNodeList)
+    {
+        Message msg(MsgTypes::GetNodeList);
+        message(_connections.front(), msg);
+    }
 }
 
 void keyser::Node::handleDistributeNodeInfo(std::shared_ptr<Connection> connection, Message& msg)
@@ -289,36 +286,33 @@ void keyser::Node::handleDistributeBlock(std::shared_ptr<Connection> connection,
 }
 
 void keyser::Node::handleGetBlocks(std::shared_ptr<Connection> connection, Message& msg)
-{
-    // TODO - make better and test more
-    std::cout << "Recieved chain req" << std::endl;
-
-    // blockStream();
-
-    // for (int i = 1 ; i < _chain->blocks().size() ; i++)
-    // {
-    //     Message msg;
-    //     msg.header.id = MsgTypes::DistributeBlock;
-    //     std::string msgStr;
-    //     keyser::utils::encodeJson(msgStr, *_chain->blocks().at(i));
-    //     // msg.push(msgStr);
-    //     message(connection, msg);
-    // }
-}
+{}
 
 void keyser::Node::handleBlocks(std::shared_ptr<Connection> connection, Message& msg)
 {}
 
 void keyser::Node::handleGetNodeList(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << "[NODE] Get Node List" << std::endl;
+    std::cout << "[NODE] Sending Node List" << std::endl;
     nodeInfoStream(connection);
 }
 
 void keyser::Node::handleNodeInfo(std::shared_ptr<Connection> connection, Message& msg)
 {
     std::cout << "[NODE] Node Info" << std::endl;
-    NodeInfo nodeInfo;
-    msg.extract(nodeInfo);
-    _activeNodeList.insert(nodeInfo);
+
+    msg.deserialize();
+
+    for (auto& element : msg.json()["nodeInfoList"])
+    {
+        NodeInfo nodeInfo;
+        nodeInfo._version = element["version"];
+        nodeInfo._alias   = element["alias"];
+        nodeInfo._address = element["address"];
+        nodeInfo._port    = element["port"];
+
+        _activeNodeList.insert(nodeInfo);
+    }
+
+    _recievedNodeList = true;
 }

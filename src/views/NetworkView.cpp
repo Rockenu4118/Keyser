@@ -23,10 +23,9 @@ void keyser::cli::NetworkView::display()
         displayTitle("Network Menu");
 
         std::cout << "[1] View connections"     << std::endl;
-        std::cout << "[2] View connected nodes" << std::endl;
-        std::cout << "[3] View active nodes"    << std::endl;
-        std::cout << "[4] Self Info"            << std::endl;
-        std::cout << "[5] New connection"       << std::endl;
+        std::cout << "[2] View active nodes"    << std::endl;
+        std::cout << "[3] Self Info"            << std::endl;
+        std::cout << "[4] New connection"       << std::endl;
         std::cout << "[0] Exit"                 << std::endl;
         std::cout << std::endl;
 
@@ -40,21 +39,16 @@ void keyser::cli::NetworkView::display()
                 continueMsg();
                 break;
             case '2':
-                displayTitle("Connected Node Info");
-                _node->displayConnectedNodes();
-                continueMsg();
-                break;
-            case '3':
                 displayTitle("Active Nodes");
                 _node->displayActiveNodes();
                 continueMsg();
                 break;
-            case '4':
+            case '3':
                 displayTitle("Self Info");
                 _node->displaySelfInfo();
                 continueMsg();
                 break;
-            case '5':
+            case '4':
                 newConnection();
                 continueMsg();
                 break;

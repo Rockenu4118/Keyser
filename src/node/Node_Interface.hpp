@@ -41,7 +41,6 @@ namespace keyser
 
             void displayConnections();
             void displayActiveNodes();
-            void displayConnectedNodes();
             void displaySelfInfo();
 
         protected:
@@ -63,6 +62,7 @@ namespace keyser
             std::set<NodeInfo> _activeNodeList;
             std::set<NodeInfo> _connectedNodeList;
             NodeInfo           _selfInfo;
+            bool               _recievedNodeList = false;
 
             // Asio context as well as its own thread to run in
             boost::asio::io_context _context;
@@ -76,16 +76,12 @@ namespace keyser
             std::thread             _connectionRemovalThread;
 
             // Thread for handling peer connections
-
             std::thread _peerConnectionThread;
             std::mutex _muxConnections;
             std::condition_variable _cvConnections;
 
             // Asio acceptor
             boost::asio::ip::tcp::acceptor _acceptor;
-
-            // Current port server is running on
-            uint16_t _port;
 
             // Connections will be identified in the system by an id
             uint16_t _idCounter = 10000;

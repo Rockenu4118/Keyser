@@ -12,13 +12,10 @@
 #include "../node/NodeInfo.hpp"
 
 
-
 keyser::Message::Message(MsgTypes id)
 {
     header.id = id;
 }
-
-
 
 void keyser::Message::push(const std::string& msg)
 {
@@ -44,101 +41,50 @@ void keyser::Message::pull(std::string& msg)
 
 void keyser::Message::serialize()
 {
-    push(doc.dump());
+    push(_doc.dump());
 }
 
 void keyser::Message::deserialize()
 {
     std::string msg;
     pull(msg);
-    doc = nlohmann::json::parse(msg);
-}
-
-void keyser::Message::edit(std::string key, std::string value)
-{
-    doc[key] = value;
-}
-
-void keyser::Message::edit(std::string key, int value)
-{
-    doc[key] = value;
-}
-
-void keyser::Message::edit(std::string key, double value)
-{
-    doc[key] = value;
-}
-
-void keyser::Message::edit(std::string key, time_t value)
-{
-    doc[key] = value;
-}
-
-void keyser::Message::get(std::string key, std::string& value)
-{
-    value = doc[key];
-}
-
-void keyser::Message::get(std::string key, int& value)
-{
-    value = doc[key];
-}
-
-void keyser::Message::get(std::string key, uint16_t& value)
-{
-    value = doc[key];
-}
-
-void keyser::Message::get(std::string key, double& value)
-{
-    value = doc[key];
-}
-
-void keyser::Message::get(std::string key, time_t& value)
-{
-    value = doc[key];
+    _doc = nlohmann::json::parse(msg);
 }
 
 void keyser::Message::insert(Block& block)
 {
-    std::string str;
-    utils::encodeJson(str, block);
-    push(str);
+    utils::encodeJson(_doc, block);
+    serialize();
 }
 
 void keyser::Message::insert(Transaction& transaction)
 {
-    std::string str;
-    utils::encodeJson(str, transaction);
-    push(str);
+    utils::encodeJson(_doc, transaction);
+    serialize();
 }
 
 void keyser::Message::insert(NodeInfo& nodeInfo)
 {
-    std::string str;
-    utils::encodeJson(str, nodeInfo);
-    push(str);
+    utils::encodeJson(_doc, nodeInfo);
+    serialize();
 }
 
 void keyser::Message::extract(Block& block)
 {
-    std::string str;
-    pull(str);
-    utils::decodeJson(block, str);
+    deserialize();
+    utils::decodeJson(block, _doc);
 }
 
 void keyser::Message::extract(Transaction& transaction)
 {
-    std::string str;
-    pull(str);
-    utils::decodeJson(transaction, str);
+    deserialize();
+    utils::decodeJson(transaction, _doc);
 }
 
 void keyser::Message::extract(NodeInfo& nodeInfo)
 {
-    std::string str;
-    pull(str);
-    utils::decodeJson(nodeInfo, str);
+    deserialize();
+    utils::decodeJson(nodeInfo, _doc);
 }
 
 size_t keyser::Message::size() const

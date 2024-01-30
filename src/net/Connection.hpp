@@ -24,6 +24,9 @@ namespace keyser
 
             uint16_t getId() const;
             boost::asio::ip::tcp::endpoint getEndpoint() const;
+            uint16_t getHostingPort() const;
+            void setHostingPort(uint16_t port);
+
             bool isConnected() const;
             void listen();
             bool connect(const boost::asio::ip::tcp::endpoint& endpoints);
@@ -43,6 +46,8 @@ namespace keyser
             tsqueue<Message>             _qMessagesOut;
             tsqueue<OwnedMessage>&       _qMessagesIn;
             Message                      _msgTemporaryIn;
+
+            uint16_t _hostingPort;
 
             // Notify Node to delete connection if it disconnects
             std::condition_variable& _cvBlocking;

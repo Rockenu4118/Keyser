@@ -29,6 +29,16 @@ boost::asio::ip::tcp::endpoint keyser::Connection::getEndpoint() const
     return _socket.remote_endpoint();
 }
 
+uint16_t keyser::Connection::getHostingPort() const
+{
+    return _hostingPort;
+}
+
+void keyser::Connection::setHostingPort(uint16_t port)
+{
+    _hostingPort = port;
+}
+
 bool keyser::Connection::isConnected() const
 {
     return _socket.is_open();
@@ -51,6 +61,7 @@ bool keyser::Connection::connect(const boost::asio::ip::tcp::endpoint& endpoint)
     if (!ec)
     {
         readHeader();
+        _hostingPort = getEndpoint().port();
         return true;
     }
     else

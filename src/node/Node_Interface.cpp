@@ -15,9 +15,7 @@
 
 keyser::Node_Interface::Node_Interface(uint16_t port) : _acceptor(_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 {
-    // Save port number
-    _port = port;
-
+    // Save self info
     _selfInfo._version = KEYSER_VERSION;
     _selfInfo._alias   = "whatev";
     _selfInfo._address = "";
@@ -164,14 +162,41 @@ void keyser::Node_Interface::messageNeighbors(const Message& msg, std::shared_pt
 
 void keyser::Node_Interface::managePeerConnections()
 {
-    // Wait until external address is obtained
-    // while (_selfInfo._address == "" || _connections.size() == 0)
-    //     sleep(1);
+    while (1)
+    {
+        while (!_recievedNodeList)
+            sleep(1);
 
-    // Message msg(MsgTypes::GetNodeList);
-    // message(_connections.front(), msg);
+        if (_connectedNodeList.size() < 3)
+        {
+            for (auto& nodeInfo : _activeNodeList)
+            {
+                if (_selfInfo == nodeInfo)
+                {
+                    std::cout << "[NODE] Cannot self connect" << std::endl;
+                    continue;
+                }
 
+                if (_connectedNodeList.count(nodeInfo) == 1)
+                {
+                    std::cout << "[NODE] No duplicate connections" << std::endl;
+                    continue;
+                }
 
+                if (connect(nodeInfo))
+                {
+                    _connectedNodeList.insert(nodeInfo);
+                }
+            }
+        }
+
+        Message newMsg(MsgTypes::DistributeNodeInfo);
+        newMsg.insert(_selfInfo);
+        messageNeighbors(newMsg);
+
+        std::unique_lock ul(_muxConnections);
+        _cvConnections.wait(ul);
+    }
 }
 
 void keyser::Node_Interface::removeInvalidConnections()
@@ -221,10 +246,10 @@ void keyser::Node_Interface::version(std::shared_ptr<Connection> connection)
 {
     // Send self info as well as their external address
     Message msg(MsgTypes::Version);
-    msg.edit("Outbound version", KEYSER_VERSION);
-    msg.edit("Outbound alias", "self");
-    msg.edit("Outbound port", _port);
-    msg.edit("address", connection->getEndpoint().address().to_string());
+    msg.json()["Outbound version"] = _selfInfo._version;
+    msg.json()["Outbound alias"]   = _selfInfo._alias;
+    msg.json()["Outbound port"]    = _selfInfo._port;
+    msg.json()["address"]          = connection->getEndpoint().address().to_string();
     msg.serialize();
     message(connection, msg);
 }
@@ -239,7 +264,7 @@ void keyser::Node_Interface::displayConnections()
 
     for (auto& connection : _connections)
     {
-        std::cout << "[" << connection->getId() << "] " << connection->getEndpoint() << std::endl;
+        std::cout << "[" << connection->getId() << "] " << connection->getEndpoint() << ", Hosting on: " << connection->getHostingPort() << std::endl;
     }
 }
 
@@ -252,20 +277,6 @@ void keyser::Node_Interface::displayActiveNodes()
     }
 
     for (auto& nodeInfo : _activeNodeList)
-    {
-        std::cout << nodeInfo._address << ":" << nodeInfo._port << std::endl;
-    }
-}
-
-void keyser::Node_Interface::displayConnectedNodes()
-{
-    if (_connectedNodeList.size() == 0)
-    {
-        std::cout << "No connected nodes." << std::endl;
-        return;
-    }
-
-    for (auto& nodeInfo : _connectedNodeList)
     {
         std::cout << nodeInfo._address << ":" << nodeInfo._port << std::endl;
     }

@@ -22,7 +22,7 @@ namespace keyser
         // Need to overload < operator to be compatible with std::set
         friend bool operator<(const NodeInfo& lhs, const NodeInfo& rhs) 
         {
-            return (lhs._address != rhs._address) || (lhs._port != rhs._port);
+            return (lhs._address + std::to_string(lhs._port)) < (rhs._address + std::to_string(rhs._port));
         }
 
         friend bool operator==(const NodeInfo& lhs, const NodeInfo& rhs)
