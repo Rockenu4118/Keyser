@@ -16,7 +16,8 @@
 
 keyser::Node::Node(uint16_t port) : Node_Interface(port)
 {
-    _chain  = new keyser::Chain(4, 100);
+    _chain   = new Chain();
+    _mempool = new Mempool();
 }
 
 void keyser::Node::beginMining(bool continuous)
@@ -30,39 +31,37 @@ void keyser::Node::beginMining(bool continuous)
     _miningStatus = true;
 
     if (continuous)
-        _miningThr = std::thread([this]() { mineContinuously(); });
+        _miningThr = std::thread([this]() { while (1) { mineBlock("aj"); }; });
     else
-        _miningThr = std::thread([this]() { mineSingleBlock(); });
+        _miningThr = std::thread([this]() { mineBlock("aj"); });
 
     _miningThr.detach();
 }
 
-void keyser::Node::mineContinuously()
+void keyser::Node::mineBlock(std::string rewardAddress)
 {
-    while (1)
-    {
-        _chain->mineBlock("aj");
-        std::cout << "[CHAIN] Block Mined." << std::endl;
-        distributeBlock(*_chain->getCurrBlock());
-    }
-}
+    Block newBlock(_chain->getCurrBlock()->_index + 1, time(NULL), _chain->getCurrBlock()->_hash, _mempool->popLeadingTransactions());
 
-void keyser::Node::mineSingleBlock()
-{
-    _chain->mineBlock("aj");
+    newBlock.calcValidHash(_chain->calcDifficulty());
     std::cout << "[CHAIN] Block Mined." << std::endl;
+
+    _chain->addBlock(std::move(newBlock));
+
+    _mempool->addTransaction(keyser::Transaction(100, rewardAddress, "None"));
+
     distributeBlock(*_chain->getCurrBlock());
-    _miningStatus = false;
+
+    _miningStatus = false;                     
 }
 
 bool keyser::Node::createTransaction(Transaction& transaction)
 {
-    double balance = _chain->getAddressBalance(transaction._senderAddress) + _chain->mempool()->getPendingBalance(transaction._senderAddress);
+    double balance = _chain->getAddressBalance(transaction._senderAddress) + _mempool->getPendingBalance(transaction._senderAddress);
 
     if (transaction._amount > balance)
         return false;
 
-    _chain->mempool()->addTransaction(transaction);
+    _mempool->addTransaction(transaction);
     distributeTransaction(transaction);
     return true;
 }
@@ -102,7 +101,17 @@ void keyser::Node::getBlocks()
 
 void keyser::Node::sendBlocks(std::shared_ptr<Connection> connection)
 {
+    Message newMsg(MsgTypes::Blocks);
 
+    for (int i = 1 ; i < _chain->blocks().size() ; i++)
+    {
+        nlohmann::json json;
+        utils::encodeJson(json, *_chain->blocks().at(i));
+        newMsg.json()["blocks"].push_back(json);
+    }
+
+    newMsg.serialize();
+    message(connection, newMsg);
 }
 
 void keyser::Node::nodeInfoStream(std::shared_ptr<Connection> connection)
@@ -129,6 +138,11 @@ keyser::Chain* keyser::Node::chain()
     return _chain;
 }
 
+keyser::Mempool* keyser::Node::mempool()
+{
+    return _mempool;
+}
+
 bool keyser::Node::allowConnect(std::shared_ptr<Connection> connection)
 { return true; }
 
@@ -136,9 +150,7 @@ void keyser::Node::onIncomingConnect(std::shared_ptr<Connection> connection)
 {}
 
 void keyser::Node::onDisconnect(std::shared_ptr<Connection> connection)
-{
-    // TODO - remove address from active nodes list
-}
+{}
 
 void keyser::Node::onMessage(std::shared_ptr<Connection> connection, Message& msg)
 {
@@ -168,7 +180,7 @@ void keyser::Node::onMessage(std::shared_ptr<Connection> connection, Message& ms
         case MsgTypes::GetBlocks:
             handleGetBlocks(connection, msg);
             break;
-        case MsgTypes::Block:
+        case MsgTypes::Blocks:
             handleBlocks(connection, msg);
             break;
         case MsgTypes::GetNodeList:
@@ -190,7 +202,7 @@ void keyser::Node::handlePing(std::shared_ptr<Connection> connection, Message& m
 
 void keyser::Node::handleVersion(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << "[NODE] Version" << std::endl;
+    std::cout << utils::localTimestamp() << "Version" << std::endl;
 
     // Deserialize byte array into json doc
     msg.deserialize();
@@ -224,7 +236,7 @@ void keyser::Node::handleVersion(std::shared_ptr<Connection> connection, Message
 
 void keyser::Node::handleVerack(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << "[NODE] Verack" << std::endl;
+    std::cout << utils::localTimestamp() << "Verack" << std::endl;
     
     // Deserialize byte array into json doc
     msg.deserialize();
@@ -256,11 +268,11 @@ void keyser::Node::handleVerack(std::shared_ptr<Connection> connection, Message&
 
 void keyser::Node::handleDistributeNodeInfo(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << "[NODE] Distribute Node Info" << std::endl;
+    std::cout << utils::localTimestamp() << "Distribute Node Info" << std::endl;
     NodeInfo nodeInfo;
     msg.extract(nodeInfo);
 
-    if (_activeNodeList.count(nodeInfo) == 1)
+    if (_activeNodeList.count(nodeInfo))
         return;
 
     _activeNodeList.insert(nodeInfo);
@@ -269,37 +281,56 @@ void keyser::Node::handleDistributeNodeInfo(std::shared_ptr<Connection> connecti
 
 void keyser::Node::handleDistributeTransaction(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << "[NODE] Transaction" << std::endl;
-    messageNeighbors(msg, connection);
+    std::cout << utils::localTimestamp() << "Transaction" << std::endl;
+
     Transaction transaction;
     msg.extract(transaction);
-    _chain->mempool()->addTransaction(transaction);
+
+    if (_mempool->addTransaction(transaction))
+        messageNeighbors(msg, connection);
 }
 
 void keyser::Node::handleDistributeBlock(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << "[NODE] Block" << std::endl;
-    messageNeighbors(msg, connection);
+    std::cout << utils::localTimestamp() << "Block" << std::endl;
+
     Block block;
     msg.extract(block);
-    _chain->addBlock(block);
+
+    if (_chain->addBlock(block))
+        messageNeighbors(msg, connection);
 }
 
 void keyser::Node::handleGetBlocks(std::shared_ptr<Connection> connection, Message& msg)
-{}
+{   
+    std::cout << utils::localTimestamp() << "Get Blocks" << std::endl;
+    sendBlocks(connection); 
+}
 
 void keyser::Node::handleBlocks(std::shared_ptr<Connection> connection, Message& msg)
-{}
+{
+    std::cout << utils::localTimestamp() << "Blocks" << std::endl;
+    msg.deserialize();
+
+    for (auto& element : msg.json()["blocks"])
+    {
+        Block block;
+        utils::decodeJson(block, element);
+        _chain->addBlock(block);
+    }
+
+    _recievedChain = true;
+}
 
 void keyser::Node::handleGetNodeList(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << "[NODE] Sending Node List" << std::endl;
+    std::cout << utils::localTimestamp() << "Sending Node List" << std::endl;
     nodeInfoStream(connection);
 }
 
 void keyser::Node::handleNodeInfo(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << "[NODE] Node Info" << std::endl;
+    std::cout << utils::localTimestamp() << "Info" << std::endl;
 
     msg.deserialize();
 

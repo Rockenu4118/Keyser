@@ -21,6 +21,7 @@ namespace keyser
             void beginMining(bool continuous);
             bool createTransaction(Transaction& transaction);
 
+            // Requests and Responses
             void ping();
 
             void getBlocks();
@@ -28,9 +29,12 @@ namespace keyser
 
             void nodeInfoStream(std::shared_ptr<Connection> connection);
             
-            Chain* chain();
+            // Accessors
+            Chain*   chain();
+            Mempool* mempool();
 
         protected:
+            // Event handlers
             virtual bool allowConnect(std::shared_ptr<Connection> connection);
             virtual void onIncomingConnect(std::shared_ptr<Connection> connection);
             virtual void onDisconnect(std::shared_ptr<Connection> connection);
@@ -38,8 +42,7 @@ namespace keyser
 
         private:
             // Called by beginMining
-            void mineSingleBlock();
-            void mineContinuously();
+            void mineBlock(std::string rewardAddress);
 
             // Distribution msgs only called by public functions
             void distributeNodeInfo(NodeInfo& nodeInfo);
@@ -61,6 +64,7 @@ namespace keyser
 
             // Node members
             Chain*      _chain = nullptr;
+            Mempool*    _mempool = nullptr;
             std::thread _miningThr;
             bool        _miningStatus = false;
         };

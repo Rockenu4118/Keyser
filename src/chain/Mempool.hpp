@@ -1,7 +1,7 @@
 #ifndef MEMPOOL_H
 #define MEMPOOL_H
 
-#include <tsqueue.hpp>
+#include <deque>
 
 #include "./Transaction.hpp"
 
@@ -12,7 +12,7 @@ namespace keyser
         public:
             Mempool() = default;
 
-            void addTransaction(Transaction transaction);
+            bool addTransaction(Transaction transaction);
 
             std::vector<Transaction> popLeadingTransactions();
 
@@ -21,7 +21,7 @@ namespace keyser
             void printMempool();
 
         private:
-            tsqueue<Transaction> _pendingTransactions;
+            std::deque<Transaction> _pendingTransactions;
 
     };
 }

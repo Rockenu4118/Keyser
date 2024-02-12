@@ -12,13 +12,8 @@
 
 
 // Constructors
-keyser::Chain::Chain(uint8_t difficulty, uint8_t miningReward)
+keyser::Chain::Chain()
 {
-    _difficulty = difficulty;
-    _miningReward = miningReward;
-
-    _mempool = new Mempool();
-
     createGenesisBlock();
 }
 
@@ -49,28 +44,26 @@ void keyser::Chain::createGenesisBlock()
     _blocks.push_back(genesisBlock);
 }
 
-void keyser::Chain::mineBlock(std::string rewardAddress)
+uint keyser::Chain::calcDifficulty()
 {
-    std::shared_ptr<Block> newBlock = std::make_shared<Block>(getCurrBlock()->_index + 1, time(NULL), getCurrBlock()->_hash, _mempool->popLeadingTransactions());
-
-    newBlock->calcValidHash(_difficulty);
-
-    _blocks.push_back(newBlock);
-
-    _mempool->addTransaction(keyser::Transaction(_miningReward, rewardAddress, "None"));
+    // TODO - dynamically calculate the difficulty based on amount of time
+    // taken to mine previous blocks
+    return 4;
 }
 
-void keyser::Chain::addBlock(Block block)
+bool keyser::Chain::addBlock(Block block)
 {
-    std::shared_ptr<Block> newBlock = std::make_shared<Block>(block);
+    std::shared_ptr<Block> newBlock = std::make_shared<Block>(std::move(block));
     
+    // TODO - will need more checks to ensure block is valid
     if (!newBlock->hasValidTransactions())
-        return;
+        return false;
 
     if (_blocks.back()->_hash != newBlock->_prevHash)
-        return;
+        return false;
 
     _blocks.push_back(newBlock);
+    return true;
 }
 
 void keyser::Chain::printChain()
@@ -134,9 +127,4 @@ bool keyser::Chain::isValid()
 std::vector<std::shared_ptr<keyser::Block>>& keyser::Chain::blocks()
 {
     return _blocks;
-}
-
-keyser::Mempool* keyser::Chain::mempool()
-{
-    return _mempool;
 }

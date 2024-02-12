@@ -7,6 +7,7 @@
 
 #include "./Block.hpp"
 #include "./Transaction.hpp"
+#include "../utils/utils.hpp"
 
 
 
@@ -24,7 +25,16 @@ keyser::Block::Block(uint index, time_t time, std::string prevHash, std::vector<
 // Modifiers
 void keyser::Block::calcHash()
 {
-    std::string unhashed = _prevHash + std::to_string(_time) + std::to_string(_nonce);
+    std::string unhashed = std::to_string(_index) +
+                           std::to_string(_time) + 
+                           std::to_string(_nonce) + 
+                           _prevHash;
+                         
+    for (Transaction tx : _transactions)
+    {
+        unhashed.append(tx._hash);
+    }
+
     std::string hashed = "";
 
     cryptography::SHA256(unhashed, hashed);

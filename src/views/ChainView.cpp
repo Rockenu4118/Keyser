@@ -42,7 +42,7 @@ void keyser::cli::ChainView::display()
                 break;
             case '3':
                 displayTitle("Mempool");
-                _node->chain()->mempool()->printMempool();
+                _node->mempool()->printMempool();
                 continueMsg();
                 break;
             case '4':

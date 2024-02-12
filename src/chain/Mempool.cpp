@@ -5,25 +5,32 @@
 #include "./Mempool.hpp"
 
 
-void keyser::Mempool::addTransaction(Transaction transaction)
+bool keyser::Mempool::addTransaction(Transaction transaction)
 {
-    // Validate transaction before adding it to Mempool
-    if (transaction.isValid())
+    // Make sure transaction hasn't already reached the mempool
+    for (Transaction tx : _pendingTransactions)
     {
-        _pendingTransactions.pushBack(transaction);
+        if (tx._hash == transaction._hash)
+            return false;
     }
+        
+    // Validate transaction before adding it to Mempool
+    if (!transaction.isValid())
+        return false;
+
+    _pendingTransactions.push_back(transaction);
+    return true;
 }
 
 std::vector<keyser::Transaction> keyser::Mempool::popLeadingTransactions()
 {
-    // In future, prioritize transactions by gas fee
+    // TODO - priortize gas fees
     std::vector<keyser::Transaction> transactions;
 
-    while (!_pendingTransactions.empty())
+    for (Transaction tx : _pendingTransactions)
     {
-        Transaction tx = _pendingTransactions.popFront();
-
         transactions.push_back(tx);
+        _pendingTransactions.pop_front();
     }
     
     return transactions;
@@ -33,13 +40,13 @@ double keyser::Mempool::getPendingBalance(std::string address)
 {
     double balance = 0;
 
-    for (int i = 0 ; i < _pendingTransactions.count() ; i++)
+    for (Transaction tx : _pendingTransactions)
     {
-        if (_pendingTransactions.at(i)._recieverAddress == address)
-            balance += _pendingTransactions.at(i)._amount;
+        if (tx._recieverAddress == address)
+            balance += tx._amount;
 
-        if (_pendingTransactions.at(i)._senderAddress == address)
-            balance -= _pendingTransactions.at(i)._amount;
+        if (tx._senderAddress == address)
+            balance -= tx._amount;
     }
 
     return balance;
@@ -47,15 +54,12 @@ double keyser::Mempool::getPendingBalance(std::string address)
 
 void keyser::Mempool::printMempool()
 {
-    if (_pendingTransactions.count() == 0)
+    if (_pendingTransactions.size() == 0)
     {
         std::cout << "Mempool empty." << std::endl;
         return;
     }
 
-    for (int i = 0 ; i < _pendingTransactions.count() ; i++)
-    {
-        Transaction t = _pendingTransactions.at(i);
-        std::cout << t << std::endl;
-    }
+    for (Transaction tx : _pendingTransactions)
+        std::cout << tx << std::endl;
 }

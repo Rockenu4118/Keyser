@@ -8,41 +8,19 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <set>
-#include <nlohmann/json.hpp>
+
+#include <chrono>
+#include <thread>
 
 #include "./wallet/WalletManager.hpp"
 #include "./views/RootView.hpp"
 #include "./node/Node.hpp"
 #include "./data/keys.hpp"
-
-#include "./node/NodeInfo.hpp"
+#include "./chain/Transaction.hpp"
 
 
 int main()
 {   
-    // nlohmann::json doc;
-    // nlohmann::json info1;
-    // info1["version"] = 1;
-    // info1["alias"] = "me niggga";
-
-    // nlohmann::json info2;
-    // info2["version"] = 1.2;
-    // info2["alias"] = "mf G";
-
-    // doc["hello"].push_back("fefef");
-    // doc["hello"].push_back("bob");
-    // doc["infos"].push_back(info1);
-    // doc["infos"].push_back(info2);
-
-    // std::cout << doc.dump(2) << std::endl;
-
-    // for (auto& element : doc["infos"])
-    // {   
-    //     std::string str = element["alias"];
-    //     std::cout << str << std::endl;
-    // }
-
     // Initialize wallet manager and test wallets
     keyser::WalletManager wallets;
 

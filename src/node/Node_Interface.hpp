@@ -63,6 +63,7 @@ namespace keyser
             std::set<NodeInfo> _connectedNodeList;
             NodeInfo           _selfInfo;
             bool               _recievedNodeList = false;
+            bool               _recievedChain = false;
 
             // Asio context as well as its own thread to run in
             boost::asio::io_context _context;

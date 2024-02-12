@@ -25,7 +25,7 @@ namespace keyser
 
         // NodeInfo Encoding/Decoding
         void encodeJson(nlohmann::json&, NodeInfo& nodeInfo);
-        void decodeJson(NodeInfo& nodeInfo, nlohmann::json& json);        
+        void decodeJson(NodeInfo& nodeInfo, nlohmann::json& json);
 
         // Time functions
         std::string localTimestamp();

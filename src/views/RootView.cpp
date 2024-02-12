@@ -65,6 +65,9 @@ void keyser::cli::RootView::display()
                 keyser::cli::NetworkView view = keyser::cli::NetworkView(_node);
             }
                 break;
+            case '6':
+                _node->getBlocks();
+                continueMsg();
             default:
                 std::cout << "Exiting program..." << std::endl;
                 break;
@@ -81,7 +84,7 @@ void keyser::cli::RootView::initSetup()
 
     char selection;
 
-    std::cout << "Establish init connect (y/n): ";
+    std::cout << "Provide initial connection (Y/n): ";
     std::cin >> selection;
 
     if (selection == 'y') 

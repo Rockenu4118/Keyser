@@ -22,6 +22,9 @@ namespace cli_core
 
             void clearScreen();
             void continueMsg();
+
+            void progressBar();
+            void loadingAnimation();
     };
 }
 
