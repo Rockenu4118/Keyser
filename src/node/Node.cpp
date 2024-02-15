@@ -6,6 +6,7 @@
 #include "./Node.hpp"
 #include "../data/version.hpp"
 #include "../data/nodeAddresses.hpp"
+#include "../data/keys.hpp"
 #include "../net/MsgTypes.hpp"
 #include "../utils/utils.hpp"
 #include "../chain/Chain.hpp"
@@ -16,8 +17,16 @@
 
 keyser::Node::Node(uint16_t port) : Node_Interface(port)
 {
-    _chain   = new Chain();
-    _mempool = new Mempool();
+    _chain         = new Chain();
+    _mempool       = new Mempool();
+    _storageEngine = new StorageEngine();
+    _walletManager = new WalletManager();
+
+    keyser::Wallet ajWallet("AJ", key1);
+    _walletManager->addWallet(ajWallet);
+
+    keyser::Wallet guyWallet("Guy", key2);
+    _walletManager->addWallet(guyWallet);
 }
 
 void keyser::Node::beginMining(bool continuous)
@@ -133,18 +142,18 @@ void keyser::Node::nodeInfoStream(std::shared_ptr<Connection> connection)
     message(connection, msg);
 }
 
-keyser::Chain* keyser::Node::chain()
+int keyser::Node::connectionCount() const
 {
-    return _chain;
-}
-
-keyser::Mempool* keyser::Node::mempool()
-{
-    return _mempool;
+    return _connections.size();
 }
 
 bool keyser::Node::allowConnect(std::shared_ptr<Connection> connection)
 { return true; }
+
+void keyser::Node::onOutgoingConnect(std::shared_ptr<Connection> connection)
+{
+    version(connection);
+}
 
 void keyser::Node::onIncomingConnect(std::shared_ptr<Connection> connection) 
 {}
