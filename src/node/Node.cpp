@@ -13,15 +13,13 @@
 #include "../chain/Block.hpp"
 #include "../chain/Transaction.hpp"
 #include "../node/NodeInfo.hpp"
+#include "../wallet/WalletManager.hpp"
+#include "../wallet/Wallet.hpp"
+#include "../storage/StorageEngine.hpp"
 
 
 keyser::Node::Node(uint16_t port) : Node_Interface(port)
 {
-    _chain         = new Chain();
-    _mempool       = new Mempool();
-    _storageEngine = new StorageEngine();
-    _walletManager = new WalletManager();
-
     keyser::Wallet ajWallet("AJ", key1);
     _walletManager->addWallet(ajWallet);
 

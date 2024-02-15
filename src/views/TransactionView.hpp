@@ -14,7 +14,7 @@ namespace keyser
         class TransactionView : public cli_core::CLI_View
         {
             public:
-                TransactionView(WalletManager& wallets, Node* node);
+                TransactionView(Node* node);
 
             protected:
                 void display();
@@ -22,7 +22,6 @@ namespace keyser
             private:
                 void newTransaction();
 
-                WalletManager& _wallets;
                 Node*          _node;
         };
     }

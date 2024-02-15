@@ -24,7 +24,7 @@ namespace cli_core
             void continueMsg();
 
             void progressBar();
-            void loadingAnimation();
+            void loadingAnimation(int milliseconds);
     };
 }
 

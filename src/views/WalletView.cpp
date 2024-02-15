@@ -2,11 +2,13 @@
 #include <iomanip>
 
 #include "./WalletView.hpp"
-#include "../wallet/WalletManager.hpp"
+#include "../node/Node.hpp"
 
 
-keyser::cli::WalletView::WalletView(WalletManager& wallets) : _wallets(wallets)
+keyser::cli::WalletView::WalletView(Node* node)
 {
+    _node = node;
+
     display();
 }
 
@@ -52,7 +54,7 @@ void keyser::cli::WalletView::display()
 void keyser::cli::WalletView::viewWallets()
 {
     displayTitle("Wallets");
-    _wallets.displayWallets();
+    _node->walletManager()->displayWallets();
 }
 
 void keyser::cli::WalletView::createWallet()
@@ -62,5 +64,5 @@ void keyser::cli::WalletView::createWallet()
     displayTitle("New Wallet");
     std::cout << "Name: ";
     std::cin >> name;
-    _wallets.createWallet(name);
+    _node->walletManager()->createWallet(name);
 }

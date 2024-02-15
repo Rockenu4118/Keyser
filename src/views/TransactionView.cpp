@@ -7,7 +7,7 @@
 #include "../wallet/WalletManager.hpp"
 
 
-keyser::cli::TransactionView::TransactionView(WalletManager& wallets, Node* node) : _wallets(wallets)
+keyser::cli::TransactionView::TransactionView(Node* node)
 {
     _node = node;
 
@@ -55,20 +55,20 @@ void keyser::cli::TransactionView::newTransaction()
     displayTitle("Creating Transaction");
     displayTitle("Wallets");
 
-    _wallets.displayWallets();
+    _node->walletManager()->displayWallets();
 
     promptInput("Recieving address: ", recievingAddress);
     promptInput("Sending wallet: ", index);
     
-    if (index >= _wallets.count())
+    if (index >= _node->walletManager()->count())
         return;
 
     promptInput("Amount: ", amount);
 
-    _node->chain()->getAddressBalance(_wallets.at(index).getPublicAddress());
+    _node->chain()->getAddressBalance(_node->walletManager()->at(index).getPublicAddress());
 
-    Transaction transaction = Transaction(amount, recievingAddress, _wallets.at(index).getKeyPair()->getUPublicKey());
-    transaction.sign(_wallets.at(index).getKeyPair());
+    Transaction transaction = Transaction(amount, recievingAddress, _node->walletManager()->at(index).getKeyPair()->getUPublicKey());
+    transaction.sign(_node->walletManager()->at(index).getKeyPair());
     
     std::cout << transaction << std::endl;
     

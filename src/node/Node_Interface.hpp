@@ -11,6 +11,11 @@
 #include "../net/Connection.hpp"
 #include "../net/Message.hpp"
 #include "../node/NodeInfo.hpp"
+#include "../chain/Chain.hpp"
+#include "../wallet/WalletManager.hpp"
+#include "../chain/Mempool.hpp"
+#include "../storage/StorageEngine.hpp"
+
 
 
 namespace keyser
@@ -43,11 +48,26 @@ namespace keyser
             void displayActiveNodes();
             void displaySelfInfo();
 
+            Chain*         chain();
+            Mempool*       mempool();
+            StorageEngine* storageEngine();
+            WalletManager* walletManager();
+
         protected:
             virtual bool allowConnect(std::shared_ptr<Connection> connection);
+            virtual void onOutgoingConnect(std::shared_ptr<Connection> connection);
             virtual void onIncomingConnect(std::shared_ptr<Connection> connection);
             virtual void onDisconnect(std::shared_ptr<Connection> connection);
             virtual void onMessage(std::shared_ptr<Connection> connection, Message& msg);
+
+            // Node members
+            Chain*         _chain = nullptr;
+            Mempool*       _mempool = nullptr;
+            StorageEngine* _storageEngine = nullptr;
+            WalletManager* _walletManager = nullptr;
+
+            std::thread _miningThr;
+            bool        _miningStatus = false;
 
             // Thread safe queue for incoming messages
             tsqueue<OwnedMessage> _messagesIn;

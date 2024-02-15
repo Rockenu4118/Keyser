@@ -8,6 +8,8 @@
 #include "../chain/Transaction.hpp"
 #include "../chain/Block.hpp"
 #include "../node/NodeInfo.hpp"
+#include "../wallet/WalletManager.hpp"
+#include "../chain/Mempool.hpp"
 
 
 namespace keyser
@@ -30,12 +32,13 @@ namespace keyser
             void nodeInfoStream(std::shared_ptr<Connection> connection);
             
             // Accessors
-            Chain*   chain();
-            Mempool* mempool();
+            int connectionCount() const;
+
 
         protected:
             // Event handlers
             virtual bool allowConnect(std::shared_ptr<Connection> connection);
+            virtual void onOutgoingConnect(std::shared_ptr<Connection> connection);
             virtual void onIncomingConnect(std::shared_ptr<Connection> connection);
             virtual void onDisconnect(std::shared_ptr<Connection> connection);
             virtual void onMessage(std::shared_ptr<Connection> connection, Message& msg);
@@ -62,11 +65,6 @@ namespace keyser
             void handleGetNodeList(std::shared_ptr<Connection> connection, Message& msg);
             void handleNodeInfo(std::shared_ptr<Connection> connection, Message& msg);
 
-            // Node members
-            Chain*      _chain = nullptr;
-            Mempool*    _mempool = nullptr;
-            std::thread _miningThr;
-            bool        _miningStatus = false;
         };
 }
 

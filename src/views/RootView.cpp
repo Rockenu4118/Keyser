@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <chrono>
+#include <thread>
 
 #include "./RootView.hpp"
 #include "./ChainView.hpp"
@@ -10,7 +12,7 @@
 #include "../wallet/WalletManager.hpp"
 
 
-keyser::cli::RootView::RootView(Node* node, WalletManager& wallets) : _wallets(wallets)
+keyser::cli::RootView::RootView(Node* node)
 {
     _node = node;
 
@@ -47,12 +49,12 @@ void keyser::cli::RootView::display()
                 break;
             case '2':
             {
-                keyser::cli::TransactionView view = keyser::cli::TransactionView(_wallets, _node);
+                keyser::cli::TransactionView view = keyser::cli::TransactionView(_node);
             }
                 break;  
             case '3':
             {
-                keyser::cli::WalletView view = keyser::cli::WalletView(_wallets);
+                keyser::cli::WalletView view = keyser::cli::WalletView(_node);
             }   
                 break;
             case '4':
@@ -87,27 +89,34 @@ void keyser::cli::RootView::initSetup()
     std::cout << "Provide initial connection (Y/n): ";
     std::cin >> selection;
 
-    if (selection == 'y') 
+    if (selection == 'y' || selection == 'Y') 
     {
-        initConnection();
+        bool success = false;
+
+        do
+        {
+            NodeInfo nodeInfo;
+            nodeInfo._address = "127.0.0.1";
+
+            std::cout << "Ip: ";
+            std::cin >> nodeInfo._address;
+            std::cout << "Port: ";
+            std::cin >> nodeInfo._port;
+
+            success = _node->connect(nodeInfo);
+        }
+        while (!success);
     }
-}
-
-void keyser::cli::RootView::initConnection()
-{
-    bool success = false;
-
-    do
+    else
     {
-        NodeInfo nodeInfo;
-        nodeInfo._address = "127.0.0.1";
+        clearScreen();
+        std::cout << "Waiting for connection  ";
 
-        std::cout << "Ip: ";
-        std::cin >> nodeInfo._address;
-        std::cout << "Port: ";
-        std::cin >> nodeInfo._port;
-
-        success = _node->connect(nodeInfo);
+        while (_node->connectionCount() < 1)
+        {
+            loadingAnimation(250);
+        }
     }
-    while (!success);
+
+    clearScreen();
 }

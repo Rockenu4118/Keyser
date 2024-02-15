@@ -1,12 +1,9 @@
 #ifndef ROOT_VIEW_H
 #define ROOT_VIEW_H
 
-#include <vector>
-
 #include <CLI_View.hpp>
 
 #include "../node/Node.hpp"
-#include "../wallet/WalletManager.hpp"
 
 
 namespace keyser
@@ -16,7 +13,7 @@ namespace keyser
         class RootView : public cli_core::CLI_View
         {
             public:
-                RootView(Node* node, WalletManager& wallets);
+                RootView(Node* node);
 
             protected:
                 void display();
@@ -25,8 +22,7 @@ namespace keyser
                 void initSetup();
                 void initConnection();
 
-                Node*          _node;
-                WalletManager& _wallets;
+                Node* _node = nullptr;
 
         };
     }

@@ -3,7 +3,7 @@
 
 #include <CLI_View.hpp>
 
-#include "../wallet/WalletManager.hpp"
+#include "../node/Node.hpp"
 
 
 namespace keyser
@@ -13,7 +13,7 @@ namespace keyser
         class WalletView : public cli_core::CLI_View
         {
             public:
-                WalletView(WalletManager& wallets);
+                WalletView(Node* node);
 
                 void viewWallets();
                 void createWallet();
@@ -22,7 +22,7 @@ namespace keyser
                 void display();
 
             private:
-                WalletManager& _wallets;
+                Node* _node = nullptr;
                 
         };
     }

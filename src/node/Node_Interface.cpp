@@ -21,8 +21,10 @@ keyser::Node_Interface::Node_Interface(uint16_t port) : _acceptor(_context, boos
     _selfInfo._address = "";
     _selfInfo._port    = port;
 
-    // Run thread to handle messsages
-    _responseThread = std::thread([this]() { update(); }); 
+    _chain         = new Chain();
+    _mempool       = new Mempool();
+    _storageEngine = new StorageEngine();
+    _walletManager = new WalletManager();
 }
 
 keyser::Node_Interface::~Node_Interface()
@@ -39,6 +41,8 @@ bool keyser::Node_Interface::start()
 
         // Run the context in its own thread
         _contextThread = std::thread([this]() { _context.run(); });
+        // Run thread to handle messsages
+        _responseThread = std::thread([this]() { update(); }); 
         // Activate thread to manage peer connections
         _peerConnectionThread = std::thread([this]() { managePeerConnections(); });
         // Activate thread to dispose of invalid connections
@@ -287,8 +291,31 @@ void keyser::Node_Interface::displaySelfInfo()
     std::cout << _selfInfo << std::endl;
 }
 
+keyser::Chain* keyser::Node_Interface::chain()
+{
+    return _chain;
+}
+
+keyser::Mempool* keyser::Node_Interface::mempool()
+{
+    return _mempool;
+}
+
+keyser::StorageEngine* keyser::Node_Interface::storageEngine()
+{
+    return _storageEngine;
+}
+
+keyser::WalletManager* keyser::Node_Interface::walletManager()
+{
+    return _walletManager;
+}
+
 bool keyser::Node_Interface::allowConnect(std::shared_ptr<Connection> connection)
 { return true; }
+
+void keyser::Node_Interface::onOutgoingConnect(std::shared_ptr<Connection> connection)
+{}
 
 void keyser::Node_Interface::onIncomingConnect(std::shared_ptr<Connection> connection)
 {}

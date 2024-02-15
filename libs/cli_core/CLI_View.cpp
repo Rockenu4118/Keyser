@@ -105,18 +105,14 @@ void cli_core::CLI_View::progressBar()
     std::cout << std::endl;
 }
 
-void cli_core::CLI_View::loadingAnimation()
+void cli_core::CLI_View::loadingAnimation(int milliseconds)
 {
-    int x;
-    std::cout << '-' << std::flush;
-    for (;;) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(x));
-        std::cout << "\b\\" << std::flush;
-        std::this_thread::sleep_for(std::chrono::milliseconds(x));
-        std::cout << "\b|" << std::flush;
-        std::this_thread::sleep_for(std::chrono::milliseconds(x));
-        std::cout << "\b/" << std::flush;
-        std::this_thread::sleep_for(std::chrono::milliseconds(x));
-        std::cout << "\b-" << std::flush;
-    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    std::cout << "\b\\" << std::flush;
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    std::cout << "\b|" << std::flush;
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    std::cout << "\b/" << std::flush;
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    std::cout << "\b-" << std::flush;
 }
