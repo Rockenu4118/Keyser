@@ -26,6 +26,9 @@ namespace keyser
             // Requests and Responses
             void ping();
 
+            // Initial msg sent to establish handshake from a new node
+            void version(std::shared_ptr<Connection> connection);
+
             void getBlocks();
             void sendBlocks(std::shared_ptr<Connection> connection);
 
@@ -64,8 +67,7 @@ namespace keyser
             void handleBlocks(std::shared_ptr<Connection> connection, Message& msg);
             void handleGetNodeList(std::shared_ptr<Connection> connection, Message& msg);
             void handleNodeInfo(std::shared_ptr<Connection> connection, Message& msg);
-
-        };
+    };
 }
 
 #endif

@@ -29,10 +29,11 @@ namespace keyser
             
             virtual ~Node_Interface();
 
-            bool start();
+            void run();
+            bool startServer();
             bool connect(const NodeInfo nodeInfo);
             void shutdown();
-            void waitForConnection();
+            void acceptConnection();
             void message(std::shared_ptr<Connection> connection, const Message& msg);
             void messageNeighbors(const Message& msg, std::shared_ptr<Connection> ignoreConnection = nullptr);
             void managePeerConnections();
@@ -40,9 +41,6 @@ namespace keyser
 
             // Handle incoming messages
             void update(uint8_t maxMessages = -1, bool wait = true);
-
-            // Initial msg sent to establish handshake from a new node
-            void version(std::shared_ptr<Connection> connection);
 
             void displayConnections();
             void displayActiveNodes();
@@ -61,8 +59,8 @@ namespace keyser
             virtual void onMessage(std::shared_ptr<Connection> connection, Message& msg);
 
             // Node members
-            Chain*         _chain = nullptr;
-            Mempool*       _mempool = nullptr;
+            Chain*         _chain         = nullptr;
+            Mempool*       _mempool       = nullptr;
             StorageEngine* _storageEngine = nullptr;
             WalletManager* _walletManager = nullptr;
 

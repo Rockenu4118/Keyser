@@ -26,7 +26,7 @@ int main()
     // Startup node
     keyser::Node* node;
     node = new keyser::Node(serverPort);
-    node->start();
+    node->run();
 
     // Initialize CLI
     keyser::cli::RootView view(node);

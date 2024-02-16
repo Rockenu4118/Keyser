@@ -15,6 +15,9 @@
 
 keyser::Node_Interface::Node_Interface(uint16_t port) : _acceptor(_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 {
+    // Close acceptor until server starts
+    _acceptor.close();
+
     // Save self info
     _selfInfo._version = KEYSER_VERSION;
     _selfInfo._alias   = "whatev";
@@ -32,12 +35,24 @@ keyser::Node_Interface::~Node_Interface()
     shutdown();
 }
 
-bool keyser::Node_Interface::start()
+void keyser::Node_Interface::run()
+{
+    startServer();
+}
+
+bool keyser::Node_Interface::startServer()
 {
     try
-    {
+    {   
+        // Setup server to be able to accept connections
+        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), _selfInfo._port);
+        _acceptor.open(endpoint.protocol());
+        _acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+        _acceptor.bind(endpoint);
+        _acceptor.listen();
+
         // Issue work before running context to keep it active
-        waitForConnection();
+        acceptConnection();
 
         // Run the context in its own thread
         _contextThread = std::thread([this]() { _context.run(); });
@@ -68,7 +83,8 @@ bool keyser::Node_Interface::connect(const NodeInfo nodeInfo)
         boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::make_address(nodeInfo._address), nodeInfo._port);
 
         // Create connection
-        std::shared_ptr<Connection> newConn = std::make_shared<Connection>(_context, boost::asio::ip::tcp::socket(_context), _messagesIn, _cvBlocking, _idCounter++);
+        std::shared_ptr<Connection> newConn = 
+            std::make_shared<Connection>(Connection::Direction::Outbound, _context, boost::asio::ip::tcp::socket(_context), _messagesIn, _cvBlocking, _idCounter++);
 
         // Connection pushed to back of connection container
         _connections.push_back(std::move(newConn));
@@ -81,7 +97,7 @@ bool keyser::Node_Interface::connect(const NodeInfo nodeInfo)
             return false;
         }
 
-        version(_connections.back());
+        onOutgoingConnect(_connections.back());
     }
     catch (std::exception& e)
     {
@@ -104,7 +120,7 @@ void keyser::Node_Interface::shutdown()
 //     std::cout << "[NODE] Stopped!" << std::endl;
 }
 
-void keyser::Node_Interface::waitForConnection()
+void keyser::Node_Interface::acceptConnection()
 {
     _acceptor.async_accept(
         [this](std::error_code ec, boost::asio::ip::tcp::socket socket)
@@ -114,7 +130,7 @@ void keyser::Node_Interface::waitForConnection()
                 std::cout << "[NODE] New connection: " << socket.remote_endpoint() << std::endl;
 
                 std::shared_ptr<Connection> newConn =
-                    std::make_shared<Connection>(_context, std::move(socket), _messagesIn, _cvBlocking, _idCounter++);
+                    std::make_shared<Connection>(Connection::Direction::Inbound, _context, std::move(socket), _messagesIn, _cvBlocking, _idCounter++);
 
                 // Give node a chance to deny connection
                 if (allowConnect(newConn))
@@ -139,7 +155,7 @@ void keyser::Node_Interface::waitForConnection()
             }
 
             // Prime asio context with more work, wait for another connection...
-            waitForConnection();
+            acceptConnection();
         }
     );
 }
@@ -246,18 +262,6 @@ void keyser::Node_Interface::update(uint8_t maxMessages, bool wait)
     }
 }
 
-void keyser::Node_Interface::version(std::shared_ptr<Connection> connection)
-{
-    // Send self info as well as their external address
-    Message msg(MsgTypes::Version);
-    msg.json()["Outbound version"] = _selfInfo._version;
-    msg.json()["Outbound alias"]   = _selfInfo._alias;
-    msg.json()["Outbound port"]    = _selfInfo._port;
-    msg.json()["address"]          = connection->getEndpoint().address().to_string();
-    msg.serialize();
-    message(connection, msg);
-}
-
 void keyser::Node_Interface::displayConnections()
 {
     if (_connections.size() == 0)
@@ -268,7 +272,9 @@ void keyser::Node_Interface::displayConnections()
 
     for (auto& connection : _connections)
     {
-        std::cout << "[" << connection->getId() << "] " << connection->getEndpoint() << ", Hosting on: " << connection->getHostingPort() << std::endl;
+        std::cout << "[" << connection->getId() << "] " << connection->getEndpoint() 
+                  << ", Hosting on: " << connection->getHostingPort() 
+                  << ", Direction: " << (connection->getDirection() == Connection::Direction::Outbound ? "Outbound" : "Inbound") << std::endl;
     }
 }
 

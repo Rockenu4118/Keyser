@@ -6,7 +6,8 @@
 #include "./Message.hpp"
 
 
-keyser::Connection::Connection(boost::asio::io_context& asioContext, 
+keyser::Connection::Connection(Direction direction,
+                               boost::asio::io_context& asioContext, 
                                boost::asio::ip::tcp::socket socket, 
                                tsqueue<OwnedMessage>& qMessagesIn, 
                                std::condition_variable& cvBlocking, 
@@ -16,12 +17,18 @@ keyser::Connection::Connection(boost::asio::io_context& asioContext,
                                _cvBlocking(cvBlocking), 
                                _qMessagesIn(qMessagesIn)
 {
-    _id = uid;
+    _direction = direction;
+    _id        = uid;
 }
 
 uint16_t keyser::Connection::getId() const
 {
     return _id;
+}
+
+keyser::Connection::Direction keyser::Connection::getDirection() const
+{
+    return _direction;
 }
 
 boost::asio::ip::tcp::endpoint keyser::Connection::getEndpoint() const
@@ -61,6 +68,7 @@ bool keyser::Connection::connect(const boost::asio::ip::tcp::endpoint& endpoint)
     if (!ec)
     {
         readHeader();
+        std::cout << "connected" << std::endl;
         _hostingPort = getEndpoint().port();
         return true;
     }

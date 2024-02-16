@@ -13,8 +13,15 @@ namespace keyser
     class Connection: public std::enable_shared_from_this<Connection>
     {
         public:
+            enum class Direction : uint8_t
+            {
+                Outbound,
+                Inbound
+            };
+
             // Constructor and destructor
-            Connection(boost::asio::io_context& asioContext, 
+            Connection(Direction direction,
+                       boost::asio::io_context& asioContext, 
                        boost::asio::ip::tcp::socket socket, 
                        tsqueue<OwnedMessage>& qMessagesIn, 
                        std::condition_variable& cvBlocking, 
@@ -23,6 +30,7 @@ namespace keyser
             virtual ~Connection() = default;
 
             uint16_t getId() const;
+            Direction getDirection() const;
             boost::asio::ip::tcp::endpoint getEndpoint() const;
             uint16_t getHostingPort() const;
             void setHostingPort(uint16_t port);
@@ -41,6 +49,8 @@ namespace keyser
             void addToIncomingMessageQueue();
 
         protected:
+            Direction _direction;
+
             boost::asio::ip::tcp::socket _socket;
             boost::asio::io_context&     _asioContext;
             tsqueue<Message>             _qMessagesOut;

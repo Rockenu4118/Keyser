@@ -20,6 +20,7 @@
 
 keyser::Node::Node(uint16_t port) : Node_Interface(port)
 {
+    // Test wallets
     keyser::Wallet ajWallet("AJ", key1);
     _walletManager->addWallet(ajWallet);
 
@@ -77,6 +78,18 @@ void keyser::Node::ping()
 {
     Message msg(MsgTypes::Ping);
     messageNeighbors(msg);
+}
+
+void keyser::Node::version(std::shared_ptr<Connection> connection)
+{
+    // Send self info as well as their external address
+    Message msg(MsgTypes::Version);
+    msg.json()["Outbound version"] = _selfInfo._version;
+    msg.json()["Outbound alias"]   = _selfInfo._alias;
+    msg.json()["Outbound port"]    = _selfInfo._port;
+    msg.json()["address"]          = connection->getEndpoint().address().to_string();
+    msg.serialize();
+    message(connection, msg);
 }
 
 void keyser::Node::distributeNodeInfo(NodeInfo& nodeInfo)
