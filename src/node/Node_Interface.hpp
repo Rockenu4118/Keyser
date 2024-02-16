@@ -96,8 +96,6 @@ namespace keyser
 
             // Thread for handling peer connections
             std::thread _peerConnectionThread;
-            std::mutex _muxConnections;
-            std::condition_variable _cvConnections;
 
             // Asio acceptor
             boost::asio::ip::tcp::acceptor _acceptor;

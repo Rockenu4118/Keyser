@@ -182,41 +182,38 @@ void keyser::Node_Interface::messageNeighbors(const Message& msg, std::shared_pt
 
 void keyser::Node_Interface::managePeerConnections()
 {
-    while (1)
+    while (!_recievedNodeList)
+        sleep(1);
+
+    for (auto& nodeInfo : _activeNodeList)
     {
-        while (!_recievedNodeList)
-            sleep(1);
-
-        if (_connectedNodeList.size() < 3)
+        if (!(_connectedNodeList.size() <= 3))
         {
-            for (auto& nodeInfo : _activeNodeList)
-            {
-                if (_selfInfo == nodeInfo)
-                {
-                    std::cout << "[NODE] Cannot self connect" << std::endl;
-                    continue;
-                }
-
-                if (_connectedNodeList.count(nodeInfo) == 1)
-                {
-                    std::cout << "[NODE] No duplicate connections" << std::endl;
-                    continue;
-                }
-
-                if (connect(nodeInfo))
-                {
-                    _connectedNodeList.insert(nodeInfo);
-                }
-            }
+            std::cout << "Alr 3 connections" << std::endl;
+            return;
         }
 
-        Message newMsg(MsgTypes::DistributeNodeInfo);
-        newMsg.insert(_selfInfo);
-        messageNeighbors(newMsg);
+        if (_selfInfo == nodeInfo)
+        {
+            std::cout << "[NODE] Cannot self connect" << std::endl;
+            continue;
+        }
 
-        std::unique_lock ul(_muxConnections);
-        _cvConnections.wait(ul);
+        if (_connectedNodeList.count(nodeInfo) == 1)
+        {
+            std::cout << "[NODE] No duplicate connections" << std::endl;
+            continue;
+        }
+
+        if (connect(nodeInfo))
+        {
+            _connectedNodeList.insert(nodeInfo);
+        }
     }
+
+    Message newMsg(MsgTypes::DistributeNodeInfo);
+    newMsg.insert(_selfInfo);
+    messageNeighbors(newMsg);
 }
 
 void keyser::Node_Interface::removeInvalidConnections()
