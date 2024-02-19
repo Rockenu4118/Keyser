@@ -105,7 +105,7 @@ void keyser::cli::RootView::initSetup()
 
             success = _node->connect(nodeInfo);
         }
-        while (!success);
+        while (_node->connectionCount() < 1);
     }
     else
     {

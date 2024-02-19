@@ -24,6 +24,7 @@ namespace keyser
             bool   addBlock(Block block);
             double getAddressBalance(std::string address);
             bool   isValid();
+            uint   getHeight() const;
 
             std::vector<std::shared_ptr<Block>>& blocks();
         

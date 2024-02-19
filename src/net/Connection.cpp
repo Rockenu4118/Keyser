@@ -68,7 +68,6 @@ bool keyser::Connection::connect(const boost::asio::ip::tcp::endpoint& endpoint)
     if (!ec)
     {
         readHeader();
-        std::cout << "connected" << std::endl;
         _hostingPort = getEndpoint().port();
         return true;
     }
@@ -209,4 +208,17 @@ void keyser::Connection::addToIncomingMessageQueue()
     _qMessagesIn.pushBack(OwnedMessage(this->shared_from_this(), _msgTemporaryIn));
                     
     readHeader();
+}
+
+namespace keyser
+{
+    std::ostream& operator<<(std::ostream& out, Connection& data)
+    {
+        out << "[" << data.getId() << "] ";
+        out << data.getEndpoint() << ", ";
+        out << "Hosting on: " << data.getHostingPort() << ", ";
+        out << "Direction: " << (data.getDirection() == Connection::Direction::Outbound ? "Outbound" : "Inbound");
+
+        return out;
+    }
 }

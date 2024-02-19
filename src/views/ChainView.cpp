@@ -34,7 +34,7 @@ void keyser::cli::ChainView::display()
         {
             case '1':
                 displayTitle("Chain");
-                _node->chain()->printChain();
+                _node->printChain();
                 continueMsg();
                 break;
             case '2':
@@ -42,7 +42,7 @@ void keyser::cli::ChainView::display()
                 break;
             case '3':
                 displayTitle("Mempool");
-                _node->mempool()->printMempool();
+                _node->mempool().printMempool();
                 continueMsg();
                 break;
             case '4':
@@ -70,8 +70,8 @@ void keyser::cli::ChainView::viewBlockTransactions()
 
     std::cout << std::endl;
 
-    if (index < _node->chain()->blocks().size())
-        _node->chain()->getBlock(index)->printTransactions();
+    if (index < _node->blocks().size())
+        _node->getBlock(index)->printTransactions();
     else
         std::cout << "Invalid block." << std::endl;
         

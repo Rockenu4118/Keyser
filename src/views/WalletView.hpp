@@ -16,6 +16,7 @@ namespace keyser
                 WalletView(Node* node);
 
                 void viewWallets();
+                void viewBalance();
                 void createWallet();
 
             protected:

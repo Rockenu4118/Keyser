@@ -1,5 +1,5 @@
-#ifndef NODE_INTERFACE_H
-#define NODE_INTERFACE_H
+#ifndef NET_INTERFACE_H
+#define NET_INTERFACE_H
 
 #include <set>
 #include <string>
@@ -17,19 +17,17 @@
 #include "../storage/StorageEngine.hpp"
 
 
-
 namespace keyser
 {
     class Connection;
 
-    class Node_Interface
+    class NetInterface
     {
         public:
-            Node_Interface(uint16_t port);
+            NetInterface(uint16_t port);
             
-            virtual ~Node_Interface();
+            virtual ~NetInterface();
 
-            void run();
             bool startServer();
             bool connect(const NodeInfo nodeInfo);
             void shutdown();
@@ -39,17 +37,18 @@ namespace keyser
             void managePeerConnections();
             void removeInvalidConnections();
 
+            void addUserProvidedPotentialConnection(NodeInfo nodeInfo);
+            void addPotentialConnection(NodeInfo nodeInfo);
+
             // Handle incoming messages
             void update(uint8_t maxMessages = -1, bool wait = true);
+
+            // Accessors
+            int connectionCount() const;
 
             void displayConnections();
             void displayActiveNodes();
             void displaySelfInfo();
-
-            Chain*         chain();
-            Mempool*       mempool();
-            StorageEngine* storageEngine();
-            WalletManager* walletManager();
 
         protected:
             virtual bool allowConnect(std::shared_ptr<Connection> connection);
@@ -58,14 +57,6 @@ namespace keyser
             virtual void onDisconnect(std::shared_ptr<Connection> connection);
             virtual void onMessage(std::shared_ptr<Connection> connection, Message& msg);
 
-            // Node members
-            Chain*         _chain         = nullptr;
-            Mempool*       _mempool       = nullptr;
-            StorageEngine* _storageEngine = nullptr;
-            WalletManager* _walletManager = nullptr;
-
-            std::thread _miningThr;
-            bool        _miningStatus = false;
 
             // Thread safe queue for incoming messages
             tsqueue<OwnedMessage> _messagesIn;
@@ -76,12 +67,18 @@ namespace keyser
             // Container for active validated connections
             std::deque<std::shared_ptr<Connection>> _connections{};
 
+            // Container for info of potential connections
+            std::deque<NodeInfo> _potentialConnections{};
+
             // Info of active nodes on network, info of connected nodes, self info
             std::set<NodeInfo> _activeNodeList;
             std::set<NodeInfo> _connectedNodeList;
             NodeInfo           _selfInfo;
-            bool               _recievedNodeList = false;
-            bool               _recievedChain = false;
+            
+            // Status variables
+            bool _recievedNodeList = false;
+            bool _distributedSelfInfo = false;
+            bool _recievedChain = false;
 
             // Asio context as well as its own thread to run in
             boost::asio::io_context _context;
@@ -93,6 +90,9 @@ namespace keyser
             std::condition_variable _cvBlocking;
             std::mutex              _muxBlocking;
             std::thread             _connectionRemovalThread;
+
+            std::condition_variable _connectionBlocking;
+            std::mutex              _connectionMutex;
 
             // Thread for handling peer connections
             std::thread _peerConnectionThread;

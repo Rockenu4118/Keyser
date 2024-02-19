@@ -7,13 +7,13 @@
 
 #include "../data/version.hpp"
 #include "../net/MsgTypes.hpp"
-#include "./Node_Interface.hpp"
+#include "./NetInterface.hpp"
 #include "../net/Connection.hpp"
 #include "../net/Message.hpp"
 #include "../node/NodeInfo.hpp"
 
 
-keyser::Node_Interface::Node_Interface(uint16_t port) : _acceptor(_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+keyser::NetInterface::NetInterface(uint16_t port) : _acceptor(_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 {
     // Close acceptor until server starts
     _acceptor.close();
@@ -23,24 +23,14 @@ keyser::Node_Interface::Node_Interface(uint16_t port) : _acceptor(_context, boos
     _selfInfo._alias   = "whatev";
     _selfInfo._address = "";
     _selfInfo._port    = port;
-
-    _chain         = new Chain();
-    _mempool       = new Mempool();
-    _storageEngine = new StorageEngine();
-    _walletManager = new WalletManager();
 }
 
-keyser::Node_Interface::~Node_Interface()
+keyser::NetInterface::~NetInterface()
 {
     shutdown();
 }
 
-void keyser::Node_Interface::run()
-{
-    startServer();
-}
-
-bool keyser::Node_Interface::startServer()
+bool keyser::NetInterface::startServer()
 {
     try
     {   
@@ -73,7 +63,7 @@ bool keyser::Node_Interface::startServer()
     return false;
 }
 
-bool keyser::Node_Interface::connect(const NodeInfo nodeInfo)
+bool keyser::NetInterface::connect(const NodeInfo nodeInfo)
 {   
     try
     {
@@ -108,7 +98,7 @@ bool keyser::Node_Interface::connect(const NodeInfo nodeInfo)
     return true;
 }
 
-void keyser::Node_Interface::shutdown()
+void keyser::NetInterface::shutdown()
 {   
 //     // Request the context to close
 //     _context.stop();
@@ -120,7 +110,7 @@ void keyser::Node_Interface::shutdown()
 //     std::cout << "[NODE] Stopped!" << std::endl;
 }
 
-void keyser::Node_Interface::acceptConnection()
+void keyser::NetInterface::acceptConnection()
 {
     _acceptor.async_accept(
         [this](std::error_code ec, boost::asio::ip::tcp::socket socket)
@@ -160,14 +150,14 @@ void keyser::Node_Interface::acceptConnection()
     );
 }
 
-void keyser::Node_Interface::message(std::shared_ptr<Connection> connection, const Message& msg)
+void keyser::NetInterface::message(std::shared_ptr<Connection> connection, const Message& msg)
 {
     // Send message if peer is connected
     if (connection && connection->isConnected())
         connection->send(msg);
 }
 
-void keyser::Node_Interface::messageNeighbors(const Message& msg, std::shared_ptr<Connection> ignoreConnection)
+void keyser::NetInterface::messageNeighbors(const Message& msg, std::shared_ptr<Connection> ignoreConnection)
 {
     // Iterate through connections
     for (auto& connection : _connections)
@@ -180,18 +170,32 @@ void keyser::Node_Interface::messageNeighbors(const Message& msg, std::shared_pt
     }
 }
 
-void keyser::Node_Interface::managePeerConnections()
+void keyser::NetInterface::managePeerConnections()
 {
-    while (!_recievedNodeList)
-        sleep(1);
+    // while (!_recievedNodeList)
+    //     sleep(1);
 
-    for (auto& nodeInfo : _activeNodeList)
+    while (1)
     {
-        if (!(_connectedNodeList.size() <= 3))
+        // Wait until node has acquired info of potential peers
+        std::unique_lock ul(_connectionMutex);
+        _connectionBlocking.wait(ul);
+
+        if (_recievedNodeList || (_connectedNodeList.size() < 3))
         {
-            std::cout << "Alr 3 connections" << std::endl;
-            return;
+            if (!_distributedSelfInfo)
+            {
+                Message newMsg(MsgTypes::DistributeNodeInfo);
+                newMsg.insert(_selfInfo);
+                messageNeighbors(newMsg);
+            }
+
+            continue;
         }
+
+        // Grab info from front of deque
+        NodeInfo nodeInfo = _potentialConnections.front();
+        _potentialConnections.pop_front();
 
         if (_selfInfo == nodeInfo)
         {
@@ -211,12 +215,34 @@ void keyser::Node_Interface::managePeerConnections()
         }
     }
 
-    Message newMsg(MsgTypes::DistributeNodeInfo);
-    newMsg.insert(_selfInfo);
-    messageNeighbors(newMsg);
+    // for (auto& nodeInfo : _activeNodeList)
+    // {
+    //     if (!(_connectedNodeList.size() <= 3))
+    //     {
+    //         std::cout << "Alr 3 connections" << std::endl;
+    //         return;
+    //     }
+
+    //     if (_selfInfo == nodeInfo)
+    //     {
+    //         std::cout << "[NODE] Cannot self connect" << std::endl;
+    //         continue;
+    //     }
+
+    //     if (_connectedNodeList.count(nodeInfo) == 1)
+    //     {
+    //         std::cout << "[NODE] No duplicate connections" << std::endl;
+    //         continue;
+    //     }
+
+    //     if (connect(nodeInfo))
+    //     {
+    //         _connectedNodeList.insert(nodeInfo);
+    //     }
+    // }
 }
 
-void keyser::Node_Interface::removeInvalidConnections()
+void keyser::NetInterface::removeInvalidConnections()
 {
     while (1)
     {
@@ -236,7 +262,19 @@ void keyser::Node_Interface::removeInvalidConnections()
     }
 }
 
-void keyser::Node_Interface::update(uint8_t maxMessages, bool wait)
+void keyser::NetInterface::addUserProvidedPotentialConnection(NodeInfo nodeInfo)
+{
+    _potentialConnections.emplace_front(nodeInfo);
+    _connectionBlocking.notify_one();
+}
+
+void keyser::NetInterface::addPotentialConnection(NodeInfo nodeInfo)
+{
+    _potentialConnections.emplace_back(nodeInfo);
+    _connectionBlocking.notify_one();
+}
+
+void keyser::NetInterface::update(uint8_t maxMessages, bool wait)
 {
     while(1)
     {
@@ -259,7 +297,12 @@ void keyser::Node_Interface::update(uint8_t maxMessages, bool wait)
     }
 }
 
-void keyser::Node_Interface::displayConnections()
+int keyser::NetInterface::connectionCount() const
+{
+    return _connections.size();
+}
+
+void keyser::NetInterface::displayConnections()
 {
     if (_connections.size() == 0)
     {
@@ -269,13 +312,11 @@ void keyser::Node_Interface::displayConnections()
 
     for (auto& connection : _connections)
     {
-        std::cout << "[" << connection->getId() << "] " << connection->getEndpoint() 
-                  << ", Hosting on: " << connection->getHostingPort() 
-                  << ", Direction: " << (connection->getDirection() == Connection::Direction::Outbound ? "Outbound" : "Inbound") << std::endl;
+        std::cout << *connection << std::endl;
     }
 }
 
-void keyser::Node_Interface::displayActiveNodes()
+void keyser::NetInterface::displayActiveNodes()
 {
     if (_activeNodeList.size() == 0)
     {
@@ -289,42 +330,24 @@ void keyser::Node_Interface::displayActiveNodes()
     }
 }
 
-void keyser::Node_Interface::displaySelfInfo()
+void keyser::NetInterface::displaySelfInfo()
 {
-    std::cout << _selfInfo << std::endl;
+    std::cout << "Alias:   " << _selfInfo._alias   << std::endl;
+    std::cout << "Address: " << _selfInfo._address << std::endl;
+    std::cout << "Port:    " << _selfInfo._port    << std::endl;
 }
 
-keyser::Chain* keyser::Node_Interface::chain()
-{
-    return _chain;
-}
-
-keyser::Mempool* keyser::Node_Interface::mempool()
-{
-    return _mempool;
-}
-
-keyser::StorageEngine* keyser::Node_Interface::storageEngine()
-{
-    return _storageEngine;
-}
-
-keyser::WalletManager* keyser::Node_Interface::walletManager()
-{
-    return _walletManager;
-}
-
-bool keyser::Node_Interface::allowConnect(std::shared_ptr<Connection> connection)
+bool keyser::NetInterface::allowConnect(std::shared_ptr<Connection> connection)
 { return true; }
 
-void keyser::Node_Interface::onOutgoingConnect(std::shared_ptr<Connection> connection)
+void keyser::NetInterface::onOutgoingConnect(std::shared_ptr<Connection> connection)
 {}
 
-void keyser::Node_Interface::onIncomingConnect(std::shared_ptr<Connection> connection)
+void keyser::NetInterface::onIncomingConnect(std::shared_ptr<Connection> connection)
 {}
 
-void keyser::Node_Interface::onDisconnect(std::shared_ptr<Connection> connection)
+void keyser::NetInterface::onDisconnect(std::shared_ptr<Connection> connection)
 {}
 
-void keyser::Node_Interface::onMessage(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::NetInterface::onMessage(std::shared_ptr<Connection> connection, Message& msg)
 {}

@@ -21,7 +21,7 @@ void keyser::cli::WalletView::display()
         displayTitle("Wallet Menu");
 
         std::cout << "[1] View wallets"  << std::endl;
-        std::cout << "[2] Edit wallet"   << std::endl;
+        std::cout << "[2] View balance"  << std::endl;
         std::cout << "[3] Create wallet" << std::endl;
         std::cout << "[0] Exit"          << std::endl;
         std::cout << std::endl;
@@ -35,7 +35,8 @@ void keyser::cli::WalletView::display()
                 continueMsg();
                 break;
             case '2':
-                // TODO
+                viewBalance();
+                continueMsg();
                 break;
             case '3':
                 createWallet();
@@ -54,7 +55,16 @@ void keyser::cli::WalletView::display()
 void keyser::cli::WalletView::viewWallets()
 {
     displayTitle("Wallets");
-    _node->walletManager()->displayWallets();
+    _node->walletManager().displayWallets();
+}
+
+void keyser::cli::WalletView::viewBalance()
+{
+    displayTitle("Balance");
+    std::string address;
+    std::cout << "Address: ";
+    std::cin >> address;
+    std::cout << "Balance: " << _node->getAddressBalance(address) << std::endl;
 }
 
 void keyser::cli::WalletView::createWallet()
@@ -64,5 +74,5 @@ void keyser::cli::WalletView::createWallet()
     displayTitle("New Wallet");
     std::cout << "Name: ";
     std::cin >> name;
-    _node->walletManager()->createWallet(name);
+    _node->walletManager().createWallet(name);
 }

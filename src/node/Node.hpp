@@ -1,10 +1,11 @@
 #ifndef NODE_H
 #define NODE_H
 
-#include "./Node_Interface.hpp"
+#include "./NetInterface.hpp"
 #include "../net/Connection.hpp"
 
 #include "../chain/Chain.hpp"
+#include "../storage/StorageEngine.hpp"
 #include "../chain/Transaction.hpp"
 #include "../chain/Block.hpp"
 #include "../node/NodeInfo.hpp"
@@ -14,10 +15,12 @@
 
 namespace keyser
 {
-    class Node : public Node_Interface
+    class Node : public Chain, public NetInterface
     {
         public:
             Node(uint16_t port);
+
+            void run();
 
             // Node actions
             void beginMining(bool continuous);
@@ -25,18 +28,20 @@ namespace keyser
 
             // Requests and Responses
             void ping();
+            void pong();
 
             // Initial msg sent to establish handshake from a new node
             void version(std::shared_ptr<Connection> connection);
+            void verack(std::shared_ptr<Connection> connection);
 
             void getBlocks();
             void sendBlocks(std::shared_ptr<Connection> connection);
 
             void nodeInfoStream(std::shared_ptr<Connection> connection);
             
-            // Accessors
-            int connectionCount() const;
 
+            Mempool&           mempool();
+            WalletManager&     walletManager();
 
         protected:
             // Event handlers
@@ -67,6 +72,14 @@ namespace keyser
             void handleBlocks(std::shared_ptr<Connection> connection, Message& msg);
             void handleGetNodeList(std::shared_ptr<Connection> connection, Message& msg);
             void handleNodeInfo(std::shared_ptr<Connection> connection, Message& msg);
+
+            // Members
+            Mempool       _mempool;
+            StorageEngine _storageEngine;
+            WalletManager _walletManager;
+
+            std::thread _miningThr;
+            bool        _miningStatus = false;
     };
 }
 

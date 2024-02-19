@@ -28,16 +28,9 @@ std::shared_ptr<keyser::Block> keyser::Chain::getBlock(int index)
     return _blocks.at(index);
 }
 
-// Modifiers
 void keyser::Chain::createGenesisBlock()
 {
-    std::vector<Transaction> initialBalances{};
-    Transaction balance1(500, "0xc6d8a2c830495d07318212e9f2cad16f", "None");
-    Transaction balance2(500, "0x183944191006324a447bdb2d98d4b408", "None");
-    initialBalances.push_back(balance1);
-    initialBalances.push_back(balance2);
-
-    std::shared_ptr<Block> genesisBlock = std::make_shared<Block>(0, 0, "None", initialBalances);
+    std::shared_ptr<Block> genesisBlock = std::make_shared<Block>(0, 0, "None", 100000, "genesis");
 
     genesisBlock->calcHash();
 
@@ -86,8 +79,13 @@ double keyser::Chain::getAddressBalance(std::string address)
 
     for (int i = 0 ; i < _blocks.size() ; i++)
     {
+        // Modify balances from genesis block and mining rewards
+        if (_blocks.at(i)->_rewardAddress == address)
+            balance += _blocks.at(i)->_reward;
+
         std::vector<Transaction> transactions = _blocks.at(i)->_transactions;
 
+        // Modify balance from transactions
         for (int j = 0 ; j < transactions.size() ; j++)
         {
             if (transactions.at(j)._recieverAddress == address)
@@ -122,6 +120,11 @@ bool keyser::Chain::isValid()
     }
 
     return true;
+}
+
+uint keyser::Chain::getHeight() const
+{
+    return _blocks.size();
 }
 
 std::vector<std::shared_ptr<keyser::Block>>& keyser::Chain::blocks()

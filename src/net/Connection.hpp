@@ -12,6 +12,9 @@ namespace keyser
 {
     class Connection: public std::enable_shared_from_this<Connection>
     {
+        // IO Stream operator
+        friend std::ostream& operator<<(std::ostream& out, Connection& data);
+
         public:
             enum class Direction : uint8_t
             {
@@ -34,6 +37,8 @@ namespace keyser
             boost::asio::ip::tcp::endpoint getEndpoint() const;
             uint16_t getHostingPort() const;
             void setHostingPort(uint16_t port);
+            uint getChainHeight();
+            void setChainHeight();
 
             bool isConnected() const;
             void listen();
@@ -58,6 +63,7 @@ namespace keyser
             Message                      _msgTemporaryIn;
 
             uint16_t _hostingPort;
+            uint     _chainHeight;
 
             // Notify Node to delete connection if it disconnects
             std::condition_variable& _cvBlocking;

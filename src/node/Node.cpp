@@ -18,14 +18,19 @@
 #include "../storage/StorageEngine.hpp"
 
 
-keyser::Node::Node(uint16_t port) : Node_Interface(port)
+keyser::Node::Node(uint16_t port) : NetInterface(port)
 {
     // Test wallets
     keyser::Wallet ajWallet("AJ", key1);
-    _walletManager->addWallet(ajWallet);
+    _walletManager.addWallet(ajWallet);
 
     keyser::Wallet guyWallet("Guy", key2);
-    _walletManager->addWallet(guyWallet);
+    _walletManager.addWallet(guyWallet);
+}
+
+void keyser::Node::run()
+{
+    startServer();
 }
 
 void keyser::Node::beginMining(bool continuous)
@@ -48,28 +53,26 @@ void keyser::Node::beginMining(bool continuous)
 
 void keyser::Node::mineBlock(std::string rewardAddress)
 {
-    Block newBlock(_chain->getCurrBlock()->_index + 1, time(NULL), _chain->getCurrBlock()->_hash, _mempool->popLeadingTransactions());
+    Block newBlock(getCurrBlock()->_index + 1, time(NULL), getCurrBlock()->_hash, 100, rewardAddress, _mempool.popLeadingTransactions());
 
-    newBlock.calcValidHash(_chain->calcDifficulty());
+    newBlock.calcValidHash(calcDifficulty());
     std::cout << "[CHAIN] Block Mined." << std::endl;
 
-    _chain->addBlock(std::move(newBlock));
+    addBlock(std::move(newBlock));
 
-    _mempool->addTransaction(keyser::Transaction(100, rewardAddress, "None"));
-
-    distributeBlock(*_chain->getCurrBlock());
+    distributeBlock(*getCurrBlock());
 
     _miningStatus = false;                     
 }
 
 bool keyser::Node::createTransaction(Transaction& transaction)
 {
-    double balance = _chain->getAddressBalance(transaction._senderAddress) + _mempool->getPendingBalance(transaction._senderAddress);
+    double balance = getAddressBalance(transaction._senderAddress) + _mempool.getPendingBalance(transaction._senderAddress);
 
     if (transaction._amount > balance)
         return false;
 
-    _mempool->addTransaction(transaction);
+    _mempool.addTransaction(transaction);
     distributeTransaction(transaction);
     return true;
 }
@@ -80,6 +83,8 @@ void keyser::Node::ping()
     messageNeighbors(msg);
 }
 
+void keyser::Node::pong() {}
+
 void keyser::Node::version(std::shared_ptr<Connection> connection)
 {
     // Send self info as well as their external address
@@ -87,10 +92,13 @@ void keyser::Node::version(std::shared_ptr<Connection> connection)
     msg.json()["Outbound version"] = _selfInfo._version;
     msg.json()["Outbound alias"]   = _selfInfo._alias;
     msg.json()["Outbound port"]    = _selfInfo._port;
+    msg.json()["chainHeight"]      = getHeight();
     msg.json()["address"]          = connection->getEndpoint().address().to_string();
     msg.serialize();
     message(connection, msg);
 }
+
+void keyser::Node::verack(std::shared_ptr<Connection> connection){}
 
 void keyser::Node::distributeNodeInfo(NodeInfo& nodeInfo)
 {
@@ -123,10 +131,10 @@ void keyser::Node::sendBlocks(std::shared_ptr<Connection> connection)
 {
     Message newMsg(MsgTypes::Blocks);
 
-    for (int i = 1 ; i < _chain->blocks().size() ; i++)
+    for (int i = 1 ; i < blocks().size() ; i++)
     {
         nlohmann::json json;
-        utils::encodeJson(json, *_chain->blocks().at(i));
+        utils::encodeJson(json, *blocks().at(i));
         newMsg.json()["blocks"].push_back(json);
     }
 
@@ -153,9 +161,14 @@ void keyser::Node::nodeInfoStream(std::shared_ptr<Connection> connection)
     message(connection, msg);
 }
 
-int keyser::Node::connectionCount() const
+keyser::Mempool& keyser::Node::mempool()
 {
-    return _connections.size();
+    return _mempool;
+}
+
+keyser::WalletManager& keyser::Node::walletManager()
+{
+    return _walletManager;
 }
 
 bool keyser::Node::allowConnect(std::shared_ptr<Connection> connection)
@@ -238,6 +251,7 @@ void keyser::Node::handleVersion(std::shared_ptr<Connection> connection, Message
     nodeInfo._address = connection->getEndpoint().address().to_string();
     nodeInfo._port    = msg.json()["Outbound port"];
 
+
     // Save the port this connection is running their server on
     // Add this node to connectedNodeList
     connection->setHostingPort(nodeInfo._port);
@@ -296,6 +310,7 @@ void keyser::Node::handleDistributeNodeInfo(std::shared_ptr<Connection> connecti
         return;
 
     _activeNodeList.insert(nodeInfo);
+    addPotentialConnection(nodeInfo);
     messageNeighbors(msg, connection);
 }
 
@@ -306,7 +321,7 @@ void keyser::Node::handleDistributeTransaction(std::shared_ptr<Connection> conne
     Transaction transaction;
     msg.extract(transaction);
 
-    if (_mempool->addTransaction(transaction))
+    if (_mempool.addTransaction(transaction))
         messageNeighbors(msg, connection);
 }
 
@@ -317,7 +332,7 @@ void keyser::Node::handleDistributeBlock(std::shared_ptr<Connection> connection,
     Block block;
     msg.extract(block);
 
-    if (_chain->addBlock(block))
+    if (addBlock(block))
         messageNeighbors(msg, connection);
 }
 
@@ -336,7 +351,7 @@ void keyser::Node::handleBlocks(std::shared_ptr<Connection> connection, Message&
     {
         Block block;
         utils::decodeJson(block, element);
-        _chain->addBlock(block);
+        addBlock(block);
     }
 
     _recievedChain = true;
@@ -363,6 +378,7 @@ void keyser::Node::handleNodeInfo(std::shared_ptr<Connection> connection, Messag
         nodeInfo._port    = element["port"];
 
         _activeNodeList.insert(nodeInfo);
+        addPotentialConnection(nodeInfo);
     }
 
     _recievedNodeList = true;

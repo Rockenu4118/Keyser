@@ -77,11 +77,13 @@ void keyser::utils::decodeJson(Transaction& transaction, nlohmann::json& json)
 
 void keyser::utils::encodeJson(nlohmann::json& json, Block& block)
 {
-    json["index"]     = block._index;
-    json["time"]      = block._time;
-    json["nonce"]     = block._nonce;
-    json["prev hash"] = block._prevHash;
-    json["hash"]      = block._hash;
+    json["index"]         = block._index;
+    json["time"]          = block._time;
+    json["nonce"]         = block._nonce;
+    json["prev hash"]     = block._prevHash;
+    json["hash"]          = block._hash;
+    json["reward"]        = block._reward;
+    json["rewardAddress"] = block._rewardAddress;
 
     for (Transaction tx : block._transactions)
     {
@@ -93,11 +95,13 @@ void keyser::utils::encodeJson(nlohmann::json& json, Block& block)
 
 void keyser::utils::decodeJson(Block& block, nlohmann::json& json)
 {
-    block._index    = json["index"];
-    block._time     = json["time"];
-    block._nonce    = json["nonce"];
-    block._prevHash = json["prev hash"];
-    block._hash     = json["hash"];
+    block._index         = json["index"];
+    block._time          = json["time"];
+    block._nonce         = json["nonce"];
+    block._prevHash      = json["prev hash"];
+    block._hash          = json["hash"];
+    block._reward        = json["reward"];
+    block._rewardAddress = json["rewardAddress"];
 
     for (auto& element : json["transactions"])
     {

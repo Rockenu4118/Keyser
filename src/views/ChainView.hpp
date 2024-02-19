@@ -22,8 +22,6 @@ namespace keyser
 
             private:
                 Node* _node;
-
-                // bool& _miningStatus;
         };
     }
 }
