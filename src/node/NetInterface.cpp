@@ -180,7 +180,7 @@ void keyser::NetInterface::managePeerConnections()
 
         // Try connecting to peers until either an adequate number of connections have been made
         // or there are no more potential connections
-        while ((connectionCount() < 3) && (!_potentialConnections.empty()))
+        while ((connectionCount() <= 2) && (!_potentialConnections.empty()))
         {
             // Grab info from front of deque
             NodeInfo nodeInfo = _potentialConnections.front();
@@ -203,6 +203,9 @@ void keyser::NetInterface::managePeerConnections()
                 _connectedNodeList.insert(nodeInfo);
             }
         }
+
+        if (_recievedNodeList)
+            _completedPeerDiscovery = true;
 
         if (!_distributedSelfInfo)
         {

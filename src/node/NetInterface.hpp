@@ -76,9 +76,10 @@ namespace keyser
             NodeInfo           _selfInfo;
             
             // Status variables
-            bool _recievedNodeList = false;
-            bool _distributedSelfInfo = false;
-            bool _recievedChain = false;
+            bool _recievedNodeList       = false;
+            bool _completedPeerDiscovery = false;
+            bool _distributedSelfInfo    = false;
+            bool _recievedChain          = false;
 
             // Asio context as well as its own thread to run in
             boost::asio::io_context _context;

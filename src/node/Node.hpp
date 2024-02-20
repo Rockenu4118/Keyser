@@ -22,7 +22,7 @@ namespace keyser
 
             void run();
 
-            
+            void buildChain();
 
             // Node actions
             void beginMining(bool continuous);
@@ -79,6 +79,8 @@ namespace keyser
             Mempool       _mempool;
             StorageEngine _storageEngine;
             WalletManager _walletManager;
+
+            std::thread _chainAssemblerThr;
 
             std::thread _miningThr;
             bool        _miningStatus = false;

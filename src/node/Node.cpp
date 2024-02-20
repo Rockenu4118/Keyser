@@ -33,7 +33,36 @@ void keyser::Node::run()
     _storageEngine.loadChain(_blocks);
     _storageEngine.loadWallets(_walletManager);
 
+    _chainAssemblerThr = std::thread([this]() { buildChain(); });
+
     startServer();
+}
+
+void keyser::Node::buildChain()
+{
+    while (!_completedPeerDiscovery)
+        sleep(1);
+
+    std::cout << "completed peer discovery" << std::endl;
+
+    std::shared_ptr<Connection> longestChain;
+
+    for (auto connection : _connections)
+    {
+        if (!longestChain)
+        {
+            longestChain = connection;
+            continue;
+        }
+
+        if (longestChain->getChainHeight() < connection->getChainHeight())
+            longestChain = connection;
+    }
+
+    std::cout << longestChain->getId() << ": has longest chain" << std::endl;
+
+    Message msg(MsgTypes::GetBlocks);
+    message(longestChain, msg);
 }
 
 void keyser::Node::beginMining(bool continuous)
