@@ -12,6 +12,7 @@ file(GLOB SOURCES "src/*.cpp"
                   "src/chain/*.cpp" 
                   "src/net/*.cpp" 
                   "src/node/*.cpp" 
+                  "src/storage/*.cpp"
                   "src/wallet/*.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES})

@@ -28,7 +28,7 @@ namespace keyser
 
             std::vector<std::shared_ptr<Block>>& blocks();
         
-        private:
+        protected:
             std::vector<std::shared_ptr<Block>> _blocks;
         
     };

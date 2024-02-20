@@ -20,9 +20,6 @@ namespace keyser
             // Main block constructor miners will use to form a block
             Block(uint index, time_t time, std::string prevHash, double reward, std::string rewardAddress, std::vector<Transaction> transactions);
 
-            // Constructor for genesis block to be created, the only block with no transactions
-            Block(uint index, time_t time, std::string prevHash, double reward, std::string rewardAddress);
-
             // Calculate the blocks hash
             void calcHash();
 

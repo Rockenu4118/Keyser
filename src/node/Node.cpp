@@ -30,6 +30,9 @@ keyser::Node::Node(uint16_t port) : NetInterface(port)
 
 void keyser::Node::run()
 {
+    _storageEngine.loadChain(_blocks);
+    _storageEngine.loadWallets(_walletManager);
+
     startServer();
 }
 
@@ -246,11 +249,12 @@ void keyser::Node::handleVersion(std::shared_ptr<Connection> connection, Message
 
     // Deserialize incoming node info
     NodeInfo nodeInfo;
-    nodeInfo._address = msg.json()["Outbound version"];
+    nodeInfo._version = msg.json()["Outbound version"];
     nodeInfo._alias   = msg.json()["Outbound alias"];
     nodeInfo._address = connection->getEndpoint().address().to_string();
     nodeInfo._port    = msg.json()["Outbound port"];
 
+    connection->setChainHeight(msg.json()["chainHeight"]);
 
     // Save the port this connection is running their server on
     // Add this node to connectedNodeList

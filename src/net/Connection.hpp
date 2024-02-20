@@ -37,8 +37,8 @@ namespace keyser
             boost::asio::ip::tcp::endpoint getEndpoint() const;
             uint16_t getHostingPort() const;
             void setHostingPort(uint16_t port);
-            uint getChainHeight();
-            void setChainHeight();
+            uint getChainHeight() const;
+            void setChainHeight(uint chainHeight);
 
             bool isConnected() const;
             void listen();

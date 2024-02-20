@@ -33,6 +33,7 @@ void keyser::WalletManager::displayWallets()
     for (int i = 0 ; i < count() ; i++)
     {
         std::cout << "#" << i << ", " << _wallets.at(i) << std::endl;
+        std::cout << *_wallets.at(i).getKeyPair() << std::endl;
     }
 }
 

@@ -22,6 +22,8 @@ namespace keyser
 
             void run();
 
+            
+
             // Node actions
             void beginMining(bool continuous);
             bool createTransaction(Transaction& transaction);

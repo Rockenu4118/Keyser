@@ -24,17 +24,6 @@ keyser::Block::Block(uint index, time_t time, std::string prevHash, double rewar
     _transactions  = transactions;
 }
 
-keyser::Block::Block(uint index, time_t time, std::string prevHash, double reward, std::string rewardAddress)
-{
-    _index         = index;
-    _time          = time;
-    _nonce         = 0;
-    _prevHash      = prevHash;
-    _hash          = "";
-    _reward        = reward;
-    _rewardAddress = rewardAddress;
-}
-
 // Modifiers
 void keyser::Block::calcHash()
 {

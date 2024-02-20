@@ -46,6 +46,16 @@ void keyser::Connection::setHostingPort(uint16_t port)
     _hostingPort = port;
 }
 
+uint keyser::Connection::getChainHeight() const
+{
+    return _chainHeight;
+}
+
+void keyser::Connection::setChainHeight(uint chainHeight)
+{
+    _chainHeight = chainHeight;
+}
+
 bool keyser::Connection::isConnected() const
 {
     return _socket.is_open();

@@ -1,12 +1,17 @@
 #include "./StorageEngine.hpp"
+#include "../chain/Block.hpp"
+#include "../wallet/WalletManager.hpp"
+
+#include <vector>
+#include <memory>
 
 
-int keyser::StorageEngine::chainHeight() const
+void keyser::StorageEngine::loadChain(std::vector<std::shared_ptr<Block>> blocks)
 {
-    return 1;
+
 }
 
-void keyser::StorageEngine::loadChain()
+void keyser::StorageEngine::loadWallets(WalletManager& walletManager)
 {
 
 }

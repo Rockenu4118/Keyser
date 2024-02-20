@@ -172,74 +172,45 @@ void keyser::NetInterface::messageNeighbors(const Message& msg, std::shared_ptr<
 
 void keyser::NetInterface::managePeerConnections()
 {
-    // while (!_recievedNodeList)
-    //     sleep(1);
-
     while (1)
     {
         // Wait until node has acquired info of potential peers
         std::unique_lock ul(_connectionMutex);
         _connectionBlocking.wait(ul);
 
-        if (_recievedNodeList || (_connectedNodeList.size() < 3))
+        // Try connecting to peers until either an adequate number of connections have been made
+        // or there are no more potential connections
+        while ((connectionCount() < 3) && (!_potentialConnections.empty()))
         {
-            if (!_distributedSelfInfo)
+            // Grab info from front of deque
+            NodeInfo nodeInfo = _potentialConnections.front();
+            _potentialConnections.pop_front();
+
+            if (_selfInfo == nodeInfo)
             {
-                Message newMsg(MsgTypes::DistributeNodeInfo);
-                newMsg.insert(_selfInfo);
-                messageNeighbors(newMsg);
+                std::cout << "[NODE] Cannot self connect" << std::endl;
+                continue;
             }
 
-            continue;
+            if (_connectedNodeList.count(nodeInfo) == 1)
+            {
+                std::cout << "[NODE] No duplicate connections" << std::endl;
+                continue;
+            }
+
+            if (connect(nodeInfo))
+            {
+                _connectedNodeList.insert(nodeInfo);
+            }
         }
 
-        // Grab info from front of deque
-        NodeInfo nodeInfo = _potentialConnections.front();
-        _potentialConnections.pop_front();
-
-        if (_selfInfo == nodeInfo)
+        if (!_distributedSelfInfo)
         {
-            std::cout << "[NODE] Cannot self connect" << std::endl;
-            continue;
-        }
-
-        if (_connectedNodeList.count(nodeInfo) == 1)
-        {
-            std::cout << "[NODE] No duplicate connections" << std::endl;
-            continue;
-        }
-
-        if (connect(nodeInfo))
-        {
-            _connectedNodeList.insert(nodeInfo);
+            Message newMsg(MsgTypes::DistributeNodeInfo);
+            newMsg.insert(_selfInfo);
+            messageNeighbors(newMsg);
         }
     }
-
-    // for (auto& nodeInfo : _activeNodeList)
-    // {
-    //     if (!(_connectedNodeList.size() <= 3))
-    //     {
-    //         std::cout << "Alr 3 connections" << std::endl;
-    //         return;
-    //     }
-
-    //     if (_selfInfo == nodeInfo)
-    //     {
-    //         std::cout << "[NODE] Cannot self connect" << std::endl;
-    //         continue;
-    //     }
-
-    //     if (_connectedNodeList.count(nodeInfo) == 1)
-    //     {
-    //         std::cout << "[NODE] No duplicate connections" << std::endl;
-    //         continue;
-    //     }
-
-    //     if (connect(nodeInfo))
-    //     {
-    //         _connectedNodeList.insert(nodeInfo);
-    //     }
-    // }
 }
 
 void keyser::NetInterface::removeInvalidConnections()

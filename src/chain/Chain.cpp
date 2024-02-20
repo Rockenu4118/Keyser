@@ -5,10 +5,11 @@
 #include <chrono>
 #include <memory>
 
-
+#include "../wallet/Wallet.hpp"
 #include "./Chain.hpp"
 #include "./Block.hpp"
 #include "./Mempool.hpp"
+#include "../data/keys.hpp"
 
 
 // Constructors
@@ -30,7 +31,21 @@ std::shared_ptr<keyser::Block> keyser::Chain::getBlock(int index)
 
 void keyser::Chain::createGenesisBlock()
 {
-    std::shared_ptr<Block> genesisBlock = std::make_shared<Block>(0, 0, "None", 100000, "genesis");
+    Wallet genesisWallet("genesis", genesisKey);
+
+    std::vector<Transaction> initialBalances{};
+
+    Transaction tx1(50000, "0xc6d8a2c830495d07318212e9f2cad16f", genesisWallet.getKeyPair()->getUPublicKey());
+    tx1._time = 0;
+    tx1.sign(genesisWallet.getKeyPair());
+    Transaction tx2(50000, "0x183944191006324a447bdb2d98d4b408", genesisWallet.getKeyPair()->getUPublicKey());
+    tx2._time = 0;
+    tx2.sign(genesisWallet.getKeyPair());
+
+    initialBalances.push_back(tx1);
+    initialBalances.push_back(tx2);
+
+    std::shared_ptr<Block> genesisBlock = std::make_shared<Block>(0, 0, "None", 100000, "0x33a1f6d9f637df8a805f6cc659d2366b", initialBalances);
 
     genesisBlock->calcHash();
 
