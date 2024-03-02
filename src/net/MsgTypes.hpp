@@ -22,6 +22,14 @@ enum class MsgTypes : uint32_t
 
     GetBlocks,
     Blocks,
+
+    Inv,
+    GetData,
+    Block,
+    
+    // Possible "Headers-First" sync method update in the future
+    // GetHeaders,
+    // Headers,
 };
 
 #endif

@@ -67,9 +67,6 @@ void keyser::cli::RootView::display()
                 keyser::cli::NetworkView view = keyser::cli::NetworkView(_node);
             }
                 break;
-            case '6':
-                _node->getBlocks();
-                continueMsg();
             default:
                 std::cout << "Exiting program..." << std::endl;
                 break;
@@ -106,10 +103,24 @@ void keyser::cli::RootView::initSetup()
             success = _node->connect(nodeInfo);
         }
         while (_node->connectionCount() < 1);
+
+        clearScreen();
+
+        std::cout << "Syncing node  ";
+
+        do
+        {
+            loadingAnimation(500);
+        } 
+        while (_node->getStatus() == Node::Status::InitialBlockDownload);
+        
+
+        clearScreen();
     }
     else
     {
         clearScreen();
+
         std::cout << "Waiting for connection  ";
 
         while (_node->connectionCount() < 1)
@@ -118,5 +129,5 @@ void keyser::cli::RootView::initSetup()
         }
     }
 
-    // clearScreen();
+    clearScreen();
 }

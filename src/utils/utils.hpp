@@ -19,6 +19,10 @@ namespace keyser
         void encodeJson(nlohmann::json& json, Transaction& transaction);
         void decodeJson(Transaction& transaction, nlohmann::json& json);
 
+        // Block Header Encoding/Decoding (Possible "Headers-First" sync method in future)
+        void encodeJson(nlohmann::json& json, BlockHeader& header);
+        void decodeJson(BlockHeader& header, nlohmann::json& json);
+
         // Block Encoding/Decoding
         void encodeJson(nlohmann::json& json, Block& block);
         void decodeJson(Block& block, nlohmann::json& json);

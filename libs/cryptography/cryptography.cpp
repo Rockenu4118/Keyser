@@ -96,6 +96,7 @@ bool cryptography::ECKeyPair::genKeyPairObj()
     // Generate secp256k1 key pair
     keyPair = EC_KEY_new_by_curve_name(NID_secp256k1);
     success = EC_KEY_generate_key(keyPair);
+    
     if (!success) { 
         std::cout << "Error generating keys." << std::endl;
         return false;

@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
 
 #include "./views/RootView.hpp"
 #include "./node/Node.hpp"

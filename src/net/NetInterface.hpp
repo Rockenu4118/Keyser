@@ -45,6 +45,8 @@ namespace keyser
 
             // Accessors
             int connectionCount() const;
+            
+            std::shared_ptr<Connection> syncNode();
 
             void displayConnections();
             void displayActiveNodes();
@@ -74,12 +76,7 @@ namespace keyser
             std::set<NodeInfo> _activeNodeList;
             std::set<NodeInfo> _connectedNodeList;
             NodeInfo           _selfInfo;
-            
-            // Status variables
-            bool _recievedNodeList       = false;
-            bool _completedPeerDiscovery = false;
-            bool _distributedSelfInfo    = false;
-            bool _recievedChain          = false;
+            bool               _recievedNodeList = false;
 
             // Asio context as well as its own thread to run in
             boost::asio::io_context _context;
@@ -95,8 +92,8 @@ namespace keyser
             std::condition_variable _connectionBlocking;
             std::mutex              _connectionMutex;
 
-            // Thread for handling peer connections
-            std::thread _peerConnectionThread;
+            // Thread for managing connections
+            std::thread _connectionManagementThread;
 
             // Asio acceptor
             boost::asio::ip::tcp::acceptor _acceptor;

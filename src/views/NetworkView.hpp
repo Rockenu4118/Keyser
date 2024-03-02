@@ -22,7 +22,7 @@ namespace keyser
                 void newConnection();
 
             private:
-                Node* _node;
+                Node* _node = nullptr;
         };
     }
 }

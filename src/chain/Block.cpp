@@ -10,8 +10,6 @@
 #include "../utils/utils.hpp"
 
 
-
-// Constructors
 keyser::Block::Block(uint index, time_t time, std::string prevHash, double reward, std::string rewardAddress, std::vector<Transaction> transactions)
 {
     _index         = index;
@@ -24,7 +22,6 @@ keyser::Block::Block(uint index, time_t time, std::string prevHash, double rewar
     _transactions  = transactions;
 }
 
-// Modifiers
 void keyser::Block::calcHash()
 {
     std::string unhashed = std::to_string(_index) +
@@ -54,6 +51,7 @@ void keyser::Block::calcValidHash(uint8_t difficulty)
     {   
         validHash = true;
         _nonce++;
+        _time = time(NULL);
         calcHash();
 
         for (uint i = 0 ; i < difficulty ; i++)

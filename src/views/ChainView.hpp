@@ -21,7 +21,7 @@ namespace keyser
                 void display();
 
             private:
-                Node* _node;
+                Node* _node = nullptr;
         };
     }
 }

@@ -1,11 +1,12 @@
 #ifndef NODE_H
 #define NODE_H
 
-#include "./NetInterface.hpp"
+#include "../net/NetInterface.hpp"
 #include "../net/Connection.hpp"
 
 #include "../chain/Chain.hpp"
 #include "../storage/StorageEngine.hpp"
+#include "../validation/ValidationEngine.hpp"
 #include "../chain/Transaction.hpp"
 #include "../chain/Block.hpp"
 #include "../node/NodeInfo.hpp"
@@ -15,18 +16,33 @@
 
 namespace keyser
 {
+    // Forward declare
+    class ValidationEngine;
+
     class Node : public Chain, public NetInterface
     {
         public:
+            enum class Status : uint32_t
+            {
+                PeerDiscovery,
+                InitialBlockDownload,
+                Online
+            };
+
             Node(uint16_t port);
 
             void run();
 
-            void buildChain();
+            Status getStatus();
+
+            void initialBlockDownload();
 
             // Node actions
             void beginMining(bool continuous);
             bool createTransaction(Transaction& transaction);
+
+            void completedPeerDiscovery();
+            void completedInitialBlockDownload();
 
             // Requests and Responses
             void ping();
@@ -37,13 +53,15 @@ namespace keyser
             void verack(std::shared_ptr<Connection> connection);
 
             void getBlocks();
-            void sendBlocks(std::shared_ptr<Connection> connection);
+            void sendBlocks(std::shared_ptr<Connection> connection, int blockIndex);
 
             void nodeInfoStream(std::shared_ptr<Connection> connection);
-            
 
-            Mempool&           mempool();
-            WalletManager&     walletManager();
+            void getData();
+            void inv(std::shared_ptr<Connection> connection, int startingBlock);
+            
+            Mempool&       mempool();
+            WalletManager& walletManager();
 
         protected:
             // Event handlers
@@ -71,16 +89,23 @@ namespace keyser
             void handleVersion(std::shared_ptr<Connection> connection, Message& msg);
             void handleVerack(std::shared_ptr<Connection> connection, Message& msg);
             void handleGetBlocks(std::shared_ptr<Connection> connection, Message& msg);
+            void handleInv(std::shared_ptr<Connection> connection, Message& msg);
+            void handleGetData(std::shared_ptr<Connection> connection, Message& msg);
             void handleBlocks(std::shared_ptr<Connection> connection, Message& msg);
             void handleGetNodeList(std::shared_ptr<Connection> connection, Message& msg);
             void handleNodeInfo(std::shared_ptr<Connection> connection, Message& msg);
 
             // Members
-            Mempool       _mempool;
-            StorageEngine _storageEngine;
-            WalletManager _walletManager;
+            StorageEngine    _storageEngine;
+            ValidationEngine* _validationEngine = nullptr;
+            
+            Mempool           _mempool;
+            WalletManager     _walletManager;
 
-            std::thread _chainAssemblerThr;
+            Status _status = Status::PeerDiscovery;
+
+            std::condition_variable _nodeCV;
+            std::mutex              _nodeMutex;
 
             std::thread _miningThr;
             bool        _miningStatus = false;

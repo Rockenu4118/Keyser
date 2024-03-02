@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 
 #include "./Node.hpp"
+#include "../net/NetInterface.hpp"
 #include "../data/version.hpp"
 #include "../data/nodeAddresses.hpp"
 #include "../data/keys.hpp"
@@ -26,43 +27,40 @@ keyser::Node::Node(uint16_t port) : NetInterface(port)
 
     keyser::Wallet guyWallet("Guy", key2);
     _walletManager.addWallet(guyWallet);
+
+    _validationEngine = new ValidationEngine(*this);
 }
 
 void keyser::Node::run()
 {
-    _storageEngine.loadChain(_blocks);
-    _storageEngine.loadWallets(_walletManager);
+    _storageEngine.loadChain();
+    _storageEngine.loadWallets();
 
-    _chainAssemblerThr = std::thread([this]() { buildChain(); });
+    // Run thread to handle messsages
+    _responseThread = std::thread([this]() { update(); }); 
+
+    // Begin peer discovery / connection management
+    _connectionManagementThread = std::thread([this]() { managePeerConnections(); });
+
+    // Activate thread to dispose of invalid connections
+    _connectionRemovalThread = std::thread([this]() { removeInvalidConnections(); });
+
+    _ibdThr = std::thread([this]() { initialBlockDownload(); });
 
     startServer();
 }
 
-void keyser::Node::buildChain()
+keyser::Node::Status keyser::Node::getStatus()
 {
-    while (!_completedPeerDiscovery)
+    return _status;
+}
+
+void keyser::Node::initialBlockDownload()
+{
+    while (connectionCount() == 0)
         sleep(1);
 
-    std::cout << "completed peer discovery" << std::endl;
-
-    std::shared_ptr<Connection> longestChain;
-
-    for (auto connection : _connections)
-    {
-        if (!longestChain)
-        {
-            longestChain = connection;
-            continue;
-        }
-
-        if (longestChain->getChainHeight() < connection->getChainHeight())
-            longestChain = connection;
-    }
-
-    std::cout << longestChain->getId() << ": has longest chain" << std::endl;
-
-    Message msg(MsgTypes::GetBlocks);
-    message(longestChain, msg);
+    getBlocks();
 }
 
 void keyser::Node::beginMining(bool continuous)
@@ -90,11 +88,11 @@ void keyser::Node::mineBlock(std::string rewardAddress)
     newBlock.calcValidHash(calcDifficulty());
     std::cout << "[CHAIN] Block Mined." << std::endl;
 
-    addBlock(std::move(newBlock));
+    _validationEngine->validateBlock(std::move(newBlock));
 
     distributeBlock(*getCurrBlock());
 
-    _miningStatus = false;                     
+    _miningStatus = false;
 }
 
 bool keyser::Node::createTransaction(Transaction& transaction)
@@ -107,6 +105,16 @@ bool keyser::Node::createTransaction(Transaction& transaction)
     _mempool.addTransaction(transaction);
     distributeTransaction(transaction);
     return true;
+}
+
+void keyser::Node::completedInitialBlockDownload()
+{
+    _status = Status::Online;
+
+    // Can now advertise self as a node on the network
+    Message msg(MsgTypes::DistributeNodeInfo);
+    msg.insert(_selfInfo);
+    messageNeighbors(msg);  
 }
 
 void keyser::Node::ping()
@@ -130,7 +138,17 @@ void keyser::Node::version(std::shared_ptr<Connection> connection)
     message(connection, msg);
 }
 
-void keyser::Node::verack(std::shared_ptr<Connection> connection){}
+void keyser::Node::verack(std::shared_ptr<Connection> connection)
+{
+    Message newMsg(MsgTypes::Verack);
+    newMsg.json()["Outbound version"] = _selfInfo._version;
+    newMsg.json()["Outbound alias"]   = _selfInfo._alias;
+    newMsg.json()["Outbound port"]    = _selfInfo._port;
+    newMsg.json()["address"]          = connection->getEndpoint().address().to_string();
+    newMsg.serialize();
+
+    message(connection, newMsg);
+}
 
 void keyser::Node::distributeNodeInfo(NodeInfo& nodeInfo)
 {
@@ -156,22 +174,19 @@ void keyser::Node::distributeBlock(Block& block)
 void keyser::Node::getBlocks()
 {
     Message msg(MsgTypes::GetBlocks);
-    message(_connections.front(), msg);
+    msg.json()["topBlock"] = getCurrBlock()->_hash;
+    msg.serialize();
+
+    message(syncNode(), msg);
 }
 
-void keyser::Node::sendBlocks(std::shared_ptr<Connection> connection)
+void keyser::Node::sendBlocks(std::shared_ptr<Connection> connection, int blockIndex)
 {
-    Message newMsg(MsgTypes::Blocks);
+    Message msg(MsgTypes::Blocks);
 
-    for (int i = 1 ; i < blocks().size() ; i++)
-    {
-        nlohmann::json json;
-        utils::encodeJson(json, *blocks().at(i));
-        newMsg.json()["blocks"].push_back(json);
-    }
+    msg.insert(*_blocks.at(blockIndex));
 
-    newMsg.serialize();
-    message(connection, newMsg);
+    message(connection, msg);
 }
 
 void keyser::Node::nodeInfoStream(std::shared_ptr<Connection> connection)
@@ -190,6 +205,39 @@ void keyser::Node::nodeInfoStream(std::shared_ptr<Connection> connection)
     }
 
     msg.serialize();
+    message(connection, msg);
+}
+
+void keyser::Node::getData()
+{
+    Message msg(MsgTypes::GetData);
+
+    for (auto element : _inventory)
+        msg.json()["blockIndexes"].push_back(element);
+
+    msg.serialize();
+
+    message(syncNode(), msg);
+}
+
+void keyser::Node::inv(std::shared_ptr<Connection> connection, int startingBlock)
+{
+    Message msg(MsgTypes::Inv);
+
+    if (startingBlock == getHeight() - 1)
+    {
+        message(connection, msg);
+        return;
+    }
+    
+    for (int i = startingBlock + 1 ; i < getHeight() ; i++)
+    {
+        std::cout << i << std::endl;
+        msg.json()["blockIndexes"].push_back(i);
+    }
+
+    msg.serialize();
+
     message(connection, msg);
 }
 
@@ -245,6 +293,12 @@ void keyser::Node::onMessage(std::shared_ptr<Connection> connection, Message& ms
         case MsgTypes::GetBlocks:
             handleGetBlocks(connection, msg);
             break;
+        case MsgTypes::Inv:
+            handleInv(connection, msg);
+            break;
+        case MsgTypes::GetData:
+            handleGetData(connection, msg);
+            break;
         case MsgTypes::Blocks:
             handleBlocks(connection, msg);
             break;
@@ -267,8 +321,6 @@ void keyser::Node::handlePing(std::shared_ptr<Connection> connection, Message& m
 
 void keyser::Node::handleVersion(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << utils::localTimestamp() << "Version" << std::endl;
-
     // Deserialize byte array into json doc
     msg.deserialize();
 
@@ -291,20 +343,11 @@ void keyser::Node::handleVersion(std::shared_ptr<Connection> connection, Message
     _connectedNodeList.insert(nodeInfo);
 
     // Send self info as well as their external ip
-    Message newMsg(MsgTypes::Verack);
-    newMsg.json()["Outbound version"] = _selfInfo._version;
-    newMsg.json()["Outbound alias"]   = _selfInfo._alias;
-    newMsg.json()["Outbound port"]    = _selfInfo._port;
-    newMsg.json()["address"]          = nodeInfo._address;
-    newMsg.serialize();
-
-    message(connection, newMsg);
+    verack(connection);
 }
 
 void keyser::Node::handleVerack(std::shared_ptr<Connection> connection, Message& msg)
-{
-    std::cout << utils::localTimestamp() << "Verack" << std::endl;
-    
+{    
     // Deserialize byte array into json doc
     msg.deserialize();
 
@@ -335,7 +378,6 @@ void keyser::Node::handleVerack(std::shared_ptr<Connection> connection, Message&
 
 void keyser::Node::handleDistributeNodeInfo(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << utils::localTimestamp() << "Distribute Node Info" << std::endl;
     NodeInfo nodeInfo;
     msg.extract(nodeInfo);
 
@@ -349,8 +391,6 @@ void keyser::Node::handleDistributeNodeInfo(std::shared_ptr<Connection> connecti
 
 void keyser::Node::handleDistributeTransaction(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << utils::localTimestamp() << "Transaction" << std::endl;
-
     Transaction transaction;
     msg.extract(transaction);
 
@@ -360,46 +400,80 @@ void keyser::Node::handleDistributeTransaction(std::shared_ptr<Connection> conne
 
 void keyser::Node::handleDistributeBlock(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << utils::localTimestamp() << "Block" << std::endl;
-
     Block block;
     msg.extract(block);
 
-    if (addBlock(block))
+    if (_validationEngine->validateBlock(block))
         messageNeighbors(msg, connection);
 }
 
 void keyser::Node::handleGetBlocks(std::shared_ptr<Connection> connection, Message& msg)
 {   
-    std::cout << utils::localTimestamp() << "Get Blocks" << std::endl;
-    sendBlocks(connection); 
+    msg.deserialize();
+    std::string topBlockHash = msg.json()["topBlock"];
+
+    int topBlockI = 0;
+
+    for (auto& block : _blocks)
+    {   
+        if (block->_hash == topBlockHash)
+            break;
+
+        topBlockI++;
+    }
+
+    inv(connection, topBlockI);
+}
+
+void keyser::Node::handleInv(std::shared_ptr<Connection> connection, Message& msg)
+{
+    msg.deserialize();
+
+    if (msg.json()["blockIndexes"].size() == 0)
+    {
+        completedInitialBlockDownload();
+        return;
+    }
+
+    for (auto element : msg.json()["blockIndexes"])
+    {
+        _inventory.push_back(element);
+    }
+
+    getData(); 
+}
+
+void keyser::Node::handleGetData(std::shared_ptr<Connection> connection, Message& msg)
+{
+    msg.deserialize();
+
+    for (auto i : msg.json()["blockIndexes"])
+    {
+        Message msg(MsgTypes::Blocks);
+        msg.insert(*_blocks.at(i));
+        message(connection, msg);
+    }
 }
 
 void keyser::Node::handleBlocks(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << utils::localTimestamp() << "Blocks" << std::endl;
-    msg.deserialize();
+    Block block;
+    msg.extract(block);
+    _validationEngine->validateBlock(block);
 
-    for (auto& element : msg.json()["blocks"])
+    if (getHeight() == _inventory.back() - 1)
     {
-        Block block;
-        utils::decodeJson(block, element);
-        addBlock(block);
+        completedInitialBlockDownload();      
     }
-
-    _recievedChain = true;
 }
 
 void keyser::Node::handleGetNodeList(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << utils::localTimestamp() << "Sending Node List" << std::endl;
     nodeInfoStream(connection);
 }
 
 void keyser::Node::handleNodeInfo(std::shared_ptr<Connection> connection, Message& msg)
 {
-    std::cout << utils::localTimestamp() << "Info" << std::endl;
-
     msg.deserialize();
 
     for (auto& element : msg.json()["nodeInfoList"])

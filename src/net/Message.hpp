@@ -38,11 +38,6 @@ namespace keyser
             Message() = default;
             Message(MsgTypes id);
 
-        private:
-            void push(const std::string& msg);
-            void pull(std::string& msg);
-
-        public:
             void serialize();
             void deserialize();
 
@@ -57,7 +52,7 @@ namespace keyser
             void extract(NodeInfo& nodeInfo);
 
             size_t size() const;
-            void print();
+            void   print();
             
             nlohmann::json    _doc;
             MessageHeader     header{};

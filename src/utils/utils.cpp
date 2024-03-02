@@ -75,6 +75,28 @@ void keyser::utils::decodeJson(Transaction& transaction, nlohmann::json& json)
     transaction._sSigVal         = json["s sig val"];
 }
 
+void keyser::utils::encodeJson(nlohmann::json& json, BlockHeader& header)
+{
+    json["index"]         = header._index;
+    json["time"]          = header._time;
+    json["nonce"]         = header._nonce;
+    json["prev hash"]     = header._prevHash;
+    json["hash"]          = header._hash;
+    json["reward"]        = header._reward;
+    json["rewardAddress"] = header._rewardAddress;
+}
+
+void keyser::utils::decodeJson(BlockHeader& header, nlohmann::json& json)
+{
+    header._index         = json["index"];
+    header._time          = json["time"];
+    header._nonce         = json["nonce"];
+    header._prevHash      = json["prev hash"];
+    header._hash          = json["hash"];
+    header._reward        = json["reward"];
+    header._rewardAddress = json["rewardAddress"];
+}
+
 void keyser::utils::encodeJson(nlohmann::json& json, Block& block)
 {
     json["index"]         = block._index;

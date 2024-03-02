@@ -6,9 +6,21 @@
 
 #include "./Transaction.hpp"
 
+
 namespace keyser
 {
-    class Block
+    struct BlockHeader
+    {
+        uint        _index;
+        time_t      _time;
+        uint64_t    _nonce;
+        std::string _prevHash;
+        std::string _hash;
+        double      _reward;
+        std::string _rewardAddress;
+    };
+
+    class Block : public BlockHeader
     {
         // IO Stream operators
         friend std::ostream& operator<<(std::ostream& out, Block& data);
@@ -32,15 +44,7 @@ namespace keyser
             // Print all transactions within block
             void printTransactions();
         
-        public:
-            uint        _index;
-            time_t      _time;
-            uint64_t    _nonce;
-            std::string _prevHash;
-            std::string _hash;
-            double      _reward;
-            std::string _rewardAddress;
-
+            // Body of transactions
             std::vector<Transaction> _transactions;
     };
 }

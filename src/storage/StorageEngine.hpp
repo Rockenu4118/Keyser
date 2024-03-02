@@ -12,15 +12,17 @@
 
 namespace keyser
 {
+    // Forward declare
+    class Node;
+
     class StorageEngine
     {
         public:
             StorageEngine() = default;
 
-            void loadChain(std::vector<std::shared_ptr<Block>> blocks);
-            void loadWallets(WalletManager& walletManager);
-            void loadPeers(std::deque<NodeInfo>& potentialConnections);
-
+            void loadChain();
+            void loadWallets();
+            void loadPeers();
 
         private:
 

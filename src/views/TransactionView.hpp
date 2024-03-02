@@ -22,7 +22,7 @@ namespace keyser
             private:
                 void newTransaction();
 
-                Node*          _node;
+                Node* _node = nullptr;
         };
     }
 }

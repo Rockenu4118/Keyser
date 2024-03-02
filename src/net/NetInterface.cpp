@@ -45,13 +45,7 @@ bool keyser::NetInterface::startServer()
         acceptConnection();
 
         // Run the context in its own thread
-        _contextThread = std::thread([this]() { _context.run(); });
-        // Run thread to handle messsages
-        _responseThread = std::thread([this]() { update(); }); 
-        // Activate thread to manage peer connections
-        _peerConnectionThread = std::thread([this]() { managePeerConnections(); });
-        // Activate thread to dispose of invalid connections
-        _connectionRemovalThread = std::thread([this]() { removeInvalidConnections(); });
+        _contextThread = std::thread([this]() { _context.run(); });  
     }
     catch (std::exception& e)
     {
@@ -188,13 +182,11 @@ void keyser::NetInterface::managePeerConnections()
 
             if (_selfInfo == nodeInfo)
             {
-                std::cout << "[NODE] Cannot self connect" << std::endl;
                 continue;
             }
 
             if (_connectedNodeList.count(nodeInfo) == 1)
             {
-                std::cout << "[NODE] No duplicate connections" << std::endl;
                 continue;
             }
 
@@ -202,16 +194,6 @@ void keyser::NetInterface::managePeerConnections()
             {
                 _connectedNodeList.insert(nodeInfo);
             }
-        }
-
-        if (_recievedNodeList)
-            _completedPeerDiscovery = true;
-
-        if (!_distributedSelfInfo)
-        {
-            Message newMsg(MsgTypes::DistributeNodeInfo);
-            newMsg.insert(_selfInfo);
-            messageNeighbors(newMsg);
         }
     }
 }
@@ -274,6 +256,11 @@ void keyser::NetInterface::update(uint8_t maxMessages, bool wait)
 int keyser::NetInterface::connectionCount() const
 {
     return _connections.size();
+}
+
+std::shared_ptr<keyser::Connection> keyser::NetInterface::syncNode()
+{
+    return _connections.front();
 }
 
 void keyser::NetInterface::displayConnections()

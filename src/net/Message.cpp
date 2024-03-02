@@ -17,9 +17,10 @@ keyser::Message::Message(MsgTypes id)
     header.id = id;
 }
 
-void keyser::Message::push(const std::string& msg)
+void keyser::Message::serialize()
 {
-    int len = msg.size();
+    std::string msg = _doc.dump();
+    int         len = msg.size();
 
     for (int i = 0 ; i < len ; i++)
     {
@@ -29,25 +30,16 @@ void keyser::Message::push(const std::string& msg)
     header.size = size();
 }
 
-void keyser::Message::pull(std::string& msg)
+void keyser::Message::deserialize()
 {
-    int len = body.size();
+    std::string msg;
+    int         len = body.size();
 
     for (int i = 0 ; i < len ; i++)
     {
         msg += body.at(i);
     }
-}
 
-void keyser::Message::serialize()
-{
-    push(_doc.dump());
-}
-
-void keyser::Message::deserialize()
-{
-    std::string msg;
-    pull(msg);
     _doc = nlohmann::json::parse(msg);
 }
 

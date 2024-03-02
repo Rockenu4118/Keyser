@@ -12,27 +12,16 @@
 #include "../data/keys.hpp"
 
 
-// Constructors
 keyser::Chain::Chain()
 {
     createGenesisBlock();
-}
-
-// Accessors
-std::shared_ptr<keyser::Block> keyser::Chain::getCurrBlock()
-{
-    return _blocks.back();
-}
-
-std::shared_ptr<keyser::Block> keyser::Chain::getBlock(int index)
-{
-    return _blocks.at(index);
 }
 
 void keyser::Chain::createGenesisBlock()
 {
     Wallet genesisWallet("genesis", genesisKey);
 
+    // Distribute genesis funds to private wallets
     std::vector<Transaction> initialBalances{};
 
     Transaction tx1(50000, "0xc6d8a2c830495d07318212e9f2cad16f", genesisWallet.getKeyPair()->getUPublicKey());
@@ -52,26 +41,21 @@ void keyser::Chain::createGenesisBlock()
     _blocks.push_back(genesisBlock);
 }
 
+std::shared_ptr<keyser::Block> keyser::Chain::getCurrBlock()
+{
+    return _blocks.back();
+}
+
+std::shared_ptr<keyser::Block> keyser::Chain::getBlock(int index)
+{
+    return _blocks.at(index);
+}
+
 uint keyser::Chain::calcDifficulty()
 {
     // TODO - dynamically calculate the difficulty based on amount of time
     // taken to mine previous blocks
     return 4;
-}
-
-bool keyser::Chain::addBlock(Block block)
-{
-    std::shared_ptr<Block> newBlock = std::make_shared<Block>(std::move(block));
-    
-    // TODO - will need more checks to ensure block is valid
-    if (!newBlock->hasValidTransactions())
-        return false;
-
-    if (_blocks.back()->_hash != newBlock->_prevHash)
-        return false;
-
-    _blocks.push_back(newBlock);
-    return true;
 }
 
 void keyser::Chain::printChain()
@@ -140,6 +124,11 @@ bool keyser::Chain::isValid()
 uint keyser::Chain::getHeight() const
 {
     return _blocks.size();
+}
+
+std::vector<int> keyser::Chain::inventory()
+{
+    return _inventory;
 }
 
 std::vector<std::shared_ptr<keyser::Block>>& keyser::Chain::blocks()

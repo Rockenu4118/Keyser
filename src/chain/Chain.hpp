@@ -1,8 +1,10 @@
 #ifndef CHAIN_H
 #define CHAIN_H
 
+#include <unordered_map>
 #include <vector>
 #include <memory>
+#include <thread>
 
 #include "./Block.hpp"
 #include "./Transaction.hpp"
@@ -15,20 +17,29 @@ namespace keyser
         public:
             Chain();
 
+            // Initialize the one hardcoded block and add it to the chain
+            void createGenesisBlock();
+
             std::shared_ptr<Block> getCurrBlock();
             std::shared_ptr<Block> getBlock(int index);
 
             void   printChain();
-            void   createGenesisBlock();
+            
             uint   calcDifficulty();
-            bool   addBlock(Block block);
             double getAddressBalance(std::string address);
             bool   isValid();
             uint   getHeight() const;
 
+            std::vector<int> inventory();
             std::vector<std::shared_ptr<Block>>& blocks();
         
         protected:
+            std::thread _ibdThr;
+
+            // Block indexes needed to complete local chain
+            std::vector<int> _inventory;
+
+            // Container of pointers to block objects
             std::vector<std::shared_ptr<Block>> _blocks;
         
     };
