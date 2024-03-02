@@ -91,7 +91,7 @@ namespace keyser
             void handleGetBlocks(std::shared_ptr<Connection> connection, Message& msg);
             void handleInv(std::shared_ptr<Connection> connection, Message& msg);
             void handleGetData(std::shared_ptr<Connection> connection, Message& msg);
-            void handleBlocks(std::shared_ptr<Connection> connection, Message& msg);
+            void handleBlock(std::shared_ptr<Connection> connection, Message& msg);
             void handleGetNodeList(std::shared_ptr<Connection> connection, Message& msg);
             void handleNodeInfo(std::shared_ptr<Connection> connection, Message& msg);
 

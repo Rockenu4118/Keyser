@@ -21,7 +21,7 @@ enum class MsgTypes : uint32_t
     NodeInfoList,
 
     GetBlocks,
-    Blocks,
+    Block,
 
     Inv,
     GetData,

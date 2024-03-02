@@ -36,6 +36,9 @@ void keyser::Node::run()
     _storageEngine.loadChain();
     _storageEngine.loadWallets();
 
+    boost::asio::io_context::work idleWork(_context);
+    _contextThread = std::thread([this]() { _context.run(); });  
+
     // Run thread to handle messsages
     _responseThread = std::thread([this]() { update(); }); 
 
@@ -59,6 +62,8 @@ void keyser::Node::initialBlockDownload()
 {
     while (connectionCount() == 0)
         sleep(1);
+
+    _status = Status::InitialBlockDownload;
 
     getBlocks();
 }
@@ -182,7 +187,7 @@ void keyser::Node::getBlocks()
 
 void keyser::Node::sendBlocks(std::shared_ptr<Connection> connection, int blockIndex)
 {
-    Message msg(MsgTypes::Blocks);
+    Message msg(MsgTypes::Block);
 
     msg.insert(*_blocks.at(blockIndex));
 
@@ -232,7 +237,6 @@ void keyser::Node::inv(std::shared_ptr<Connection> connection, int startingBlock
     
     for (int i = startingBlock + 1 ; i < getHeight() ; i++)
     {
-        std::cout << i << std::endl;
         msg.json()["blockIndexes"].push_back(i);
     }
 
@@ -299,8 +303,8 @@ void keyser::Node::onMessage(std::shared_ptr<Connection> connection, Message& ms
         case MsgTypes::GetData:
             handleGetData(connection, msg);
             break;
-        case MsgTypes::Blocks:
-            handleBlocks(connection, msg);
+        case MsgTypes::Block:
+            handleBlock(connection, msg);
             break;
         case MsgTypes::GetNodeList:
             handleGetNodeList(connection, msg);
@@ -435,9 +439,9 @@ void keyser::Node::handleInv(std::shared_ptr<Connection> connection, Message& ms
         return;
     }
 
-    for (auto element : msg.json()["blockIndexes"])
+    for (int i : msg.json()["blockIndexes"])
     {
-        _inventory.push_back(element);
+        _inventory.push_back(i);
     }
 
     getData(); 
@@ -449,21 +453,21 @@ void keyser::Node::handleGetData(std::shared_ptr<Connection> connection, Message
 
     for (auto i : msg.json()["blockIndexes"])
     {
-        Message msg(MsgTypes::Blocks);
+        Message msg(MsgTypes::Block);
         msg.insert(*_blocks.at(i));
         message(connection, msg);
     }
 }
 
-void keyser::Node::handleBlocks(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleBlock(std::shared_ptr<Connection> connection, Message& msg)
 {
     Block block;
     msg.extract(block);
     _validationEngine->validateBlock(block);
 
-    if (getHeight() == _inventory.back() - 1)
+    if (getHeight() >= _inventory.back() + 1)
     {
-        completedInitialBlockDownload();      
+        completedInitialBlockDownload();
     }
 }
 

@@ -41,11 +41,7 @@ bool keyser::NetInterface::startServer()
         _acceptor.bind(endpoint);
         _acceptor.listen();
 
-        // Issue work before running context to keep it active
         acceptConnection();
-
-        // Run the context in its own thread
-        _contextThread = std::thread([this]() { _context.run(); });  
     }
     catch (std::exception& e)
     {

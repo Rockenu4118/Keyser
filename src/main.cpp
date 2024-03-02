@@ -16,16 +16,15 @@
 int main()
 {   
     // Prompt for port to run on
-    int  serverPort;
+    int  port;
     char selection;
-    bool falseVal = false;
 
-    std::cout << "Server port: ";
-    std::cin  >> serverPort;
+    std::cout << "Port: ";
+    std::cin  >> port;
     
     // Startup node
     keyser::Node* node;
-    node = new keyser::Node(serverPort);
+    node = new keyser::Node(port);
     node->run();
 
     // Initialize CLI

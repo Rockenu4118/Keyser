@@ -114,7 +114,6 @@ void keyser::cli::RootView::initSetup()
         } 
         while (_node->getStatus() == Node::Status::InitialBlockDownload);
         
-
         clearScreen();
     }
     else
