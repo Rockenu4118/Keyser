@@ -25,9 +25,8 @@ enum class MsgTypes : uint32_t
 
     Inv,
     GetData,
-    Block,
     
-    // Possible "Headers-First" sync method update in the future
+    // TODO - Possible "Headers-First" sync method update in the future (SPV node)
     // GetHeaders,
     // Headers,
 };

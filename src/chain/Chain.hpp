@@ -34,7 +34,7 @@ namespace keyser
             std::vector<std::shared_ptr<Block>>& blocks();
         
         protected:
-            std::thread _ibdThr;
+            bool _blockInvRecieved = false;
 
             // Block indexes needed to complete local chain
             std::vector<int> _inventory;

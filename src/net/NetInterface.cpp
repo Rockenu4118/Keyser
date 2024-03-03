@@ -256,6 +256,8 @@ int keyser::NetInterface::connectionCount() const
 
 std::shared_ptr<keyser::Connection> keyser::NetInterface::syncNode()
 {
+    // TODO - potentially decide which node should be the sync node
+
     return _connections.front();
 }
 

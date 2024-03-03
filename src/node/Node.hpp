@@ -24,8 +24,8 @@ namespace keyser
         public:
             enum class Status : uint32_t
             {
-                PeerDiscovery,
-                InitialBlockDownload,
+                Offline,
+                Syncing,
                 Online
             };
 
@@ -33,9 +33,7 @@ namespace keyser
 
             void run();
 
-            Status getStatus();
-
-            void initialBlockDownload();
+            Status getStatus() const;
 
             // Node actions
             void beginMining(bool continuous);
@@ -55,6 +53,7 @@ namespace keyser
             void getBlocks();
             void sendBlocks(std::shared_ptr<Connection> connection, int blockIndex);
 
+            void getNodeList();
             void nodeInfoStream(std::shared_ptr<Connection> connection);
 
             void getData();
@@ -96,16 +95,13 @@ namespace keyser
             void handleNodeInfo(std::shared_ptr<Connection> connection, Message& msg);
 
             // Members
+            Status _status = Status::Offline;
+
             StorageEngine    _storageEngine;
             ValidationEngine* _validationEngine = nullptr;
             
             Mempool           _mempool;
             WalletManager     _walletManager;
-
-            Status _status = Status::PeerDiscovery;
-
-            std::condition_variable _nodeCV;
-            std::mutex              _nodeMutex;
 
             std::thread _miningThr;
             bool        _miningStatus = false;

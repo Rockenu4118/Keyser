@@ -59,18 +59,17 @@ namespace keyser
             virtual void onDisconnect(std::shared_ptr<Connection> connection);
             virtual void onMessage(std::shared_ptr<Connection> connection, Message& msg);
 
-
             // Thread safe queue for incoming messages
             tsqueue<OwnedMessage> _messagesIn;
-            
-            // Thread for handling incoming messages
-            std::thread _responseThread;
 
             // Container for active validated connections
             std::deque<std::shared_ptr<Connection>> _connections{};
 
             // Container for info of potential connections
             std::deque<NodeInfo> _potentialConnections{};
+            
+            // Thread for handling incoming messages
+            std::thread _responseThread;
 
             // Info of active nodes on network, info of connected nodes, self info
             std::set<NodeInfo> _activeNodeList;

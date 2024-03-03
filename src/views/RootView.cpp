@@ -112,7 +112,7 @@ void keyser::cli::RootView::initSetup()
         {
             loadingAnimation(500);
         } 
-        while (_node->getStatus() == Node::Status::InitialBlockDownload);
+        while (_node->getStatus() != Node::Status::Online);
         
         clearScreen();
     }

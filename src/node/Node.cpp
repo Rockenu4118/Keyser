@@ -48,24 +48,12 @@ void keyser::Node::run()
     // Activate thread to dispose of invalid connections
     _connectionRemovalThread = std::thread([this]() { removeInvalidConnections(); });
 
-    _ibdThr = std::thread([this]() { initialBlockDownload(); });
-
     startServer();
 }
 
-keyser::Node::Status keyser::Node::getStatus()
+keyser::Node::Status keyser::Node::getStatus() const
 {
     return _status;
-}
-
-void keyser::Node::initialBlockDownload()
-{
-    while (connectionCount() == 0)
-        sleep(1);
-
-    _status = Status::InitialBlockDownload;
-
-    getBlocks();
 }
 
 void keyser::Node::beginMining(bool continuous)
@@ -119,7 +107,7 @@ void keyser::Node::completedInitialBlockDownload()
     // Can now advertise self as a node on the network
     Message msg(MsgTypes::DistributeNodeInfo);
     msg.insert(_selfInfo);
-    messageNeighbors(msg);  
+    messageNeighbors(msg); 
 }
 
 void keyser::Node::ping()
@@ -183,6 +171,8 @@ void keyser::Node::getBlocks()
     msg.serialize();
 
     message(syncNode(), msg);
+
+    _status == Status::Syncing;
 }
 
 void keyser::Node::sendBlocks(std::shared_ptr<Connection> connection, int blockIndex)
@@ -192,6 +182,12 @@ void keyser::Node::sendBlocks(std::shared_ptr<Connection> connection, int blockI
     msg.insert(*_blocks.at(blockIndex));
 
     message(connection, msg);
+}
+
+void keyser::Node::getNodeList()
+{
+    Message msg(MsgTypes::GetNodeList);
+    message(syncNode(), msg);
 }
 
 void keyser::Node::nodeInfoStream(std::shared_ptr<Connection> connection)
@@ -372,12 +368,13 @@ void keyser::Node::handleVerack(std::shared_ptr<Connection> connection, Message&
     // Add self to list of active nodes
     _activeNodeList.insert(_selfInfo);
 
+    // Get block inv if needed
+    if (!_blockInvRecieved)
+        getBlocks();
+    
     // Get node list if needed
     if (!_recievedNodeList)
-    {
-        Message msg(MsgTypes::GetNodeList);
-        message(_connections.front(), msg);
-    }
+        getNodeList();
 }
 
 void keyser::Node::handleDistributeNodeInfo(std::shared_ptr<Connection> connection, Message& msg)
@@ -432,6 +429,8 @@ void keyser::Node::handleGetBlocks(std::shared_ptr<Connection> connection, Messa
 void keyser::Node::handleInv(std::shared_ptr<Connection> connection, Message& msg)
 {
     msg.deserialize();
+
+    _blockInvRecieved = true;
 
     if (msg.json()["blockIndexes"].size() == 0)
     {
