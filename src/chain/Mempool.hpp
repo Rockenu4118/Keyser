@@ -12,15 +12,15 @@ namespace keyser
         public:
             Mempool() = default;
 
-            bool addTransaction(Transaction transaction);
-
             std::vector<Transaction> popLeadingTransactions();
 
             double getPendingBalance(std::string address);
 
             void printMempool();
 
-        private:
+            std::deque<Transaction>& pendingTransactions();
+
+        protected:
             std::deque<Transaction> _pendingTransactions;
 
     };

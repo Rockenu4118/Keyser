@@ -11,6 +11,8 @@
 
 #include "./views/RootView.hpp"
 #include "./node/Node.hpp"
+#include "./rpc/rpc.hpp"
+
 
 
 int main()
@@ -26,6 +28,10 @@ int main()
     keyser::Node* node;
     node = new keyser::Node(port);
     node->run();
+
+    // Startup RPC API
+    keyser::RPC rpc(node);
+    rpc.run();
 
     // Initialize CLI
     keyser::cli::RootView view(node);

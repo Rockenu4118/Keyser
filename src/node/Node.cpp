@@ -64,8 +64,6 @@ void keyser::Node::beginMining(bool continuous)
         return;
     }
 
-    _miningStatus = true;
-
     if (continuous)
         _miningThr = std::thread([this]() { while (1) { mineBlock("aj"); }; });
     else
@@ -76,7 +74,9 @@ void keyser::Node::beginMining(bool continuous)
 
 void keyser::Node::mineBlock(std::string rewardAddress)
 {
-    Block newBlock(getCurrBlock()->_index + 1, time(NULL), getCurrBlock()->_hash, 100, rewardAddress, _mempool.popLeadingTransactions());
+    _miningStatus = true;
+
+    Block newBlock(getCurrBlock()->_index + 1, time(NULL), getCurrBlock()->_hash, 100, rewardAddress, popLeadingTransactions());
 
     newBlock.calcValidHash(calcDifficulty());
     std::cout << "[CHAIN] Block Mined." << std::endl;
@@ -90,12 +90,12 @@ void keyser::Node::mineBlock(std::string rewardAddress)
 
 bool keyser::Node::createTransaction(Transaction& transaction)
 {
-    double balance = getAddressBalance(transaction._senderAddress) + _mempool.getPendingBalance(transaction._senderAddress);
+    double balance = getAddressBalance(transaction._senderAddress) + getPendingBalance(transaction._senderAddress);
 
     if (transaction._amount > balance)
         return false;
 
-    _mempool.addTransaction(transaction);
+    _validationEngine->validateTransaction(transaction);
     distributeTransaction(transaction);
     return true;
 }
@@ -239,11 +239,6 @@ void keyser::Node::inv(std::shared_ptr<Connection> connection, int startingBlock
     msg.serialize();
 
     message(connection, msg);
-}
-
-keyser::Mempool& keyser::Node::mempool()
-{
-    return _mempool;
 }
 
 keyser::WalletManager& keyser::Node::walletManager()
@@ -395,7 +390,7 @@ void keyser::Node::handleDistributeTransaction(std::shared_ptr<Connection> conne
     Transaction transaction;
     msg.extract(transaction);
 
-    if (_mempool.addTransaction(transaction))
+    if (_validationEngine->validateTransaction(transaction))
         messageNeighbors(msg, connection);
 }
 

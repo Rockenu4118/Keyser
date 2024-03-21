@@ -1,4 +1,5 @@
 #include <set>
+#include <vector>
 #include <string>
 #include <mutex>
 #include <condition_variable>
@@ -294,6 +295,16 @@ void keyser::NetInterface::displaySelfInfo()
     std::cout << "Alias:   " << _selfInfo._alias   << std::endl;
     std::cout << "Address: " << _selfInfo._address << std::endl;
     std::cout << "Port:    " << _selfInfo._port    << std::endl;
+}
+
+std::vector<keyser::NodeInfo> keyser::NetInterface::getConnections() const
+{
+    std::vector <keyser::NodeInfo> connections;
+
+    for (auto connectedNode : _connectedNodeList)
+        connections.push_back(connectedNode);
+
+    return connections;
 }
 
 bool keyser::NetInterface::allowConnect(std::shared_ptr<Connection> connection)

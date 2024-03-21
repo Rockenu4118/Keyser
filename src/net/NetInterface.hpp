@@ -2,6 +2,7 @@
 #define NET_INTERFACE_H
 
 #include <set>
+#include <vector>
 #include <string>
 #include <mutex>
 #include <condition_variable>
@@ -51,6 +52,8 @@ namespace keyser
             void displayConnections();
             void displayActiveNodes();
             void displaySelfInfo();
+
+            std::vector<NodeInfo> getConnections() const;
 
         protected:
             virtual bool allowConnect(std::shared_ptr<Connection> connection);

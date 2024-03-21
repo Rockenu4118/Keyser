@@ -12,6 +12,7 @@ file(GLOB SOURCES "src/*.cpp"
                   "src/chain/*.cpp" 
                   "src/net/*.cpp" 
                   "src/node/*.cpp" 
+                  "src/rpc/*.cpp"
                   "src/storage/*.cpp"
                   "src/validation/*.cpp"
                   "src/wallet/*.cpp")

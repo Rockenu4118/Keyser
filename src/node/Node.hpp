@@ -19,7 +19,7 @@ namespace keyser
     // Forward declare
     class ValidationEngine;
 
-    class Node : public Chain, public NetInterface
+    class Node : public Chain, public Mempool, public NetInterface
     {
         public:
             enum class Status : uint32_t
@@ -59,7 +59,6 @@ namespace keyser
             void getData();
             void inv(std::shared_ptr<Connection> connection, int startingBlock);
             
-            Mempool&       mempool();
             WalletManager& walletManager();
 
         protected:
@@ -97,10 +96,9 @@ namespace keyser
             // Members
             Status _status = Status::Offline;
 
-            StorageEngine    _storageEngine;
+            StorageEngine     _storageEngine;
             ValidationEngine* _validationEngine = nullptr;
             
-            Mempool           _mempool;
             WalletManager     _walletManager;
 
             std::thread _miningThr;

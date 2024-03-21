@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "../chain/Block.hpp"
+#include "../chain/Transaction.hpp"
 #include "../net/Connection.hpp"
 #include "../node/Node.hpp"
 
@@ -18,12 +19,11 @@ namespace keyser
     class ValidationEngine
     {
         public:
-            // ValidationEngine() = default;
             ValidationEngine(Node& node);
 
             bool validateBlock(Block block);
 
-            bool validateTransaction();
+            bool validateTransaction(Transaction transaction);
 
         private:
             Node& _node;

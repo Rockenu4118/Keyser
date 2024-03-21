@@ -83,6 +83,7 @@
         "timer": "cpp",
         "ranges": "cpp",
         "valarray": "cpp",
-        "qapplication": "cpp"
+        "qapplication": "cpp",
+        "*.ipp": "cpp"
     }
 }

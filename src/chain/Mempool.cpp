@@ -5,23 +5,6 @@
 #include "./Mempool.hpp"
 
 
-bool keyser::Mempool::addTransaction(Transaction transaction)
-{
-    // Make sure transaction hasn't already reached the mempool
-    for (Transaction tx : _pendingTransactions)
-    {
-        if (tx._hash == transaction._hash)
-            return false;
-    }
-        
-    // Validate transaction before adding it to Mempool
-    if (!transaction.isValid())
-        return false;
-
-    _pendingTransactions.push_back(transaction);
-    return true;
-}
-
 std::vector<keyser::Transaction> keyser::Mempool::popLeadingTransactions()
 {
     // TODO - priortize gas fees
@@ -62,4 +45,9 @@ void keyser::Mempool::printMempool()
 
     for (Transaction tx : _pendingTransactions)
         std::cout << tx << std::endl;
+}
+
+std::deque<keyser::Transaction>& keyser::Mempool::pendingTransactions()
+{
+    return _pendingTransactions;
 }

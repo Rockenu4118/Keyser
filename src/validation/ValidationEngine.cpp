@@ -1,6 +1,7 @@
 #include "./ValidationEngine.hpp"
 #include "../node/Node.hpp"
 #include "../chain/Block.hpp"
+#include "../chain/Transaction.hpp"
 #include "../net/Connection.hpp"
 
 
@@ -38,5 +39,22 @@ bool keyser::ValidationEngine::validateBlock(Block block)
         }
     }
 
+    return true;
+}
+
+bool keyser::ValidationEngine::validateTransaction(Transaction transaction)
+{
+    // Make sure transaction hasn't already reached the mempool
+    for (Transaction tx : _node.pendingTransactions())
+    {
+        if (tx._hash == transaction._hash)
+            return false;
+    }
+        
+    // Validate transaction before adding it to Mempool
+    if (!transaction.isValid())
+        return false;
+
+    _node.pendingTransactions().push_back(transaction);
     return true;
 }
