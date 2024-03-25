@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 #include <tsqueue.hpp>
 
 #include <boost/asio.hpp>
@@ -23,32 +25,40 @@ namespace keyser
 
             void run();
 
-            void startServer();
+            void acceptRequest();
 
             void shutdown();
 
             void onMessage(const boost::beast::http::request<boost::beast::http::string_body>& request, boost::asio::ip::tcp::socket& socket);
 
+            void handlePing(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
+
+            void handleGetWallets(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
+
+            void handleCreateWallet(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
+
             void handleGetBalance(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
 
             void handleGetHeight(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
 
-            void handleGetBlock(boost::beast::http::response<boost::beast::http::string_body>& response, std::vector<std::string>& params);
+            void handleGetBlock(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
 
-            void handleGetPeerInfo(boost::beast::http::response<boost::beast::http::string_body>& response, std::vector<std::string>& params);
+            void handleGetMempool(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
 
-            void handleShutdown(boost::beast::http::response<boost::beast::http::string_body>& response, std::vector<std::string>& params);
+            void handleGetPeerInfo(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
+
+            void handleGetUptime(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
+
+            void handleShutdown(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
 
             void handleInvalidMethod(boost::beast::http::response<boost::beast::http::string_body>& response);
 
         private:
             Node* _node;
 
-            std::thread _rpcThr;
+            boost::asio::io_context _context;
 
             std::thread _contextThr;
-
-            boost::asio::io_context _context;
 
             boost::asio::ip::tcp::acceptor _acceptor;
     };

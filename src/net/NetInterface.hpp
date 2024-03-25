@@ -9,7 +9,7 @@
 #include <boost/asio.hpp>
 #include <tsqueue.hpp>
 
-#include "../net/Connection.hpp"
+#include "./Peer.hpp"
 #include "../net/Message.hpp"
 #include "../node/NodeInfo.hpp"
 #include "../chain/Chain.hpp"
@@ -20,7 +20,7 @@
 
 namespace keyser
 {
-    class Connection;
+    class Peer;
 
     class NetInterface
     {
@@ -33,10 +33,9 @@ namespace keyser
             bool connect(const NodeInfo nodeInfo);
             void shutdown();
             void acceptConnection();
-            void message(std::shared_ptr<Connection> connection, const Message& msg);
-            void messageNeighbors(const Message& msg, std::shared_ptr<Connection> ignoreConnection = nullptr);
-            void managePeerConnections();
-            void removeInvalidConnections();
+            void message(std::shared_ptr<Peer> peer, const Message& msg);
+            void messageNeighbors(const Message& msg, std::shared_ptr<Peer> ignorePeer = nullptr);
+            void managePeers();
 
             void addUserProvidedPotentialConnection(NodeInfo nodeInfo);
             void addPotentialConnection(NodeInfo nodeInfo);
@@ -47,7 +46,7 @@ namespace keyser
             // Accessors
             int connectionCount() const;
             
-            std::shared_ptr<Connection> syncNode();
+            std::shared_ptr<Peer> syncNode();
 
             void displayConnections();
             void displayActiveNodes();
@@ -55,18 +54,20 @@ namespace keyser
 
             std::vector<NodeInfo> getConnections() const;
 
+            bool validateConnection(std::shared_ptr<Peer>& connection);
+
         protected:
-            virtual bool allowConnect(std::shared_ptr<Connection> connection);
-            virtual void onOutgoingConnect(std::shared_ptr<Connection> connection);
-            virtual void onIncomingConnect(std::shared_ptr<Connection> connection);
-            virtual void onDisconnect(std::shared_ptr<Connection> connection);
-            virtual void onMessage(std::shared_ptr<Connection> connection, Message& msg);
+            virtual bool allowConnect(std::shared_ptr<Peer> peer);
+            virtual void onOutgoingConnect(std::shared_ptr<Peer> peer);
+            virtual void onIncomingConnect(std::shared_ptr<Peer> peer);
+            virtual void onDisconnect(std::shared_ptr<Peer> peer);
+            virtual void onMessage(std::shared_ptr<Peer> peer, Message& msg);
 
             // Thread safe queue for incoming messages
             tsqueue<OwnedMessage> _messagesIn;
 
-            // Container for active validated connections
-            std::deque<std::shared_ptr<Connection>> _connections{};
+            // Container for active peers
+            std::deque<std::shared_ptr<Peer>> _peers{};
 
             // Container for info of potential connections
             std::deque<NodeInfo> _potentialConnections{};
@@ -84,18 +85,11 @@ namespace keyser
             boost::asio::io_context _context;
             std::thread             _contextThread;
 
-            // Thread for cleaning invalid connections
-            // Mutex and condition variable for blocking thread
-            // until connection either fails or disconnects
-            std::condition_variable _cvBlocking;
-            std::mutex              _muxBlocking;
-            std::thread             _connectionRemovalThread;
-
             std::condition_variable _connectionBlocking;
             std::mutex              _connectionMutex;
 
             // Thread for managing connections
-            std::thread _connectionManagementThread;
+            std::thread _peerManagementThread;
 
             // Asio acceptor
             boost::asio::ip::tcp::acceptor _acceptor;

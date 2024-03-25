@@ -11,6 +11,7 @@
 #include <nlohmann/json.hpp>
 
 #include "./utils.hpp"
+#include "../wallet/Wallet.hpp"
 #include "../chain/Transaction.hpp"
 #include "../chain/Block.hpp"
 #include "../node/NodeInfo.hpp"

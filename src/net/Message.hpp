@@ -8,7 +8,6 @@
 #include <cstring>
 #include <nlohmann/json.hpp>
 
-#include "./Connection.hpp"
 #include "./MsgTypes.hpp"
 #include "../chain/Block.hpp"
 #include "../chain/Transaction.hpp"
@@ -18,9 +17,6 @@
 
 namespace keyser
 {
-    // Forwrard declare 
-    class Connection;
-
     struct MessageHeader
     {
         MsgTypes id = MsgTypes::Generic;
@@ -57,23 +53,6 @@ namespace keyser
             nlohmann::json    _doc;
             MessageHeader     header{};
             std::vector<char> body;
-    };
-
-    struct OwnedMessage
-    {
-        friend std::ostream& operator<<(std::ostream& out, const OwnedMessage& msg) {
-            out << msg._msg;
-            return out;
-        }
-
-        OwnedMessage(std::shared_ptr<Connection> remote, Message msg)
-        {
-            _remote = remote;
-            _msg    = msg;
-        }
-
-        std::shared_ptr<Connection> _remote = nullptr;
-        Message                     _msg;
     };
 }
 

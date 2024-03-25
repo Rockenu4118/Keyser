@@ -1,6 +1,9 @@
+#include <nlohmann/json.hpp>
+
 #include "./rpc.hpp"
 #include "../node/Node.hpp"
-#include <nlohmann/json.hpp>
+#include "../utils/utils.hpp"
+
 
 keyser::RPC::RPC(Node *node) : _acceptor(_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 8080))
 {
@@ -11,37 +14,60 @@ keyser::RPC::~RPC() { shutdown(); }
 
 void keyser::RPC::run()
 {
-    boost::asio::io_context::work idlework(_context);
+    acceptRequest();
 
-    _contextThr = std::thread([this]()
-                              { _context.run(); });
-
-    _rpcThr = std::thread([this]()
-                          { startServer(); });
+    _contextThr = std::thread([this]() { _context.run(); });    
 }
 
-void keyser::RPC::startServer()
+void keyser::RPC::acceptRequest()
 {
-    while (true)
+    try
     {
-        boost::asio::ip::tcp::socket socket(_context);
-        _acceptor.accept(socket);
+        _acceptor.async_accept(
+            [this](std::error_code ec, boost::asio::ip::tcp::socket socket)
+            {
+                if (!ec)
+                {
+                    std::cout << "[RPC] New Req: " << socket.remote_endpoint() << std::endl;
 
-        // Read the HTTP request
-        boost::beast::flat_buffer buffer;
-        boost::beast::http::request<boost::beast::http::string_body> request;
-        boost::beast::http::read(socket, buffer, request);
+                    boost::beast::flat_buffer buffer;
+                    boost::beast::http::request<boost::beast::http::string_body> request;
+                    boost::beast::http::read(socket, buffer, request);
 
-        // Handle the request
-        onMessage(request, socket);
+                    // Handle the request
+                    onMessage(request, socket);
 
-        // Close the socket
-        socket.shutdown(boost::asio::ip::tcp::socket::shutdown_send);
+                    // Close the socket
+                    socket.shutdown(boost::asio::ip::tcp::socket::shutdown_send);
+                }
+                else
+                {
+                    // Error during request
+                    std::cout << "[RPC] Connection Error: " << ec.message() << std::endl; 
+                }
+                
+                // Prime asio context with more work, wait for another request
+                acceptRequest();
+            }
+        );
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << "[RPC] Exception: " << e.what() << std::endl;
     }
 }
 
 void keyser::RPC::shutdown()
-{}
+{
+    // Request the context to close
+    _context.stop();
+
+    // Join context thread
+    if (_contextThr.joinable())
+        _contextThr.join();
+
+    std::cout << "[RPC] Stopped!" << std::endl;
+}
 
 void keyser::RPC::onMessage(const boost::beast::http::request<boost::beast::http::string_body> &request, boost::asio::ip::tcp::socket &socket)
 {
@@ -76,17 +102,64 @@ void keyser::RPC::onMessage(const boost::beast::http::request<boost::beast::http
     }
 
     // Handle each method differently
-    if      (method == "getBalance")  handleGetBalance(response, params);
-    else if (method == "getHeight")   handleGetHeight(response, params);
-    else if (method == "getBlock")    handleGetBlock(response, params);
-    else if (method == "getPeerInfo") handleGetPeerInfo(response, params);
-    else if (method == "shutdown")    handleShutdown(response, params);
-    else                              handleInvalidMethod(response);
-
+    try
+    {
+        if      (method == "ping")         handlePing         (response, params);
+        else if (method == "getWallets")   handleGetWallets   (response, params);
+        else if (method == "createWallet") handleCreateWallet (response, params);
+        else if (method == "getBalance")   handleGetBalance   (response, params);
+        else if (method == "getHeight")    handleGetHeight    (response, params);
+        else if (method == "getBlock")     handleGetBlock     (response, params);
+        else if (method == "getMempool")   handleGetMempool   (response, params);
+        else if (method == "getPeerInfo")  handleGetPeerInfo  (response, params);
+        else if (method == "getUptime")    handleGetUptime    (response, params);
+        else if (method == "shutdown")     handleShutdown     (response, params);
+        else                               handleInvalidMethod(response);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    
 
     // Send the response to the client
     response.prepare_payload();
     boost::beast::http::write(socket, response);
+}
+
+void keyser::RPC::handlePing(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
+{
+    nlohmann::json res;
+
+    response.result(boost::beast::http::status::ok);
+    response.body() = res.dump();
+}
+
+void keyser::RPC::handleGetWallets(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
+{
+    nlohmann::json res;
+
+    for (int i = 0 ; i < _node->walletManager().count() ; i++)
+    {
+        nlohmann::json wallet;
+        wallet["name"] = _node->walletManager().at(i).getName();
+        wallet["publicAddress"] = _node->walletManager().at(i).getPublicAddress();
+
+        res["wallets"].push_back(wallet);
+    }
+
+    response.result(boost::beast::http::status::ok);
+    response.body() = res.dump(2);
+}
+
+void keyser::RPC::handleCreateWallet(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
+{
+    nlohmann::json res;
+
+    _node->walletManager().createWallet(params.at(0));
+
+    response.result(boost::beast::http::status::ok);
+    response.body() = res.dump();
 }
 
 void keyser::RPC::handleGetBalance(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string> &params)
@@ -107,8 +180,10 @@ void keyser::RPC::handleGetHeight(boost::beast::http::response<boost::beast::htt
     response.body() = res.dump();
 }
 
-void keyser::RPC::handleGetBlock(boost::beast::http::response<boost::beast::http::string_body>& response, std::vector<std::string> &params)
+void keyser::RPC::handleGetBlock(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string> &params)
 {
+    nlohmann::json res;
+
     std::shared_ptr<Block> block;
 
     try
@@ -124,21 +199,28 @@ void keyser::RPC::handleGetBlock(boost::beast::http::response<boost::beast::http
         return;
     }
     
-    nlohmann::json res;
-
-    res["index"]         = block->_index;
-    res["time"]          = block->_time;
-    res["nonce"]         = block->_nonce;
-    res["prevHash"]      = block->_prevHash;
-    res["hash"]          = block->_hash;
-    res["reward"]        = block->_reward;
-    res["rewardAddress"] = block->_rewardAddress;
+    utils::encodeJson(res["block"], *block);
  
     response.result(boost::beast::http::status::ok);
     response.body() = res.dump();
 }
 
-void keyser::RPC::handleGetPeerInfo(boost::beast::http::response<boost::beast::http::string_body>& response, std::vector<std::string>& params)
+void keyser::RPC::handleGetMempool(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
+{
+    nlohmann::json res;
+
+    for (auto& tx : _node->pendingTransactions())
+    {
+        nlohmann::json transaction;
+        utils::encodeJson(transaction, tx);
+        res["pendingTransactions"].push_back(transaction);
+    }
+
+    response.result(boost::beast::http::status::ok);
+    response.body() = res.dump();
+}
+
+void keyser::RPC::handleGetPeerInfo(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
 {
     nlohmann::json res;
 
@@ -157,7 +239,17 @@ void keyser::RPC::handleGetPeerInfo(boost::beast::http::response<boost::beast::h
     response.body() = res.dump();
 }
 
-void keyser::RPC::handleShutdown(boost::beast::http::response<boost::beast::http::string_body>& response, std::vector<std::string>& params)
+void keyser::RPC::handleGetUptime(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
+{
+    nlohmann::json res;
+
+    res["uptime"] = _node->getUptime();
+
+    response.result(boost::beast::http::status::ok);
+    response.body() = res.dump();
+}
+
+void keyser::RPC::handleShutdown(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
 {}
 
 void keyser::RPC::handleInvalidMethod(boost::beast::http::response<boost::beast::http::string_body>& response)

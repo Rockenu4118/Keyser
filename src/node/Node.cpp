@@ -21,6 +21,8 @@
 
 keyser::Node::Node(uint16_t port) : NetInterface(port)
 {
+    _startTime = time(NULL);
+
     // Test wallets
     keyser::Wallet ajWallet("AJ", key1);
     _walletManager.addWallet(ajWallet);
@@ -37,16 +39,14 @@ void keyser::Node::run()
     _storageEngine.loadWallets();
 
     boost::asio::io_context::work idleWork(_context);
+    
     _contextThread = std::thread([this]() { _context.run(); });  
 
     // Run thread to handle messsages
     _responseThread = std::thread([this]() { update(); }); 
 
-    // Begin peer discovery / connection management
-    _connectionManagementThread = std::thread([this]() { managePeerConnections(); });
-
-    // Activate thread to dispose of invalid connections
-    _connectionRemovalThread = std::thread([this]() { removeInvalidConnections(); });
+    // Begin peer discovery / peer management
+    _peerManagementThread = std::thread([this]() { managePeers(); });
 
     startServer();
 }
@@ -54,6 +54,11 @@ void keyser::Node::run()
 keyser::Node::Status keyser::Node::getStatus() const
 {
     return _status;
+}
+
+time_t keyser::Node::getUptime() const
+{
+    return time(NULL) - _startTime;
 }
 
 void keyser::Node::beginMining(bool continuous)
@@ -118,7 +123,7 @@ void keyser::Node::ping()
 
 void keyser::Node::pong() {}
 
-void keyser::Node::version(std::shared_ptr<Connection> connection)
+void keyser::Node::version(std::shared_ptr<Peer> peer)
 {
     // Send self info as well as their external address
     Message msg(MsgTypes::Version);
@@ -126,21 +131,21 @@ void keyser::Node::version(std::shared_ptr<Connection> connection)
     msg.json()["Outbound alias"]   = _selfInfo._alias;
     msg.json()["Outbound port"]    = _selfInfo._port;
     msg.json()["chainHeight"]      = getHeight();
-    msg.json()["address"]          = connection->getEndpoint().address().to_string();
+    msg.json()["address"]          = peer->getEndpoint().address().to_string();
     msg.serialize();
-    message(connection, msg);
+    message(peer, msg);
 }
 
-void keyser::Node::verack(std::shared_ptr<Connection> connection)
+void keyser::Node::verack(std::shared_ptr<Peer> peer)
 {
     Message newMsg(MsgTypes::Verack);
     newMsg.json()["Outbound version"] = _selfInfo._version;
     newMsg.json()["Outbound alias"]   = _selfInfo._alias;
     newMsg.json()["Outbound port"]    = _selfInfo._port;
-    newMsg.json()["address"]          = connection->getEndpoint().address().to_string();
+    newMsg.json()["address"]          = peer->getEndpoint().address().to_string();
     newMsg.serialize();
 
-    message(connection, newMsg);
+    message(peer, newMsg);
 }
 
 void keyser::Node::distributeNodeInfo(NodeInfo& nodeInfo)
@@ -175,13 +180,13 @@ void keyser::Node::getBlocks()
     _status == Status::Syncing;
 }
 
-void keyser::Node::sendBlocks(std::shared_ptr<Connection> connection, int blockIndex)
+void keyser::Node::sendBlocks(std::shared_ptr<Peer> peer, int blockIndex)
 {
     Message msg(MsgTypes::Block);
 
     msg.insert(*_blocks.at(blockIndex));
 
-    message(connection, msg);
+    message(peer, msg);
 }
 
 void keyser::Node::getNodeList()
@@ -190,7 +195,7 @@ void keyser::Node::getNodeList()
     message(syncNode(), msg);
 }
 
-void keyser::Node::nodeInfoStream(std::shared_ptr<Connection> connection)
+void keyser::Node::nodeInfoStream(std::shared_ptr<Peer> peer)
 {
     Message msg(MsgTypes::NodeInfoList);
 
@@ -206,7 +211,7 @@ void keyser::Node::nodeInfoStream(std::shared_ptr<Connection> connection)
     }
 
     msg.serialize();
-    message(connection, msg);
+    message(peer, msg);
 }
 
 void keyser::Node::getData()
@@ -221,13 +226,13 @@ void keyser::Node::getData()
     message(syncNode(), msg);
 }
 
-void keyser::Node::inv(std::shared_ptr<Connection> connection, int startingBlock)
+void keyser::Node::inv(std::shared_ptr<Peer> peer, int startingBlock)
 {
     Message msg(MsgTypes::Inv);
 
     if (startingBlock == getHeight() - 1)
     {
-        message(connection, msg);
+        message(peer, msg);
         return;
     }
     
@@ -238,7 +243,7 @@ void keyser::Node::inv(std::shared_ptr<Connection> connection, int startingBlock
 
     msg.serialize();
 
-    message(connection, msg);
+    message(peer, msg);
 }
 
 keyser::WalletManager& keyser::Node::walletManager()
@@ -246,21 +251,21 @@ keyser::WalletManager& keyser::Node::walletManager()
     return _walletManager;
 }
 
-bool keyser::Node::allowConnect(std::shared_ptr<Connection> connection)
+bool keyser::Node::allowConnect(std::shared_ptr<Peer> peer)
 { return true; }
 
-void keyser::Node::onOutgoingConnect(std::shared_ptr<Connection> connection)
+void keyser::Node::onOutgoingConnect(std::shared_ptr<Peer> peer)
 {
-    version(connection);
+    version(peer);
 }
 
-void keyser::Node::onIncomingConnect(std::shared_ptr<Connection> connection) 
+void keyser::Node::onIncomingConnect(std::shared_ptr<Peer> peer) 
 {}
 
-void keyser::Node::onDisconnect(std::shared_ptr<Connection> connection)
+void keyser::Node::onDisconnect(std::shared_ptr<Peer> peer)
 {}
 
-void keyser::Node::onMessage(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::onMessage(std::shared_ptr<Peer> peer, Message& msg)
 {
     switch (msg.header.id)
     {
@@ -268,40 +273,40 @@ void keyser::Node::onMessage(std::shared_ptr<Connection> connection, Message& ms
             std::cout << "[NODE] Generic msg" << std::endl;
             break;
         case MsgTypes::Ping:
-            handlePing(connection, msg);
+            handlePing(peer, msg);
             break;
         case MsgTypes::DistributeNodeInfo:
-            handleDistributeNodeInfo(connection, msg);
+            handleDistributeNodeInfo(peer, msg);
             break;
         case MsgTypes::DistributeBlock:
-            handleDistributeBlock(connection, msg);
+            handleDistributeBlock(peer, msg);
             break;
         case MsgTypes::DistributeTransaction:
-            handleDistributeTransaction(connection, msg);
+            handleDistributeTransaction(peer, msg);
             break;
         case MsgTypes::Version:
-            handleVersion(connection, msg);
+            handleVersion(peer, msg);
             break;
         case MsgTypes::Verack:
-            handleVerack(connection, msg);
+            handleVerack(peer, msg);
             break;
         case MsgTypes::GetBlocks:
-            handleGetBlocks(connection, msg);
+            handleGetBlocks(peer, msg);
             break;
         case MsgTypes::Inv:
-            handleInv(connection, msg);
+            handleInv(peer, msg);
             break;
         case MsgTypes::GetData:
-            handleGetData(connection, msg);
+            handleGetData(peer, msg);
             break;
         case MsgTypes::Block:
-            handleBlock(connection, msg);
+            handleBlock(peer, msg);
             break;
         case MsgTypes::GetNodeList:
-            handleGetNodeList(connection, msg);
+            handleGetNodeList(peer, msg);
             break;
         case MsgTypes::NodeInfoList:
-            handleNodeInfo(connection, msg);
+            handleNodeInfo(peer, msg);
             break;
         default:
             std::cout << "[NODE] Unknown Msg Type" << std::endl;
@@ -309,12 +314,12 @@ void keyser::Node::onMessage(std::shared_ptr<Connection> connection, Message& ms
     }
 }
 
-void keyser::Node::handlePing(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handlePing(std::shared_ptr<Peer> peer, Message& msg)
 {
-    std::cout << utils::localTimestamp() << "Ping: " << connection->getId() << std::endl;
+    std::cout << utils::localTimestamp() << "Ping: " << peer->getId() << std::endl;
 }
 
-void keyser::Node::handleVersion(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleVersion(std::shared_ptr<Peer> peer, Message& msg)
 {
     // Deserialize byte array into json doc
     msg.deserialize();
@@ -327,21 +332,21 @@ void keyser::Node::handleVersion(std::shared_ptr<Connection> connection, Message
     NodeInfo nodeInfo;
     nodeInfo._version = msg.json()["Outbound version"];
     nodeInfo._alias   = msg.json()["Outbound alias"];
-    nodeInfo._address = connection->getEndpoint().address().to_string();
+    nodeInfo._address = peer->getEndpoint().address().to_string();
     nodeInfo._port    = msg.json()["Outbound port"];
 
-    connection->setChainHeight(msg.json()["chainHeight"]);
+    peer->info().startingHeight = msg.json()["chainHeight"];
 
-    // Save the port this connection is running their server on
+    // Save the port this peer is running their server on
     // Add this node to connectedNodeList
-    connection->setHostingPort(nodeInfo._port);
+    peer->info()._address = nodeInfo._port;
     _connectedNodeList.insert(nodeInfo);
 
     // Send self info as well as their external ip
-    verack(connection);
+    verack(peer);
 }
 
-void keyser::Node::handleVerack(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleVerack(std::shared_ptr<Peer> peer, Message& msg)
 {    
     // Deserialize byte array into json doc
     msg.deserialize();
@@ -350,7 +355,7 @@ void keyser::Node::handleVerack(std::shared_ptr<Connection> connection, Message&
     NodeInfo nodeInfo;
     nodeInfo._version = msg.json()["Outbound version"];
     nodeInfo._alias   = msg.json()["Outbound alias"];
-    nodeInfo._address = connection->getEndpoint().address().to_string();
+    nodeInfo._address = peer->getEndpoint().address().to_string();
     nodeInfo._port    = msg.json()["Outbound port"];
 
     // Add info to connected node list and active node list
@@ -372,7 +377,7 @@ void keyser::Node::handleVerack(std::shared_ptr<Connection> connection, Message&
         getNodeList();
 }
 
-void keyser::Node::handleDistributeNodeInfo(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleDistributeNodeInfo(std::shared_ptr<Peer> peer, Message& msg)
 {
     NodeInfo nodeInfo;
     msg.extract(nodeInfo);
@@ -382,28 +387,28 @@ void keyser::Node::handleDistributeNodeInfo(std::shared_ptr<Connection> connecti
 
     _activeNodeList.insert(nodeInfo);
     addPotentialConnection(nodeInfo);
-    messageNeighbors(msg, connection);
+    messageNeighbors(msg, peer);
 }
 
-void keyser::Node::handleDistributeTransaction(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleDistributeTransaction(std::shared_ptr<Peer> peer, Message& msg)
 {
     Transaction transaction;
     msg.extract(transaction);
 
     if (_validationEngine->validateTransaction(transaction))
-        messageNeighbors(msg, connection);
+        messageNeighbors(msg, peer);
 }
 
-void keyser::Node::handleDistributeBlock(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleDistributeBlock(std::shared_ptr<Peer> peer, Message& msg)
 {
     Block block;
     msg.extract(block);
 
     if (_validationEngine->validateBlock(block))
-        messageNeighbors(msg, connection);
+        messageNeighbors(msg, peer);
 }
 
-void keyser::Node::handleGetBlocks(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleGetBlocks(std::shared_ptr<Peer> peer, Message& msg)
 {   
     msg.deserialize();
     std::string topBlockHash = msg.json()["topBlock"];
@@ -418,10 +423,10 @@ void keyser::Node::handleGetBlocks(std::shared_ptr<Connection> connection, Messa
         topBlockI++;
     }
 
-    inv(connection, topBlockI);
+    inv(peer, topBlockI);
 }
 
-void keyser::Node::handleInv(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleInv(std::shared_ptr<Peer> peer, Message& msg)
 {
     msg.deserialize();
 
@@ -441,7 +446,7 @@ void keyser::Node::handleInv(std::shared_ptr<Connection> connection, Message& ms
     getData(); 
 }
 
-void keyser::Node::handleGetData(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleGetData(std::shared_ptr<Peer> peer, Message& msg)
 {
     msg.deserialize();
 
@@ -449,11 +454,11 @@ void keyser::Node::handleGetData(std::shared_ptr<Connection> connection, Message
     {
         Message msg(MsgTypes::Block);
         msg.insert(*_blocks.at(i));
-        message(connection, msg);
+        message(peer, msg);
     }
 }
 
-void keyser::Node::handleBlock(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleBlock(std::shared_ptr<Peer> peer, Message& msg)
 {
     Block block;
     msg.extract(block);
@@ -465,12 +470,12 @@ void keyser::Node::handleBlock(std::shared_ptr<Connection> connection, Message& 
     }
 }
 
-void keyser::Node::handleGetNodeList(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleGetNodeList(std::shared_ptr<Peer> peer, Message& msg)
 {
-    nodeInfoStream(connection);
+    nodeInfoStream(peer);
 }
 
-void keyser::Node::handleNodeInfo(std::shared_ptr<Connection> connection, Message& msg)
+void keyser::Node::handleNodeInfo(std::shared_ptr<Peer> peer, Message& msg)
 {
     msg.deserialize();
 

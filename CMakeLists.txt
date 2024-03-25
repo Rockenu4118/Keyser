@@ -6,7 +6,8 @@ project(${PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD 20)
 
-file(GLOB SOURCES "src/*.cpp" 
+file(GLOB SOURCES "src/*.cpp"
+                  "src/app/*.cpp"
                   "src/utils/*.cpp" 
                   "src/views/*.cpp" 
                   "src/chain/*.cpp" 

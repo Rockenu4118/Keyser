@@ -4,6 +4,7 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
+#include "../wallet/Wallet.hpp"
 #include "../chain/Transaction.hpp"
 #include "../chain/Block.hpp"
 #include "../node/NodeInfo.hpp"
