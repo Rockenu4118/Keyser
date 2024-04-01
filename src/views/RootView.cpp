@@ -116,17 +116,17 @@ void keyser::cli::RootView::initSetup()
         
         clearScreen();
     }
-    else
-    {
-        clearScreen();
+    // else
+    // {
+    //     clearScreen();
 
-        std::cout << "Waiting for connection  ";
+    //     std::cout << "Waiting for connection  ";
 
-        while (_node->connectionCount() < 1)
-        {
-            loadingAnimation(250);
-        }
-    }
+    //     while (_node->connectionCount() < 1)
+    //     {
+    //         loadingAnimation(250);
+    //     }
+    // }
 
     clearScreen();
 }

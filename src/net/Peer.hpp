@@ -19,6 +19,8 @@ namespace keyser
                  tsqueue<OwnedMessage>& qMessagesIn, 
                  uint16_t uid);
 
+            virtual ~Peer() = default;
+
             uint16_t getId() const;
             bool isConnected() const;
             boost::asio::ip::tcp::endpoint getEndpoint() const;

@@ -54,38 +54,38 @@ std::string keyser::utils::hexToString(const std::string& input)
 
 void keyser::utils::encodeJson(nlohmann::json& json, Transaction& transaction)
 {
-    json["time"]              = transaction._time;
-    json["amount"]            = transaction._amount;
-    json["reciever address"]  = transaction._recieverAddress;
-    json["sender address"]    = transaction._senderAddress;
-    json["sender public key"] = transaction._senderPublicKey;
-    json["hash"]              = transaction._hash;
-    json["r sig val"]         = transaction._rSigVal;
-    json["s sig val"]         = transaction._sSigVal;
+    json["time"]            = transaction._time;
+    json["amount"]          = transaction._amount;
+    json["recieverAddress"] = transaction._recieverAddress;
+    json["senderAddress"]   = transaction._senderAddress;
+    json["senderPublicKey"] = transaction._senderPublicKey;
+    json["hash"]            = transaction._hash;
+    json["rSigVal"]         = transaction._rSigVal;
+    json["sSigVal"]         = transaction._sSigVal;
 }
 
 void keyser::utils::decodeJson(Transaction& transaction, nlohmann::json& json)
 {
     transaction._time            = json["time"];
     transaction._amount          = json["amount"];
-    transaction._recieverAddress = json["reciever address"];
-    transaction._senderAddress   = json["sender address"];
-    transaction._senderPublicKey = json["sender public key"];
+    transaction._recieverAddress = json["recieverAddress"];
+    transaction._senderAddress   = json["senderAddress"];
+    transaction._senderPublicKey = json["senderPublicKey"];
     transaction._hash            = json["hash"];
-    transaction._rSigVal         = json["r sig val"];
-    transaction._sSigVal         = json["s sig val"];
+    transaction._rSigVal         = json["rSigVal"];
+    transaction._sSigVal         = json["sSigVal"];
 }
 
-void keyser::utils::encodeJson(nlohmann::json& json, BlockHeader& header)
-{
-    json["index"]         = header._index;
-    json["time"]          = header._time;
-    json["nonce"]         = header._nonce;
-    json["prev hash"]     = header._prevHash;
-    json["hash"]          = header._hash;
-    json["reward"]        = header._reward;
-    json["rewardAddress"] = header._rewardAddress;
-}
+// void keyser::utils::encodeJson(nlohmann::json& json, BlockHeader& header)
+// {
+//     json["index"]         = header._index;
+//     json["time"]          = header._time;
+//     json["nonce"]         = header._nonce;
+//     json["prev hash"]     = header._prevHash;
+//     json["hash"]          = header._hash;
+//     json["reward"]        = header._reward;
+//     json["rewardAddress"] = header._rewardAddress;
+// }
 
 void keyser::utils::decodeJson(BlockHeader& header, nlohmann::json& json)
 {
@@ -103,10 +103,11 @@ void keyser::utils::encodeJson(nlohmann::json& json, Block& block)
     json["index"]         = block._index;
     json["time"]          = block._time;
     json["nonce"]         = block._nonce;
-    json["prev hash"]     = block._prevHash;
+    json["prevHash"]      = block._prevHash;
     json["hash"]          = block._hash;
     json["reward"]        = block._reward;
     json["rewardAddress"] = block._rewardAddress;
+    json["transactions"]  = nlohmann::json::array();
 
     for (Transaction tx : block._transactions)
     {
@@ -121,7 +122,7 @@ void keyser::utils::decodeJson(Block& block, nlohmann::json& json)
     block._index         = json["index"];
     block._time          = json["time"];
     block._nonce         = json["nonce"];
-    block._prevHash      = json["prev hash"];
+    block._prevHash      = json["prevHash"];
     block._hash          = json["hash"];
     block._reward        = json["reward"];
     block._rewardAddress = json["rewardAddress"];

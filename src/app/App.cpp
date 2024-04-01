@@ -22,10 +22,8 @@ void keyser::App::run()
     _node->run();
 
     // Startup RPC API
-    // _rpc = new keyser::RPC(_node);
-    // _rpc->run();
-
-    // delete node;
+    _rpc = new keyser::RPC(_node, port + 2000);
+    _rpc->run();
 
     // Initialize CLI
     _view = new cli::RootView(_node);

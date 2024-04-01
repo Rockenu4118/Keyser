@@ -1,4 +1,4 @@
-## Example wallets
+## Test wallets
 
 
 | AJ             |                                                                                                                                    |

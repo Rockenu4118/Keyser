@@ -19,7 +19,7 @@ namespace keyser
     class RPC
     {
         public:
-            RPC(Node* node);
+            RPC(Node* node, uint16_t port);
 
             ~RPC();
 
@@ -42,6 +42,8 @@ namespace keyser
             void handleGetHeight(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
 
             void handleGetBlock(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
+
+            void handleGetBlocks(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
 
             void handleGetMempool(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
 
