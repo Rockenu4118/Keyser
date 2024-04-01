@@ -1,7 +1,7 @@
 # Keyser Protocol
 
 The Keyser Protocol is a decentralized, P2P, network protocol that allows for peers to maintain
-an immutable ledger of transactions.
+the Keyser block chain.
 
 ## Keyser Core
 
@@ -25,12 +25,47 @@ info of other peers on the network and begin making additional connections.
 
 ## Block Chain
 
-Each peer on the Keyser network stores and maintains a copy of the Keyser block chain.
+Each peer on the Keyser network stores and maintains a copy of the Keyser block chain. The block chain is an immutable,
+append-only ledger of transactions that is validated by a set of consensus mechanisms as determined by the protocol. Each
+block within the block chain contains both a header a body.
+
+### Block Header structure
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>Index</td>
+        <td>The position of the current block within the blockchain.</td>
+    </tr>
+    <tr>
+        <td>Time</td>
+        <td>
+            A Unix epoch time when the block was mined and distributed to the rest of the network.
+        </td>
+    </tr>
+    <tr>
+        <td>Nonce</td>
+        <td>
+            An arbitrary number that when changed, will result in a different hash output for the overall block.
+        </td>
+    </tr>
+    <tr>
+        <td>Prev Hash</td>
+        <td>The hash of the previous block in the chain.</td>
+    </tr>
+    <tr>
+        <td>Hash</td>
+        <td>The hash of the current block.</td>
+    </tr>
+</table>
 
 ## RPC API
 
 The Keyser RPC API is a set of API's that allow for developers to interact with a "full-node". There are several
-reasons as to why a developer would want to interact with a node ranging from wanting to create a custom
+reasons why a developer would want to interact with a node ranging from wanting to create a custom
 GUI/CLI to simply wanting to monitor chain or network data. Developers can send an HTTP POST request to a node,
 containing a body that conforms to the following JSON structure.
 
