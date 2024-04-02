@@ -22,6 +22,19 @@ keyser::Transaction::Transaction(double amount, std::string recievingAddress, st
     _sSigVal         = "";
 }
 
+keyser::Transaction::Transaction(double amount, std::string msg, std::string recievingAddress, std::string sendingPubKey)
+{
+    _time            = time(NULL);
+    _amount          = amount;
+    _msg             = msg;
+    _recieverAddress = recievingAddress;
+    _senderAddress   = keyser::utils::pubKeytoAddress(sendingPubKey);
+    _senderPublicKey = sendingPubKey;
+    _hash            = "";
+    _rSigVal         = "";
+    _sSigVal         = "";
+}
+
 // Modifiers
 void keyser::Transaction::calcHash()
 {
@@ -71,6 +84,7 @@ namespace keyser
     std::ostream& operator<<(std::ostream& out, Transaction& data) {
         out << "Time: "              << data._time            << ", ";
         out << "Amount: "            << data._amount          << ", ";
+        out << "Msg: "               << data._msg             << ", ";
         out << "Recieving Address: " << data._recieverAddress << ", ";
         out << "Sender: "            << data._senderAddress;
 

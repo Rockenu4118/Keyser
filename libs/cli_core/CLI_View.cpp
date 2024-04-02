@@ -34,6 +34,7 @@ void cli_core::CLI_View::promptInput(std::string msg, std::string& input, bool e
 {
     std::cout << msg;
     std::cin  >> input;
+    std::cin.ignore();
 
     if (extraEndl)
         std::cout << std::endl;
