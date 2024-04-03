@@ -56,7 +56,6 @@ void keyser::utils::encodeJson(nlohmann::json& json, Transaction& transaction)
 {
     json["time"]            = transaction._time;
     json["amount"]          = transaction._amount;
-    json["msg"]             = transaction._msg;
     json["recieverAddress"] = transaction._recieverAddress;
     json["senderAddress"]   = transaction._senderAddress;
     json["senderPublicKey"] = transaction._senderPublicKey;
@@ -69,7 +68,6 @@ void keyser::utils::decodeJson(Transaction& transaction, nlohmann::json& json)
 {
     transaction._time            = json["time"];
     transaction._amount          = json["amount"];
-    transaction._msg             = json["msg"];
     transaction._recieverAddress = json["recieverAddress"];
     transaction._senderAddress   = json["senderAddress"];
     transaction._senderPublicKey = json["senderPublicKey"];

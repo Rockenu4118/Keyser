@@ -18,7 +18,6 @@ namespace keyser
         public:
             // Constructors
             Transaction(double amount, std::string recievingAddress, std::string sendingPublicKey);
-            Transaction(double amount, std::string msg, std::string recievingAddress, std::string sendingPublicKey);
             Transaction() = default;
 
             // Modifiers
@@ -30,7 +29,6 @@ namespace keyser
 
         public:
             double      _amount;
-            std::string _msg;
             time_t      _time;
             std::string _recieverAddress;
             std::string _senderAddress;

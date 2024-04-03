@@ -49,7 +49,6 @@ void keyser::cli::TransactionView::newTransaction()
 {
     uint        index;
     double      amount;
-    std::string msg;
     std::string recievingAddress;
     char        confirmation;
 
@@ -66,7 +65,7 @@ void keyser::cli::TransactionView::newTransaction()
 
     promptInput("Amount: ", amount);
 
-    Transaction transaction = Transaction(amount, msg, recievingAddress, _node->walletManager().at(index).getKeyPair()->getUPublicKey());
+    Transaction transaction = Transaction(amount, recievingAddress, _node->walletManager().at(index).getKeyPair()->getUPublicKey());
     transaction.sign(_node->walletManager().at(index).getKeyPair());
     
     std::cout << transaction << std::endl;
