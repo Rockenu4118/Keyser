@@ -8,6 +8,8 @@ the Keyser block chain.
 Keyser Core is a "full-node" software for connecting to the Keyser P2P network
 and partaking in the validation of the blockchain.
 
+Keyser Core is currently only compatible with Ubuntu based Linux distros.
+
 ## Port Configs
 
 Upon startup of the software, the user will be prompted to provide 2 port numbers. The first
