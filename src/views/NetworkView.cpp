@@ -67,8 +67,8 @@ void keyser::cli::NetworkView::newConnection()
     NodeInfo nodeInfo;
     nodeInfo._address = "127.0.0.1";
 
-    std::cout << "Ip: ";
-    std::cin >> nodeInfo._address;
+    // std::cout << "Ip: ";
+    // std::cin >> nodeInfo._address;
     std::cout << "Port: ";
     std::cin >> nodeInfo._port;
 

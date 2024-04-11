@@ -4,8 +4,8 @@
 #include <memory>
 #include <cstring>
 
+#include "./Message.hpp"
 #include "../utils/utils.hpp"
-#include "./Connection.hpp"
 #include "./MsgTypes.hpp"
 #include "../chain/Block.hpp"
 #include "../chain/Transaction.hpp"

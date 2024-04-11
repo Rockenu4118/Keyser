@@ -3,7 +3,6 @@
 #include <boost/asio.hpp>
 #include <tsqueue.hpp>
 
-#include "./Connection.hpp"
 #include "./Peer.hpp"
 
 keyser::Peer::Peer(NodeInfo::Direction direction,
@@ -16,12 +15,17 @@ keyser::Peer::Peer(NodeInfo::Direction direction,
                    _messagesIn(qMessagesIn)
 {
     _info.direction = direction;
-    _id = uid;
+    _info.id = uid;
+}
+
+keyser::Peer::~Peer()
+{
+    disconnect();
 }
 
 uint16_t keyser::Peer::getId() const
 {
-    return _id;
+    return _info.id;
 }
 
 boost::asio::ip::tcp::endpoint keyser::Peer::getEndpoint() const
@@ -200,9 +204,9 @@ namespace keyser
 {
     std::ostream& operator<<(std::ostream& out, Peer& data)
     {
-        // out << "[" << data.getId() << "] ";
+        out << "[" << data.getId() << "] ";
         out << data.getEndpoint() << ", ";
-        // out << "Hosting on: " << data.getHostingPort() << ", ";
+        out << "Hosting on: " << data.info()._port << ", ";
         out << "Direction: " << (data.info().direction == NodeInfo::Direction::Outbound ? "Outbound" : "Inbound");
 
         return out;

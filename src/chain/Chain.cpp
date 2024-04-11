@@ -79,8 +79,8 @@ double keyser::Chain::getAddressBalance(std::string address)
     for (int i = 0 ; i < _blocks.size() ; i++)
     {
         // Modify balances from genesis block and mining rewards
-        if (_blocks.at(i)->_rewardAddress == address)
-            balance += _blocks.at(i)->_reward;
+        if (_blocks.at(i)->_reward._address == address)
+            balance += _blocks.at(i)->_reward._amount;
 
         std::vector<Transaction> transactions = _blocks.at(i)->_transactions;
 
@@ -111,7 +111,7 @@ bool keyser::Chain::isValid()
         if (!currBlock->hasValidTransactions())
             return false;
 
-        std::string currBlockHash = (*currBlock)._hash;
+        std::string currBlockHash = currBlock->_hash;
         currBlock->calcHash();
 
         if ((*currBlock)._hash != currBlockHash)

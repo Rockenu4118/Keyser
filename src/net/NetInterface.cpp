@@ -1,3 +1,5 @@
+#include <chrono>
+#include <thread>
 #include <set>
 #include <vector>
 #include <string>
@@ -13,14 +15,14 @@
 #include "../node/NodeInfo.hpp"
 
 
-keyser::NetInterface::NetInterface(uint16_t port) : _acceptor(_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+keyser::NetInterface::NetInterface(uint16_t port, bool& shutdownNode) : _acceptor(_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)), _shutdownNode(shutdownNode)
 {
     // Close acceptor until server starts
     _acceptor.close();
 
     // Save self info
     _selfInfo._version = KEYSER_VERSION;
-    _selfInfo._alias   = "whatev";
+    _selfInfo._alias   = "Keyser Node";
     _selfInfo._address = "";
     _selfInfo._port    = port;
 }
@@ -33,7 +35,7 @@ keyser::NetInterface::~NetInterface()
 bool keyser::NetInterface::startServer()
 {
     try
-    {   
+    {
         // Setup server to be able to accept connections
         boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), _selfInfo._port);
         _acceptor.open(endpoint.protocol());
@@ -53,28 +55,47 @@ bool keyser::NetInterface::startServer()
     return false;
 }
 
+void keyser::NetInterface::shutdown()
+{   
+    // Request the context to close
+    _context.stop();
+
+    // Join the context thread
+    if (_contextThread.joinable())
+        _contextThread.join();
+
+    if (_responseThread.joinable())
+        _responseThread.join();
+
+    std::cout << "[NODE] Stopped!" << std::endl;
+}
+
 bool keyser::NetInterface::connect(const NodeInfo nodeInfo)
 {   
+    if (_selfInfo == nodeInfo)
+        return false;
+
+    if (_connectedNodeList.count(nodeInfo) == 1)
+    {
+        return false;
+    }   
+
     try
     {
-        // Resolve hostname/ip-address into physical address
-        // boost::asio::ip::tcp::resolver               resolver(_context);
-        // boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(nodeInfo._address, std::to_string(nodeInfo._port));
         boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::make_address(nodeInfo._address), nodeInfo._port);
 
         // Create connection
         auto newConn = std::make_shared<Peer>(NodeInfo::Direction::Outbound, _context, boost::asio::ip::tcp::socket(_context), _messagesIn, _idCounter++);
 
-        // Connection pushed to back of connection container
-        _peers.push_back(std::move(newConn));
-
-        // Tell connection object to connect, if failed return false and remove connection
-        if (!_peers.back()->connect(endpoint))
+        // Tell connection object to connect, if failed return false and reset connection
+        if (!newConn->connect(endpoint))
         {
-            _peers.back().reset();
-            _peers.erase(std::remove(_peers.begin(), _peers.end(), nullptr), _peers.end());
+            newConn.reset();
             return false;
         }
+
+        // Connection moved to back of connection container
+        _peers.push_back(std::move(newConn));
 
         onOutgoingConnect(_peers.back());
     }
@@ -85,18 +106,6 @@ bool keyser::NetInterface::connect(const NodeInfo nodeInfo)
     }
 
     return true;
-}
-
-void keyser::NetInterface::shutdown()
-{   
-    // Request the context to close
-    _context.stop();
-
-    // Join the context thread
-    if (_contextThread.joinable())
-        _contextThread.join();
-
-    std::cout << "[NODE] Stopped!" << std::endl;
 }
 
 void keyser::NetInterface::acceptConnection()
@@ -112,12 +121,14 @@ void keyser::NetInterface::acceptConnection()
 
                 // Give node a chance to deny connection
                 if (allowConnect(newConn))
-                {       
+                {
                     onIncomingConnect(newConn);
 
+                    // Listen for message
+                    newConn->listen();
+                    
                     // Connection allowed, connection pushed to back of connection container
                     _peers.push_back(std::move(newConn));
-                    _peers.back()->listen();
 
                     std::cout << "[" << _peers.back()->getId() << "] Connection Approved" << std::endl;
                 }
@@ -160,35 +171,15 @@ void keyser::NetInterface::messageNeighbors(const Message& msg, std::shared_ptr<
 
 void keyser::NetInterface::managePeers()
 {
-    while (1)
+    // Try connecting to peers until either an adequate number of connections have been made
+    // or there are no more potential connections
+    while ((connectionCount() <= 3) && (!_potentialConnections.empty()))
     {
-        // Wait until node has acquired info of potential peers
-        std::unique_lock ul(_connectionMutex);
-        _connectionBlocking.wait(ul);
-
-        // Try connecting to peers until either an adequate number of connections have been made
-        // or there are no more potential connections
-        while ((connectionCount() <= 2) && (!_potentialConnections.empty()))
-        {
-            // Grab info from front of deque
-            NodeInfo nodeInfo = _potentialConnections.front();
-            _potentialConnections.pop_front();
-
-            if (_selfInfo == nodeInfo)
-            {
-                continue;
-            }
-
-            if (_connectedNodeList.count(nodeInfo) == 1)
-            {
-                continue;
-            }
-
-            if (connect(nodeInfo))
-            {
-                _connectedNodeList.insert(nodeInfo);
-            }
-        }
+        // Grab info from front of deque
+        NodeInfo nodeInfo = _potentialConnections.front();
+        _potentialConnections.pop_front();
+            
+        connect(nodeInfo);
     }
 }
 
@@ -203,29 +194,17 @@ bool keyser::NetInterface::validateConnection(std::shared_ptr<Peer>& peer)
 
     _peers.erase(std::remove(_peers.begin(), _peers.end(), nullptr), _peers.end());
 
-    std::cout << connectionCount() << std::endl;
-
     return false;
-}
-
-void keyser::NetInterface::addUserProvidedPotentialConnection(NodeInfo nodeInfo)
-{
-    _potentialConnections.emplace_front(nodeInfo);
-    _connectionBlocking.notify_one();
-}
-
-void keyser::NetInterface::addPotentialConnection(NodeInfo nodeInfo)
-{
-    _potentialConnections.emplace_back(nodeInfo);
-    _connectionBlocking.notify_one();
 }
 
 void keyser::NetInterface::update(uint8_t maxMessages, bool wait)
 {
     while(1)
     {
-        if (wait)
-            _messagesIn.wait();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        
+        if (_shutdownNode)
+            break;
 
         uint8_t msgCount = 0;
 
@@ -264,8 +243,8 @@ void keyser::NetInterface::displayConnections()
 
     for (auto& peer : _peers)
     {
-        if (validateConnection(peer)) {}
-            // std::cout << *peer << std::endl;
+        if (validateConnection(peer))
+            std::cout << *peer << std::endl;
     }
 }
 
@@ -294,8 +273,8 @@ std::vector<keyser::NodeInfo> keyser::NetInterface::getConnections() const
 {
     std::vector <keyser::NodeInfo> connections;
 
-    for (auto connectedNode : _connectedNodeList)
-        connections.push_back(connectedNode);
+    for (auto& peer : _peers)
+        connections.push_back(peer->info());
 
     return connections;
 }

@@ -69,9 +69,9 @@ bool keyser::Transaction::isValid()
 namespace keyser
 {
     std::ostream& operator<<(std::ostream& out, Transaction& data) {
-        out << "Time: "              << data._time            << ", ";
-        out << "Amount: "            << data._amount          << ", ";
-        out << "Recieving Address: " << data._recieverAddress << ", ";
+        out << "Time: "              << utils::localTime(data._time) << ", ";
+        out << "Amount: "            << data._amount                 << ", ";
+        out << "Recieving Address: " << data._recieverAddress        << ", ";
         out << "Sender: "            << data._senderAddress;
 
         return out;

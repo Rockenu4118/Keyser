@@ -7,7 +7,6 @@
 
 #include "../chain/Block.hpp"
 #include "../chain/Transaction.hpp"
-#include "../net/Connection.hpp"
 #include "../node/Node.hpp"
 
 

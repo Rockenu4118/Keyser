@@ -234,7 +234,6 @@ bool cryptography::ECKeyPair::verify(std::string hash, std::string rSigVal, std:
     BIGNUM* r = BN_new();
     BIGNUM* s = BN_new();
 
-
     BN_hex2bn(&r, rSigVal.c_str());
     BN_hex2bn(&s, sSigVal.c_str());
 

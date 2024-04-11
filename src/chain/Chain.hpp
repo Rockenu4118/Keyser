@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <thread>
+#include <list>
 
 #include "./Block.hpp"
 #include "./Transaction.hpp"

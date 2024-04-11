@@ -9,6 +9,12 @@
 
 namespace keyser
 {
+    struct Reward
+    {
+        double      _amount;
+        std::string _address;
+    };
+
     struct BlockHeader
     {
         uint        _index;
@@ -16,8 +22,6 @@ namespace keyser
         uint64_t    _nonce;
         std::string _prevHash;
         std::string _hash;
-        double      _reward;
-        std::string _rewardAddress;
     };
 
     class Block : public BlockHeader
@@ -35,8 +39,8 @@ namespace keyser
             // Calculate the blocks hash
             void calcHash();
 
-            // Call calcHash() until a hash is generated that meets the difficulty requirements
-            void calcValidHash(uint8_t difficulty);
+            // See if hash satisfies difficulty
+            bool hasValidHash(uint8_t difficulty);
 
             // Validate all transactions within block
             bool hasValidTransactions();
@@ -44,6 +48,9 @@ namespace keyser
             // Print all transactions within block
             void printTransactions();
         
+            // Block reward transaction
+            Reward _reward;
+
             // Body of transactions
             std::vector<Transaction> _transactions;
     };

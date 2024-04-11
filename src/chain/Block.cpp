@@ -17,8 +17,8 @@ keyser::Block::Block(uint index, time_t time, std::string prevHash, double rewar
     _nonce         = 0;
     _prevHash      = prevHash;
     _hash          = "";
-    _reward        = reward;
-    _rewardAddress = rewardAddress;
+    _reward._amount        = reward;
+    _reward._address = rewardAddress;
     _transactions  = transactions;
 }
 
@@ -28,8 +28,8 @@ void keyser::Block::calcHash()
                            std::to_string(_time) + 
                            std::to_string(_nonce) + 
                            _prevHash + 
-                           std::to_string(_reward) +
-                           _rewardAddress;
+                           std::to_string(_reward._amount) +
+                           _reward._address;
                          
     for (Transaction tx : _transactions)
     {
@@ -43,29 +43,17 @@ void keyser::Block::calcHash()
     _hash = hashed;
 }
 
-void keyser::Block::calcValidHash(uint8_t difficulty)
+bool keyser::Block::hasValidHash(uint8_t difficulty)
 {
-    bool validHash;
-
-    while (true) 
-    {   
-        validHash = true;
-        _nonce++;
-        _time = time(NULL);
-        calcHash();
-
-        for (uint i = 0 ; i < difficulty ; i++)
+    for (uint i = 0 ; i < difficulty ; i++)
+    {
+        if (_hash[i] != '0') 
         {
-            if (_hash[i] != '0') 
-            {
-                validHash = false;
-                break;
-            }
+            return false;
         }
-
-        if (validHash)
-            return;
     }
+
+    return true;
 }
 
 // Other
@@ -91,14 +79,12 @@ void keyser::Block::printTransactions()
 namespace keyser
 {
     std::ostream& operator<<(std::ostream& out, Block& data) {
-        out << "Index:          " << data._index               << std::endl;
-        out << "Time:           " << data._time                << std::endl;
-        out << "Nonce:          " << data._nonce               << std::endl;
-        out << "Prev Hash:      " << data._prevHash            << std::endl;
-        out << "Hash:           " << data._hash                << std::endl;
-        out << "Reward:         " << data._reward              << std::endl;
-        out << "Reward address: " << data._rewardAddress       << std::endl;
-        out << "Transactions:   " << data._transactions.size() << std::endl;
+        out << "Index:        " << data._index                  << std::endl;
+        out << "Time:         " << utils::localTime(data._time) << std::endl;
+        out << "Nonce:        " << data._nonce                  << std::endl;
+        out << "Prev Hash:    " << data._prevHash               << std::endl;
+        out << "Hash:         " << data._hash                   << std::endl;
+        out << "Transactions: " << data._transactions.size()    << std::endl;
 
         return out;
     }

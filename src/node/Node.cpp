@@ -19,7 +19,7 @@
 #include "../storage/StorageEngine.hpp"
 
 
-keyser::Node::Node(uint16_t port) : NetInterface(port)
+keyser::Node::Node(uint16_t port) : NetInterface(port, _shutdownNode)
 {
     _startTime = time(NULL);
 
@@ -31,6 +31,11 @@ keyser::Node::Node(uint16_t port) : NetInterface(port)
     _walletManager.addWallet(guyWallet);
 
     _validationEngine = new ValidationEngine(*this);
+}
+
+keyser::Node::~Node()
+{
+    shutdown();
 }
 
 void keyser::Node::run()
@@ -45,10 +50,12 @@ void keyser::Node::run()
     // Run thread to handle messsages
     _responseThread = std::thread([this]() { update(); }); 
 
-    // Begin peer discovery / peer management
-    _peerManagementThread = std::thread([this]() { managePeers(); });
-
     startServer();
+}
+
+void keyser::Node::shutdown()
+{
+    _shutdownNode = true;
 }
 
 keyser::Node::Status keyser::Node::getStatus() const
@@ -83,7 +90,18 @@ void keyser::Node::mineBlock(std::string rewardAddress)
 
     Block newBlock(getCurrBlock()->_index + 1, time(NULL), getCurrBlock()->_hash, 100, rewardAddress, popLeadingTransactions());
 
-    newBlock.calcValidHash(calcDifficulty());
+    while (1)
+    {
+        if (_shutdownNode)
+            return;
+
+        if (newBlock.hasValidHash(calcDifficulty()))
+            break;
+
+        newBlock._nonce++;
+        newBlock.calcHash();
+    }
+
     std::cout << "[CHAIN] Block Mined." << std::endl;
 
     _validationEngine->validateBlock(std::move(newBlock));
@@ -110,9 +128,7 @@ void keyser::Node::completedInitialBlockDownload()
     _status = Status::Online;
 
     // Can now advertise self as a node on the network
-    Message msg(MsgTypes::DistributeNodeInfo);
-    msg.insert(_selfInfo);
-    messageNeighbors(msg); 
+    distributeNodeInfo(_selfInfo);
 }
 
 void keyser::Node::ping()
@@ -132,6 +148,7 @@ void keyser::Node::version(std::shared_ptr<Peer> peer)
     msg.json()["Outbound port"]    = _selfInfo._port;
     msg.json()["chainHeight"]      = getHeight();
     msg.json()["address"]          = peer->getEndpoint().address().to_string();
+    
     msg.serialize();
     message(peer, msg);
 }
@@ -143,8 +160,8 @@ void keyser::Node::verack(std::shared_ptr<Peer> peer)
     newMsg.json()["Outbound alias"]   = _selfInfo._alias;
     newMsg.json()["Outbound port"]    = _selfInfo._port;
     newMsg.json()["address"]          = peer->getEndpoint().address().to_string();
-    newMsg.serialize();
 
+    newMsg.serialize();
     message(peer, newMsg);
 }
 
@@ -329,18 +346,14 @@ void keyser::Node::handleVersion(std::shared_ptr<Peer> peer, Message& msg)
     _activeNodeList.insert(_selfInfo);
 
     // Deserialize incoming node info
-    NodeInfo nodeInfo;
-    nodeInfo._version = msg.json()["Outbound version"];
-    nodeInfo._alias   = msg.json()["Outbound alias"];
-    nodeInfo._address = peer->getEndpoint().address().to_string();
-    nodeInfo._port    = msg.json()["Outbound port"];
-
+    peer->info()._version = msg.json()["Outbound version"];
+    peer->info()._alias   = msg.json()["Outbound alias"];
+    peer->info()._address = peer->getEndpoint().address().to_string();
+    peer->info()._port    = msg.json()["Outbound port"];
     peer->info().startingHeight = msg.json()["chainHeight"];
 
-    // Save the port this peer is running their server on
     // Add this node to connectedNodeList
-    peer->info()._address = nodeInfo._port;
-    _connectedNodeList.insert(nodeInfo);
+    _connectedNodeList.insert(peer->info());
 
     // Send self info as well as their external ip
     verack(peer);
@@ -351,23 +364,21 @@ void keyser::Node::handleVerack(std::shared_ptr<Peer> peer, Message& msg)
     // Deserialize byte array into json doc
     msg.deserialize();
 
-    // Deserialize incoming node info
-    NodeInfo nodeInfo;
-    nodeInfo._version = msg.json()["Outbound version"];
-    nodeInfo._alias   = msg.json()["Outbound alias"];
-    nodeInfo._address = peer->getEndpoint().address().to_string();
-    nodeInfo._port    = msg.json()["Outbound port"];
-
-    // Add info to connected node list and active node list
-    _connectedNodeList.insert(nodeInfo);
-    _activeNodeList.insert(nodeInfo);
-    
     // Save external address
     _selfInfo._address = msg.json()["address"];
-
-    // Add self to list of active nodes
     _activeNodeList.insert(_selfInfo);
 
+    // Deserialize incoming node info
+    peer->info()._version = msg.json()["Outbound version"];
+    peer->info()._alias   = msg.json()["Outbound alias"];
+    peer->info()._address = peer->getEndpoint().address().to_string();
+    peer->info()._port    = msg.json()["Outbound port"];
+
+    // Add info to connected node list and active node list
+    _connectedNodeList.insert(peer->info());
+    _activeNodeList.insert(peer->info());
+    
+    
     // Get block inv if needed
     if (!_blockInvRecieved)
         getBlocks();
@@ -386,7 +397,9 @@ void keyser::Node::handleDistributeNodeInfo(std::shared_ptr<Peer> peer, Message&
         return;
 
     _activeNodeList.insert(nodeInfo);
-    addPotentialConnection(nodeInfo);
+    _potentialConnections.push_back(nodeInfo);
+    managePeers();
+
     messageNeighbors(msg, peer);
 }
 
@@ -488,8 +501,11 @@ void keyser::Node::handleNodeInfo(std::shared_ptr<Peer> peer, Message& msg)
         nodeInfo._port    = element["port"];
 
         _activeNodeList.insert(nodeInfo);
-        addPotentialConnection(nodeInfo);
+        _potentialConnections.push_back(nodeInfo);
+        // addPotentialConnection(nodeInfo);
     }
+
+    managePeers();
 
     _recievedNodeList = true;
 }

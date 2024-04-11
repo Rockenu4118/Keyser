@@ -20,7 +20,6 @@ namespace keyser
         private:
             Node* _node;
             RPC*  _rpc;
-
             cli::RootView* _view;
 
     };

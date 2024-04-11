@@ -12,6 +12,9 @@ namespace keyser
 
     class Peer : public std::enable_shared_from_this<Peer>
     {
+        // IO Stream operator
+        friend std::ostream& operator<<(std::ostream& out, Peer& data);
+
         public:
             Peer(NodeInfo::Direction direction,
                  boost::asio::io_context& asioContext, 
@@ -19,7 +22,7 @@ namespace keyser
                  tsqueue<OwnedMessage>& qMessagesIn, 
                  uint16_t uid);
 
-            virtual ~Peer() = default;
+            ~Peer();
 
             uint16_t getId() const;
             bool isConnected() const;
@@ -27,7 +30,7 @@ namespace keyser
 
             NodeInfo& info();
 
-            bool connect(const boost::asio::ip::tcp::endpoint& endpoints);
+            bool connect(const boost::asio::ip::tcp::endpoint& endpoint);
             void disconnect();
 
             void listen();
@@ -39,8 +42,6 @@ namespace keyser
             void writeHeader();
             void writeBody();
             void addToIncomingMessageQueue();
-
-            uint16_t _id = 0;
 
             boost::asio::ip::tcp::socket _socket;
             boost::asio::io_context&     _context;

@@ -25,20 +25,17 @@ namespace keyser
     class NetInterface
     {
         public:
-            NetInterface(uint16_t port);
+            NetInterface(uint16_t port, bool& shutdownNode);
             
             virtual ~NetInterface();
 
             bool startServer();
-            bool connect(const NodeInfo nodeInfo);
             void shutdown();
+            bool connect(const NodeInfo nodeInfo);
             void acceptConnection();
             void message(std::shared_ptr<Peer> peer, const Message& msg);
             void messageNeighbors(const Message& msg, std::shared_ptr<Peer> ignorePeer = nullptr);
             void managePeers();
-
-            void addUserProvidedPotentialConnection(NodeInfo nodeInfo);
-            void addPotentialConnection(NodeInfo nodeInfo);
 
             // Handle incoming messages
             void update(uint8_t maxMessages = -1, bool wait = true);
@@ -63,39 +60,35 @@ namespace keyser
             virtual void onDisconnect(std::shared_ptr<Peer> peer);
             virtual void onMessage(std::shared_ptr<Peer> peer, Message& msg);
 
+            // Asio context as well as its own thread to run in
+            boost::asio::io_context _context;
+            std::thread             _contextThread;
+
             // Thread safe queue for incoming messages
             tsqueue<OwnedMessage> _messagesIn;
 
-            // Container for active peers
-            std::deque<std::shared_ptr<Peer>> _peers{};
-
             // Container for info of potential connections
-            std::deque<NodeInfo> _potentialConnections{};
+            std::deque<NodeInfo> _potentialConnections;
+
+            // Container for active peers
+            std::deque<std::shared_ptr<Peer>> _peers;
+            std::set<NodeInfo>                _connectedNodeList;
+            std::set<NodeInfo>                _activeNodeList;
             
             // Thread for handling incoming messages
             std::thread _responseThread;
 
             // Info of active nodes on network, info of connected nodes, self info
-            std::set<NodeInfo> _activeNodeList;
-            std::set<NodeInfo> _connectedNodeList;
-            NodeInfo           _selfInfo;
-            bool               _recievedNodeList = false;
-
-            // Asio context as well as its own thread to run in
-            boost::asio::io_context _context;
-            std::thread             _contextThread;
-
-            std::condition_variable _connectionBlocking;
-            std::mutex              _connectionMutex;
-
-            // Thread for managing connections
-            std::thread _peerManagementThread;
+            NodeInfo _selfInfo;
+            bool     _recievedNodeList = false;
 
             // Asio acceptor
             boost::asio::ip::tcp::acceptor _acceptor;
 
             // Connections will be identified in the system by an id
             uint16_t _idCounter = 10000;
+
+            bool& _shutdownNode;
     };
 }
 

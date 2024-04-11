@@ -2,7 +2,6 @@
 #include "../node/Node.hpp"
 #include "../chain/Block.hpp"
 #include "../chain/Transaction.hpp"
-#include "../net/Connection.hpp"
 
 
 keyser::ValidationEngine::ValidationEngine(Node& node) : _node(node)

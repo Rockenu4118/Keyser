@@ -31,23 +31,24 @@ namespace keyser
 
             Node(uint16_t port);
 
+            ~Node();
+
             void run();
+            void shutdown();
 
             Status getStatus() const;
             time_t getUptime() const;
 
-            // Node actions
             void beginMining(bool continuous);
             bool createTransaction(Transaction& transaction);
 
-            void completedPeerDiscovery();
             void completedInitialBlockDownload();
 
             // Requests and Responses
+
             void ping();
             void pong();
 
-            // Initial msg sent to establish handshake from a new node
             void version(std::shared_ptr<Peer> peer);
             void verack(std::shared_ptr<Peer> peer);
 
@@ -99,12 +100,14 @@ namespace keyser
             StorageEngine     _storageEngine;
             ValidationEngine* _validationEngine = nullptr;
             
-            WalletManager     _walletManager;
+            WalletManager _walletManager;
 
             std::thread _miningThr;
             bool        _miningStatus = false;
 
             time_t _startTime;
+
+            bool _shutdownNode = false;
     };
 }
 
