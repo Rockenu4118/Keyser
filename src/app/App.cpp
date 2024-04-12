@@ -25,9 +25,11 @@ void keyser::App::run()
     _rpc = new keyser::RPC(_node, port + 2080);
     _rpc->run();
 
-    // delete _node;
-    // delete _rpc;
+    
 
     // Initialize CLI
     _view = new cli::RootView(_node);
+
+    delete _node;
+    delete _rpc;
 }

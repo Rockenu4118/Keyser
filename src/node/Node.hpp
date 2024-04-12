@@ -39,7 +39,9 @@ namespace keyser
             Status getStatus() const;
             time_t getUptime() const;
 
-            void beginMining(bool continuous);
+            void beginMining(uint numBlocks = -1);
+            void stopMining();
+
             bool createTransaction(Transaction& transaction);
 
             void completedInitialBlockDownload();
@@ -72,9 +74,6 @@ namespace keyser
             virtual void onMessage(std::shared_ptr<Peer> peer, Message& msg);
 
         private:
-            // Called by beginMining
-            void mineBlock(std::string rewardAddress);
-
             // Distribution msgs only called by public functions
             void distributeNodeInfo(NodeInfo& nodeInfo);
             void distributeBlock(Block& block);

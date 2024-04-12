@@ -25,6 +25,7 @@ void keyser::cli::ChainView::display()
         std::cout << "[3] View mempool"            << std::endl;  
         std::cout << "[4] Mine continuously"       << std::endl;
         std::cout << "[5] Mine single block"       << std::endl;
+        std::cout << "[6] Stop mining"             << std::endl;
         std::cout << "[0] Exit"                    << std::endl;
         std::cout << std::endl;
 
@@ -46,10 +47,13 @@ void keyser::cli::ChainView::display()
                 continueMsg();
                 break;
             case '4':
-                _node->beginMining(true);
+                _node->beginMining();
                 break;
             case '5':
-                _node->beginMining(false);
+                _node->beginMining(1);
+                break;
+            case '6':
+                _node->stopMining();
                 break;
             default:
                 std::cout << "Invalid selection." << std::endl;

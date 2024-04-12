@@ -56,6 +56,8 @@ void keyser::Node::run()
 void keyser::Node::shutdown()
 {
     _shutdownNode = true;
+
+    stopMining();
 }
 
 keyser::Node::Status keyser::Node::getStatus() const
@@ -68,7 +70,7 @@ time_t keyser::Node::getUptime() const
     return time(NULL) - _startTime;
 }
 
-void keyser::Node::beginMining(bool continuous)
+void keyser::Node::beginMining(uint numBlocks)
 {
     if (_miningStatus == true)
     {
@@ -76,39 +78,50 @@ void keyser::Node::beginMining(bool continuous)
         return;
     }
 
-    if (continuous)
-        _miningThr = std::thread([this]() { while (1) { mineBlock("aj"); }; });
-    else
-        _miningThr = std::thread([this]() { mineBlock("aj"); });
+    if (_miningThr.joinable())
+        _miningThr.join();
 
-    _miningThr.detach();
+    _miningThr = std::thread([this, numBlocks]()
+    {
+        _miningStatus = true;
+
+        uint blocksMined = 0;
+
+        while (!_shutdownNode && _miningStatus && (blocksMined < numBlocks))
+        {
+            Block newBlock(getCurrBlock()->_index + 1, time(NULL), getCurrBlock()->_hash, 100, "aj", popLeadingTransactions());
+
+            while (1)
+            {
+                if (_shutdownNode || !_miningStatus)
+                    return;
+
+                if (newBlock.hasValidHash(calcDifficulty()))
+                    break;
+
+                newBlock._nonce++;
+                newBlock.calcHash();
+            }
+
+            blocksMined++;
+
+            std::cout << "[CHAIN] Block Mined." << std::endl;
+
+            _validationEngine->validateBlock(std::move(newBlock));
+
+            distributeBlock(*getCurrBlock());
+        }
+
+        _miningStatus = false;
+    });
 }
 
-void keyser::Node::mineBlock(std::string rewardAddress)
+void keyser::Node::stopMining()
 {
-    _miningStatus = true;
-
-    Block newBlock(getCurrBlock()->_index + 1, time(NULL), getCurrBlock()->_hash, 100, rewardAddress, popLeadingTransactions());
-
-    while (1)
-    {
-        if (_shutdownNode)
-            return;
-
-        if (newBlock.hasValidHash(calcDifficulty()))
-            break;
-
-        newBlock._nonce++;
-        newBlock.calcHash();
-    }
-
-    std::cout << "[CHAIN] Block Mined." << std::endl;
-
-    _validationEngine->validateBlock(std::move(newBlock));
-
-    distributeBlock(*getCurrBlock());
-
     _miningStatus = false;
+
+    if (_miningThr.joinable())
+        _miningThr.join();
 }
 
 bool keyser::Node::createTransaction(Transaction& transaction)
