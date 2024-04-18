@@ -122,6 +122,8 @@ void keyser::RPC::onMessage(const boost::beast::http::request<boost::beast::http
         else if (method == "getBlock")     handleGetBlock     (response, params);
         else if (method == "getBlocks")    handleGetBlocks    (response, params);
         else if (method == "getMempool")   handleGetMempool   (response, params);
+        else if (method == "beginMining")  handleBeginMining  (response, params);
+        else if (method == "stopMining")   handleStopMining   (response, params);
         else if (method == "getPeerInfo")  handleGetPeerInfo  (response, params);
         else if (method == "getUptime")    handleGetUptime    (response, params);
         else if (method == "shutdown")     handleShutdown     (response, params);
@@ -269,6 +271,29 @@ void keyser::RPC::handleGetMempool(boost::beast::http::response<boost::beast::ht
     response.body() = res.dump();
 }
 
+void keyser::RPC::handleBeginMining(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
+{
+    nlohmann::json res;
+
+    uint numBlocks = -1;
+
+    try
+    {
+        numBlocks = stoi(params.at(0));
+    }
+    catch (const std::out_of_range& e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
+
+    _node->beginMining(numBlocks);
+}
+
+void keyser::RPC::handleStopMining(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
+{
+    _node->stopMining();
+}
+
 void keyser::RPC::handleGetPeerInfo(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
 {
     nlohmann::json res = nlohmann::json::array();
@@ -301,6 +326,7 @@ void keyser::RPC::handleGetUptime(boost::beast::http::response<boost::beast::htt
 void keyser::RPC::handleShutdown(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
 {
     std::cout << "Handle shutdown" << std::endl;
+    // _node->shutdown();
 }
 
 void keyser::RPC::handleInvalidMethod(boost::beast::http::response<boost::beast::http::string_body>& response)

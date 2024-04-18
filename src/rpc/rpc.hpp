@@ -47,6 +47,10 @@ namespace keyser
 
             void handleGetMempool(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
 
+            void handleBeginMining(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
+
+            void handleStopMining(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
+
             void handleGetPeerInfo(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);
 
             void handleGetUptime(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params);

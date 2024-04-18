@@ -47,7 +47,6 @@ namespace keyser
             void completedInitialBlockDownload();
 
             // Requests and Responses
-
             void ping();
             void pong();
 

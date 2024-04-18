@@ -55,9 +55,9 @@ void keyser::Node::run()
 
 void keyser::Node::shutdown()
 {
-    _shutdownNode = true;
-
     stopMining();
+
+    _shutdownNode = true;
 }
 
 keyser::Node::Status keyser::Node::getStatus() const
