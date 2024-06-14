@@ -60,7 +60,7 @@ void keyser::cli::ChainView::display()
                 break;
         }
 
-        clearScreen();
+        // clearScreen();
     }
     while (selection != '0');
 }

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <openssl/ec.h>
+#include <nlohmann/json.hpp>
 
 
 namespace cryptography
@@ -19,6 +20,7 @@ namespace cryptography
         public:
             // Constructors
             ECKeyPair();
+            ECKeyPair(nlohmann::json json);
             ECKeyPair(std::string keyType, std::string privateKey);
 
             // Accessors
@@ -32,6 +34,8 @@ namespace cryptography
             bool insertPrivateKey(std::string privateKey);
             bool insertPublicKey(std::string publicKey);
             bool extractKeys();
+
+            nlohmann::json json() const;
 
             // Other
             void sign(std::string hash, std::string& rSigVal, std::string& sSigVal);

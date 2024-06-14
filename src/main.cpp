@@ -6,10 +6,23 @@
 //
 
 #include "./app/App.hpp"
+#include "./chain/Block.hpp"
+#include "./storage/StorageEngine.hpp"
+#include "./wallet/Wallet.hpp"
+#include "./wallet/WalletManager.hpp"
+
+#include <leveldb/db.h>
+#include <string>
+#include <map>
+
+
 
 
 int main()
 {  
+    std::cout << "Running..." << std::endl;
+    
+
 
     keyser::App app;
     app.run();

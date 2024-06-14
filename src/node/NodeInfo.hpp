@@ -2,6 +2,7 @@
 #define NODE_INFO_H
 
 #include <string>
+#include <nlohmann/json.hpp>
 
 
 namespace keyser
@@ -36,11 +37,27 @@ namespace keyser
             return lhs.endpoint() == rhs.endpoint();
         }
 
+        NodeInfo() = default;
+
+        NodeInfo(nlohmann::json json);
+
         std::string endpoint() const
         { 
-            std::string endpoint = _address + std::to_string(_port);
+            std::string endpoint = _address + ":" + std::to_string(_port);
             return endpoint;
         };
+
+        nlohmann::json json() const
+        {
+            nlohmann::json json;
+
+            json["version"] = _version;
+            json["alias"]   = _alias;
+            json["address"] = _address;
+            json["port"]    = _port;
+
+            return json;
+        }
 
         uint id;
 

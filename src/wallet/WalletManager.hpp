@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <nlohmann/json.hpp>
 
 #include "./Wallet.hpp"
 
@@ -18,7 +19,11 @@ namespace keyser
             void createWallet(std::string name);
             void displayWallets();
 
-            Wallet at(int index);
+            const Wallet& at(int index);
+
+            nlohmann::json json() const;
+
+            void json(nlohmann::json json);
 
             size_t count();
 

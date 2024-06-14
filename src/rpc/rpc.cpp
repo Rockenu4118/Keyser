@@ -10,7 +10,10 @@ keyser::RPC::RPC(Node *node, uint16_t port) : _acceptor(_context, boost::asio::i
     _node = node;
 }
 
-keyser::RPC::~RPC() { shutdown(); }
+keyser::RPC::~RPC() 
+{ 
+    shutdown(); 
+}
 
 void keyser::RPC::run()
 {
@@ -88,6 +91,7 @@ void keyser::RPC::onMessage(const boost::beast::http::request<boost::beast::http
     response.set(boost::beast::http::field::access_control_allow_origin, "*");
 
     // Parse request
+    uint        id;
     std::string method;
     std::vector<std::string> params;
 
@@ -96,6 +100,7 @@ void keyser::RPC::onMessage(const boost::beast::http::request<boost::beast::http
         nlohmann::json req;
         req = nlohmann::json::parse(request.body());
 
+        id     = req["id"];
         method = req["method"];
         params = req["params"];
     }
@@ -114,20 +119,22 @@ void keyser::RPC::onMessage(const boost::beast::http::request<boost::beast::http
     // Handle each method differently
     try
     {
-        if      (method == "ping")         handlePing         (response, params);
-        else if (method == "getWallets")   handleGetWallets   (response, params);
-        else if (method == "createWallet") handleCreateWallet (response, params);
-        else if (method == "getBalance")   handleGetBalance   (response, params);
-        else if (method == "getHeight")    handleGetHeight    (response, params);
-        else if (method == "getBlock")     handleGetBlock     (response, params);
-        else if (method == "getBlocks")    handleGetBlocks    (response, params);
-        else if (method == "getMempool")   handleGetMempool   (response, params);
-        else if (method == "beginMining")  handleBeginMining  (response, params);
-        else if (method == "stopMining")   handleStopMining   (response, params);
-        else if (method == "getPeerInfo")  handleGetPeerInfo  (response, params);
-        else if (method == "getUptime")    handleGetUptime    (response, params);
-        else if (method == "shutdown")     handleShutdown     (response, params);
-        else                               handleInvalidMethod(response);
+        if      (method == "ping")              handlePing             (response, params);
+        else if (method == "getWallets")        handleGetWallets       (response, params);
+        else if (method == "createWallet")      handleCreateWallet     (response, params);
+        else if (method == "getBalance")        handleGetBalance       (response, params);
+        else if (method == "getHeight")         handleGetHeight        (response, params);
+        else if (method == "getBlock")          handleGetBlock         (response, params);
+        else if (method == "getBlocks")         handleGetBlocks        (response, params);
+        else if (method == "getMempool")        handleGetMempool       (response, params);
+        else if (method == "beginMining")       handleBeginMining      (response, params);
+        else if (method == "stopMining")        handleStopMining       (response, params);
+        else if (method == "getSelfInfo")       handleGetSelfInfo      (response, params);
+        else if (method == "getPeerInfo")       handleGetPeerInfo      (response, params);
+        else if (method == "getActiveNodeInfo") handleGetActiveNodeInfo(response, params);
+        else if (method == "getUptime")         handleGetUptime        (response, params);
+        else if (method == "shutdown")          handleShutdown         (response, params);
+        else                                    handleInvalidMethod    (response);
     }
     catch(const std::exception& e)
     {
@@ -152,13 +159,7 @@ void keyser::RPC::handleGetWallets(boost::beast::http::response<boost::beast::ht
     nlohmann::json res = nlohmann::json::array();
 
     for (int i = 0 ; i < _node->walletManager().count() ; i++)
-    {
-        nlohmann::json wallet;
-        wallet["name"] = _node->walletManager().at(i).getName();
-        wallet["publicAddress"] = _node->walletManager().at(i).getPublicAddress();
-
-        res.push_back(wallet);
-    }
+        res.push_back(_node->walletManager().at(i).json());
 
     response.result(boost::beast::http::status::ok);
     response.body() = res.dump(2);
@@ -194,8 +195,6 @@ void keyser::RPC::handleGetHeight(boost::beast::http::response<boost::beast::htt
 
 void keyser::RPC::handleGetBlock(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string> &params)
 {
-    nlohmann::json res;
-
     std::shared_ptr<Block> block;
 
     try
@@ -210,11 +209,9 @@ void keyser::RPC::handleGetBlock(boost::beast::http::response<boost::beast::http
         response.body() = "Invalid block.";
         return;
     }
-    
-    utils::encodeJson(res, *block);
- 
+     
     response.result(boost::beast::http::status::ok);
-    response.body() = res.dump();
+    response.body() = block->json().dump();
 }
 
 void keyser::RPC::handleGetBlocks(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
@@ -237,10 +234,8 @@ void keyser::RPC::handleGetBlocks(boost::beast::http::response<boost::beast::htt
     {
         for (int i = first ; i <= last ; i++)
         {
-            nlohmann::json jsonBlock;
             block = _node->getBlock(i);
-            utils::encodeJson(jsonBlock, *block);
-            res.push_back(jsonBlock);
+            res.push_back(block->json());
         }  
     }
     catch(const std::out_of_range& e)
@@ -261,11 +256,7 @@ void keyser::RPC::handleGetMempool(boost::beast::http::response<boost::beast::ht
     nlohmann::json res = nlohmann::json::array();
 
     for (auto& tx : _node->pendingTransactions())
-    {
-        nlohmann::json transaction;
-        utils::encodeJson(transaction, tx);
-        res.push_back(transaction);
-    }
+        res.push_back(tx.json());
 
     response.result(boost::beast::http::status::ok);
     response.body() = res.dump();
@@ -294,20 +285,29 @@ void keyser::RPC::handleStopMining(boost::beast::http::response<boost::beast::ht
     _node->stopMining();
 }
 
+void keyser::RPC::handleGetSelfInfo(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
+{
+    response.result(boost::beast::http::status::ok);
+    response.body() = _node->getSelfInfo().json().dump();
+}
+
 void keyser::RPC::handleGetPeerInfo(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
 {
     nlohmann::json res = nlohmann::json::array();
 
     for (auto& info : _node->getConnections())
-    {
-        nlohmann::json peerInfo;
-        peerInfo["version"] = info._version;
-        peerInfo["alias"]   = info._alias;
-        peerInfo["address"] = info._address;
-        peerInfo["port"]    = info._port;
+        res.push_back(info.json());
 
-        res.push_back(peerInfo);
-    }
+    response.result(boost::beast::http::status::ok);
+    response.body() = res.dump();
+}
+
+void keyser::RPC::handleGetActiveNodeInfo(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
+{
+    nlohmann::json res = nlohmann::json::array();
+
+    for (auto& info : _node->getActiveNodes())
+        res.push_back(info.json());
 
     response.result(boost::beast::http::status::ok);
     response.body() = res.dump();

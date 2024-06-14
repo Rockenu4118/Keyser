@@ -42,6 +42,10 @@ namespace keyser
 
             // Container of pointers to block objects
             std::vector<std::shared_ptr<Block>> _blocks;
+
+            
+
+            std::unordered_map<std::string, uint> _balances;
         
     };
 }

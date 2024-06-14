@@ -42,6 +42,7 @@ namespace keyser
 
             // Accessors
             int connectionCount() const;
+            NodeInfo getSelfInfo() const;
             
             std::shared_ptr<Peer> syncNode();
 
@@ -50,6 +51,7 @@ namespace keyser
             void displaySelfInfo();
 
             std::vector<NodeInfo> getConnections() const;
+            std::set<NodeInfo>    getActiveNodes() const;
 
             bool validateConnection(std::shared_ptr<Peer>& connection);
 

@@ -3,18 +3,13 @@
 
 #include <string>
 #include <vector>
+#include <nlohmann/json.hpp>
 
 #include "./Transaction.hpp"
 
 
 namespace keyser
 {
-    struct Reward
-    {
-        double      _amount;
-        std::string _address;
-    };
-
     struct BlockHeader
     {
         uint        _index;
@@ -33,11 +28,15 @@ namespace keyser
             // Construct blank block instance for json parsing purposes
             Block() = default;
 
+            Block(nlohmann::json json);
+
             // Main block constructor miners will use to form a block
-            Block(uint index, time_t time, std::string prevHash, double reward, std::string rewardAddress, std::vector<Transaction> transactions);
+            Block(uint index, time_t time, std::string prevHash, std::vector<Transaction> transactions);
+
+            BlockHeader getHeader() const;
 
             // Calculate the blocks hash
-            void calcHash();
+            std::string calcHash();
 
             // See if hash satisfies difficulty
             bool hasValidHash(uint8_t difficulty);
@@ -45,11 +44,12 @@ namespace keyser
             // Validate all transactions within block
             bool hasValidTransactions();
 
+            nlohmann::json json() const;
+
+            void json(nlohmann::json json);
+
             // Print all transactions within block
             void printTransactions();
-        
-            // Block reward transaction
-            Reward _reward;
 
             // Body of transactions
             std::vector<Transaction> _transactions;

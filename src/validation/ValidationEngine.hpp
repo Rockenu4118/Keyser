@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <thread>
 #include <unordered_map>
 
 #include "../chain/Block.hpp"
@@ -18,14 +19,14 @@ namespace keyser
     class ValidationEngine
     {
         public:
-            ValidationEngine(Node& node);
+            ValidationEngine(Node* node);
 
-            bool validateBlock(Block block);
+            bool validateBlock(Block& block);
 
             bool validateTransaction(Transaction transaction);
 
         private:
-            Node& _node;
+            Node* _node;
 
             std::unordered_map<std::string, Block> _orphanBlocks{};
   

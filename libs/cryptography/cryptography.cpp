@@ -55,6 +55,12 @@ cryptography::ECKeyPair::ECKeyPair()
     extractKeys();
 }
 
+cryptography::ECKeyPair::ECKeyPair(nlohmann::json json)
+{
+    insertPrivateKey(json["privateKey"]);
+    extractKeys();
+}
+
 cryptography::ECKeyPair::ECKeyPair(std::string keyType, std::string key)
 {
     if (keyType == "private") {
@@ -109,11 +115,6 @@ bool cryptography::ECKeyPair::genKeyPairObj()
 
 bool cryptography::ECKeyPair::insertPrivateKey(std::string privateKey)
 {
-    if (privateKey.length() != 64) {
-        std::cout << "Invalid private key length." << std::endl;
-        return false;
-    }
-
     EC_GROUP* secp256k1_group = EC_GROUP_new_by_curve_name(NID_secp256k1);
     EC_KEY*   keyPair         = EC_KEY_new();
     BIGNUM*   privKey         = BN_new();
@@ -202,6 +203,17 @@ bool cryptography::ECKeyPair::extractKeys()
     _cPublicKey = cPubKeyChar;
 
     return true;
+}
+
+nlohmann::json cryptography::ECKeyPair::json() const
+{
+    nlohmann::json json;
+
+    json["privateKey"] = _privateKey;
+    json["uPublicKey"] = _uPublicKey;
+    json["cPublicKey"] = _cPublicKey;
+
+    return json;
 }
 
 // Other

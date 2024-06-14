@@ -30,7 +30,7 @@ keyser::Node::Node(uint16_t port) : NetInterface(port, _shutdownNode)
     keyser::Wallet guyWallet("Guy", key2);
     _walletManager.addWallet(guyWallet);
 
-    _validationEngine = new ValidationEngine(*this);
+    _validationEngine = new ValidationEngine(this);
 }
 
 keyser::Node::~Node()
@@ -40,9 +40,6 @@ keyser::Node::~Node()
 
 void keyser::Node::run()
 {
-    _storageEngine.loadChain();
-    _storageEngine.loadWallets();
-
     boost::asio::io_context::work idleWork(_context);
     
     _contextThread = std::thread([this]() { _context.run(); });  
@@ -72,6 +69,7 @@ time_t keyser::Node::getUptime() const
 
 void keyser::Node::beginMining(uint numBlocks)
 {
+    
     if (_miningStatus == true)
     {
         std::cout << "[CHAIN] Mining In Progress" << std::endl;
@@ -89,7 +87,7 @@ void keyser::Node::beginMining(uint numBlocks)
 
         while (!_shutdownNode && _miningStatus && (blocksMined < numBlocks))
         {
-            Block newBlock(getCurrBlock()->_index + 1, time(NULL), getCurrBlock()->_hash, 100, "aj", popLeadingTransactions());
+            Block newBlock(getCurrBlock()->_index + 1, time(NULL), getCurrBlock()->_hash, popLeadingTransactions());
 
             while (1)
             {
@@ -100,14 +98,14 @@ void keyser::Node::beginMining(uint numBlocks)
                     break;
 
                 newBlock._nonce++;
-                newBlock.calcHash();
+                newBlock._hash = newBlock.calcHash();
             }
 
             blocksMined++;
 
             std::cout << "[CHAIN] Block Mined." << std::endl;
 
-            _validationEngine->validateBlock(std::move(newBlock));
+            std::cout << _validationEngine->validateBlock(newBlock) << std::endl;
 
             distributeBlock(*getCurrBlock());
         }
@@ -126,14 +124,25 @@ void keyser::Node::stopMining()
 
 bool keyser::Node::createTransaction(Transaction& transaction)
 {
-    double balance = getAddressBalance(transaction._senderAddress) + getPendingBalance(transaction._senderAddress);
+    // TODO - create tx
+    // double balance = getAddressBalance(transaction._senderAddress) + getPendingBalance(transaction._senderAddress);
 
-    if (transaction._amount > balance)
-        return false;
+    // if (transaction._amount > balance)
+    //     return false;
 
-    _validationEngine->validateTransaction(transaction);
-    distributeTransaction(transaction);
+    // _validationEngine->validateTransaction(transaction);
+    // distributeTransaction(transaction);
     return true;
+}
+
+void keyser::Node::broadcastSelf()
+{
+    _activeNodeList.insert(_selfInfo);
+
+    Message msg(MsgTypes::DistributeNodeInfo);
+    msg.json() = _selfInfo.json();
+    msg.preparePayload();
+    messageNeighbors(msg);
 }
 
 void keyser::Node::completedInitialBlockDownload()
@@ -141,7 +150,7 @@ void keyser::Node::completedInitialBlockDownload()
     _status = Status::Online;
 
     // Can now advertise self as a node on the network
-    distributeNodeInfo(_selfInfo);
+    broadcastSelf();
 }
 
 void keyser::Node::ping()
@@ -162,7 +171,7 @@ void keyser::Node::version(std::shared_ptr<Peer> peer)
     msg.json()["chainHeight"]      = getHeight();
     msg.json()["address"]          = peer->getEndpoint().address().to_string();
     
-    msg.serialize();
+    msg.preparePayload();
     message(peer, msg);
 }
 
@@ -174,28 +183,45 @@ void keyser::Node::verack(std::shared_ptr<Peer> peer)
     newMsg.json()["Outbound port"]    = _selfInfo._port;
     newMsg.json()["address"]          = peer->getEndpoint().address().to_string();
 
-    newMsg.serialize();
+    newMsg.preparePayload();
     message(peer, newMsg);
+}
+
+void keyser::Node::getHeaders()
+{
+    Message msg(MsgTypes::GetHeaders);
+    message(syncNode(), msg);
+}
+
+void keyser::Node::sendHeaders(std::shared_ptr<Peer> peer)
+{
+    // TODO - headers only
+    Message msg(MsgTypes::Headers);
+
+
 }
 
 void keyser::Node::distributeNodeInfo(NodeInfo& nodeInfo)
 {
     Message msg(MsgTypes::DistributeNodeInfo);
-    msg.insert(nodeInfo);
+    msg.json() = nodeInfo.json();
+    msg.preparePayload();
     messageNeighbors(msg);
 }
 
 void keyser::Node::distributeTransaction(Transaction& transaction)
 {
     Message msg(MsgTypes::DistributeTransaction);
-    msg.insert(transaction);
+    msg.json() = transaction.json();
+    msg.preparePayload();
     messageNeighbors(msg);
 }
 
 void keyser::Node::distributeBlock(Block& block)
 {
     Message msg(MsgTypes::DistributeBlock);
-    msg.insert(block);
+    msg.json() = block.json();
+    msg.preparePayload();
     messageNeighbors(msg);
 }
 
@@ -203,7 +229,7 @@ void keyser::Node::getBlocks()
 {
     Message msg(MsgTypes::GetBlocks);
     msg.json()["topBlock"] = getCurrBlock()->_hash;
-    msg.serialize();
+    msg.preparePayload();
 
     message(syncNode(), msg);
 
@@ -213,9 +239,8 @@ void keyser::Node::getBlocks()
 void keyser::Node::sendBlocks(std::shared_ptr<Peer> peer, int blockIndex)
 {
     Message msg(MsgTypes::Block);
-
-    msg.insert(*_blocks.at(blockIndex));
-
+    msg.json() = _blocks.at(blockIndex)->json();
+    msg.preparePayload();
     message(peer, msg);
 }
 
@@ -229,18 +254,12 @@ void keyser::Node::nodeInfoStream(std::shared_ptr<Peer> peer)
 {
     Message msg(MsgTypes::NodeInfoList);
 
-    for (NodeInfo nodeInfo : _activeNodeList)
-    {
-        nlohmann::json json;
-        json["version"] = nodeInfo._version;
-        json["alias"]   = nodeInfo._alias;
-        json["address"] = nodeInfo._address;
-        json["port"]    = nodeInfo._port;
-        
-        msg.json()["nodeInfoList"].push_back(json);
-    }
+    msg.json() = nlohmann::json::array();
 
-    msg.serialize();
+    for (auto& nodeInfo : _activeNodeList)
+        msg.json().push_back(nodeInfo.json());
+
+    msg.preparePayload();
     message(peer, msg);
 }
 
@@ -251,7 +270,7 @@ void keyser::Node::getData()
     for (auto element : _inventory)
         msg.json()["blockIndexes"].push_back(element);
 
-    msg.serialize();
+    msg.preparePayload();
 
     message(syncNode(), msg);
 }
@@ -271,7 +290,7 @@ void keyser::Node::inv(std::shared_ptr<Peer> peer, int startingBlock)
         msg.json()["blockIndexes"].push_back(i);
     }
 
-    msg.serialize();
+    msg.preparePayload();
 
     message(peer, msg);
 }
@@ -338,6 +357,9 @@ void keyser::Node::onMessage(std::shared_ptr<Peer> peer, Message& msg)
         case MsgTypes::NodeInfoList:
             handleNodeInfo(peer, msg);
             break;
+        case MsgTypes::GetHeaders:
+
+            break;
         default:
             std::cout << "[NODE] Unknown Msg Type" << std::endl;
             break;
@@ -351,17 +373,15 @@ void keyser::Node::handlePing(std::shared_ptr<Peer> peer, Message& msg)
 
 void keyser::Node::handleVersion(std::shared_ptr<Peer> peer, Message& msg)
 {
-    // Deserialize byte array into json doc
-    msg.deserialize();
+    msg.unpackPayload();
 
     // Save external address and add self to list of active nodes
     _selfInfo._address = msg.json()["address"];
     _activeNodeList.insert(_selfInfo);
 
-    // Deserialize incoming node info
+    // unpackPayload incoming node info
     peer->info()._version = msg.json()["Outbound version"];
     peer->info()._alias   = msg.json()["Outbound alias"];
-    peer->info()._address = peer->getEndpoint().address().to_string();
     peer->info()._port    = msg.json()["Outbound port"];
     peer->info().startingHeight = msg.json()["chainHeight"];
 
@@ -374,23 +394,18 @@ void keyser::Node::handleVersion(std::shared_ptr<Peer> peer, Message& msg)
 
 void keyser::Node::handleVerack(std::shared_ptr<Peer> peer, Message& msg)
 {    
-    // Deserialize byte array into json doc
-    msg.deserialize();
+    msg.unpackPayload();
 
     // Save external address
     _selfInfo._address = msg.json()["address"];
-    _activeNodeList.insert(_selfInfo);
 
-    // Deserialize incoming node info
+    // unpackPayload incoming node info
     peer->info()._version = msg.json()["Outbound version"];
     peer->info()._alias   = msg.json()["Outbound alias"];
-    peer->info()._address = peer->getEndpoint().address().to_string();
-    peer->info()._port    = msg.json()["Outbound port"];
 
     // Add info to connected node list and active node list
     _connectedNodeList.insert(peer->info());
     _activeNodeList.insert(peer->info());
-    
     
     // Get block inv if needed
     if (!_blockInvRecieved)
@@ -403,8 +418,8 @@ void keyser::Node::handleVerack(std::shared_ptr<Peer> peer, Message& msg)
 
 void keyser::Node::handleDistributeNodeInfo(std::shared_ptr<Peer> peer, Message& msg)
 {
-    NodeInfo nodeInfo;
-    msg.extract(nodeInfo);
+    msg.unpackPayload();
+    NodeInfo nodeInfo(msg.json());
 
     if (_activeNodeList.count(nodeInfo))
         return;
@@ -418,8 +433,8 @@ void keyser::Node::handleDistributeNodeInfo(std::shared_ptr<Peer> peer, Message&
 
 void keyser::Node::handleDistributeTransaction(std::shared_ptr<Peer> peer, Message& msg)
 {
-    Transaction transaction;
-    msg.extract(transaction);
+    msg.unpackPayload();
+    Transaction transaction(msg.json());
 
     if (_validationEngine->validateTransaction(transaction))
         messageNeighbors(msg, peer);
@@ -427,8 +442,8 @@ void keyser::Node::handleDistributeTransaction(std::shared_ptr<Peer> peer, Messa
 
 void keyser::Node::handleDistributeBlock(std::shared_ptr<Peer> peer, Message& msg)
 {
-    Block block;
-    msg.extract(block);
+    msg.unpackPayload();
+    Block block(msg.json());
 
     if (_validationEngine->validateBlock(block))
         messageNeighbors(msg, peer);
@@ -436,7 +451,7 @@ void keyser::Node::handleDistributeBlock(std::shared_ptr<Peer> peer, Message& ms
 
 void keyser::Node::handleGetBlocks(std::shared_ptr<Peer> peer, Message& msg)
 {   
-    msg.deserialize();
+    msg.unpackPayload();
     std::string topBlockHash = msg.json()["topBlock"];
 
     int topBlockI = 0;
@@ -454,7 +469,7 @@ void keyser::Node::handleGetBlocks(std::shared_ptr<Peer> peer, Message& msg)
 
 void keyser::Node::handleInv(std::shared_ptr<Peer> peer, Message& msg)
 {
-    msg.deserialize();
+    msg.unpackPayload();
 
     _blockInvRecieved = true;
 
@@ -474,20 +489,21 @@ void keyser::Node::handleInv(std::shared_ptr<Peer> peer, Message& msg)
 
 void keyser::Node::handleGetData(std::shared_ptr<Peer> peer, Message& msg)
 {
-    msg.deserialize();
+    msg.unpackPayload();
 
     for (auto i : msg.json()["blockIndexes"])
     {
         Message msg(MsgTypes::Block);
-        msg.insert(*_blocks.at(i));
+        msg.json() = _blocks.at(i)->json();
+        msg.preparePayload();
         message(peer, msg);
     }
 }
 
 void keyser::Node::handleBlock(std::shared_ptr<Peer> peer, Message& msg)
 {
-    Block block;
-    msg.extract(block);
+    msg.unpackPayload();
+    Block block(msg.json());
     _validationEngine->validateBlock(block);
 
     if (getHeight() >= _inventory.back() + 1)
@@ -503,22 +519,26 @@ void keyser::Node::handleGetNodeList(std::shared_ptr<Peer> peer, Message& msg)
 
 void keyser::Node::handleNodeInfo(std::shared_ptr<Peer> peer, Message& msg)
 {
-    msg.deserialize();
+    msg.unpackPayload();
 
-    for (auto& element : msg.json()["nodeInfoList"])
+    for (auto& info : msg.json())
     {
-        NodeInfo nodeInfo;
-        nodeInfo._version = element["version"];
-        nodeInfo._alias   = element["alias"];
-        nodeInfo._address = element["address"];
-        nodeInfo._port    = element["port"];
-
+        NodeInfo nodeInfo(info);
         _activeNodeList.insert(nodeInfo);
         _potentialConnections.push_back(nodeInfo);
-        // addPotentialConnection(nodeInfo);
     }
 
     managePeers();
 
     _recievedNodeList = true;
+}
+
+void keyser::Node::handleGetHeaders(std::shared_ptr<Peer> peer, Message& msg)
+{
+
+}
+
+void keyser::Node::handleHeaders(std::shared_ptr<Peer> peer, Message& msg)
+{
+
 }

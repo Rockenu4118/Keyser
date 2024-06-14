@@ -181,7 +181,6 @@ bool keyser::Peer::connect(const boost::asio::ip::tcp::endpoint& endpoint)
     if (!ec)
     {
         readHeader();
-        _info._port = getEndpoint().port();
         return true;
     }
     else

@@ -4,19 +4,11 @@
 #include "../chain/Transaction.hpp"
 
 
-keyser::ValidationEngine::ValidationEngine(Node& node) : _node(node)
+keyser::ValidationEngine::ValidationEngine(Node* node) : _node(node)
 {}
 
-bool keyser::ValidationEngine::validateBlock(Block block)
+bool keyser::ValidationEngine::validateBlock(Block& block)
 {
-    // Check is block is next up in the chain
-    // if not, save block to map until parent block arrives
-    if (_node.getCurrBlock()->_hash != block._prevHash)
-    {
-        _orphanBlocks[block._hash] = std::move(block);
-        return false;
-    }
-
     // If so, convert to smart pointer and validate
     std::shared_ptr<Block> newBlock = std::make_shared<Block>(std::move(block));
 
@@ -25,18 +17,7 @@ bool keyser::ValidationEngine::validateBlock(Block block)
     if (!newBlock->hasValidTransactions())
         return false;
 
-    _node.blocks().push_back(newBlock);
-
-    // Check if stored orphan block can now be added
-    for (auto& block : _orphanBlocks)
-    {
-        if (_node.getCurrBlock()->_hash == block.second._prevHash)
-        {
-            std::shared_ptr<Block> orphanBlock = std::make_shared<Block>(block.second);
-            _node.blocks().push_back(orphanBlock);
-            _orphanBlocks.erase(block.first);
-        }
-    }
+    _node->blocks().push_back(newBlock);
 
     return true;
 }
@@ -44,9 +25,9 @@ bool keyser::ValidationEngine::validateBlock(Block block)
 bool keyser::ValidationEngine::validateTransaction(Transaction transaction)
 {
     // Make sure transaction hasn't already reached the mempool
-    for (Transaction tx : _node.pendingTransactions())
+    for (Transaction tx : _node->pendingTransactions())
     {
-        if (tx._hash == transaction._hash)
+        if (tx.calcHash() == transaction.calcHash())
             return false;
     }
         
@@ -54,6 +35,6 @@ bool keyser::ValidationEngine::validateTransaction(Transaction transaction)
     if (!transaction.isValid())
         return false;
 
-    _node.pendingTransactions().push_back(transaction);
+    _node->pendingTransactions().push_back(transaction);
     return true;
 }

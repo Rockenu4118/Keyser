@@ -29,7 +29,7 @@ namespace keyser
         void decodeJson(Block& block, nlohmann::json& json);
 
         // NodeInfo Encoding/Decoding
-        void encodeJson(nlohmann::json&, NodeInfo& nodeInfo);
+        void encodeJson(nlohmann::json& json, NodeInfo& nodeInfo);
         void decodeJson(NodeInfo& nodeInfo, nlohmann::json& json);
 
         // Time functions

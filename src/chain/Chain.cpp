@@ -19,24 +19,26 @@ keyser::Chain::Chain()
 
 void keyser::Chain::createGenesisBlock()
 {
-    Wallet genesisWallet("genesis", genesisKey);
+    // Wallet genesisWallet("genesis", genesisKey);
 
     // Distribute genesis funds to private wallets
     std::vector<Transaction> initialBalances{};
 
-    Transaction tx1(50000, "0xc6d8a2c830495d07318212e9f2cad16f", genesisWallet.getKeyPair()->getUPublicKey());
-    tx1._time = 0;
-    tx1.sign(genesisWallet.getKeyPair());
-    Transaction tx2(50000, "0x183944191006324a447bdb2d98d4b408", genesisWallet.getKeyPair()->getUPublicKey());
-    tx2._time = 0;
-    tx2.sign(genesisWallet.getKeyPair());
+    // Transaction tx1(50000, "0xc6d8a2c830495d07318212e9f2cad16f", genesisWallet.getKeyPair()->getUPublicKey());
+    // tx1._time = 0;
+    // tx1.sign(genesisWallet.getKeyPair());
+    // Transaction tx2(50000, "0x183944191006324a447bdb2d98d4b408", genesisWallet.getKeyPair()->getUPublicKey());
+    // tx2._time = 0;
+    // tx2.sign(genesisWallet.getKeyPair());
 
-    initialBalances.push_back(tx1);
-    initialBalances.push_back(tx2);
+    // initialBalances.push_back(tx1);
+    // initialBalances.push_back(tx2);
 
-    std::shared_ptr<Block> genesisBlock = std::make_shared<Block>(0, 0, "None", 100000, "0x33a1f6d9f637df8a805f6cc659d2366b", initialBalances);
+    std::shared_ptr<Block> genesisBlock = std::make_shared<Block>(0, 0, "None", initialBalances);
 
-    genesisBlock->calcHash();
+    genesisBlock->_time = 0;
+
+    genesisBlock->_hash = genesisBlock->calcHash();
 
     _blocks.push_back(genesisBlock);
 }
@@ -76,24 +78,8 @@ double keyser::Chain::getAddressBalance(std::string address)
 {
     double balance = 0;
 
-    for (int i = 0 ; i < _blocks.size() ; i++)
-    {
-        // Modify balances from genesis block and mining rewards
-        if (_blocks.at(i)->_reward._address == address)
-            balance += _blocks.at(i)->_reward._amount;
+    // TODO  - calc Balance
 
-        std::vector<Transaction> transactions = _blocks.at(i)->_transactions;
-
-        // Modify balance from transactions
-        for (int j = 0 ; j < transactions.size() ; j++)
-        {
-            if (transactions.at(j)._recieverAddress == address)
-                balance += transactions.at(j)._amount;
-
-            if (transactions.at(j)._senderAddress == address)
-                balance -= transactions.at(j)._amount;
-        }
-    }
     
     return balance;
 }
@@ -112,7 +98,7 @@ bool keyser::Chain::isValid()
             return false;
 
         std::string currBlockHash = currBlock->_hash;
-        currBlock->calcHash();
+        currBlock->_hash = currBlock->calcHash();
 
         if ((*currBlock)._hash != currBlockHash)
             return false;

@@ -24,7 +24,7 @@ add_subdirectory(libs/cli_core)
 add_subdirectory(libs/cryptography)
 add_subdirectory(libs/net_core)
 
-target_link_libraries(${PROJECT_NAME} ssl crypto cryptography net_core cli_core)
+target_link_libraries(${PROJECT_NAME} ssl crypto leveldb snappy cryptography net_core cli_core)
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_BINARY_DIR}" 
                                                    "${PROJECT_SOURCE_DIR}/libs/cryptography" 

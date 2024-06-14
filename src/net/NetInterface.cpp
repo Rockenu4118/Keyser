@@ -78,7 +78,7 @@ bool keyser::NetInterface::connect(const NodeInfo nodeInfo)
     if (_connectedNodeList.count(nodeInfo) == 1)
     {
         return false;
-    }   
+    }
 
     try
     {
@@ -93,6 +93,9 @@ bool keyser::NetInterface::connect(const NodeInfo nodeInfo)
             newConn.reset();
             return false;
         }
+
+        newConn->info()._address = newConn->getEndpoint().address().to_string();
+        newConn->info()._port    = newConn->getEndpoint().port();
 
         // Connection moved to back of connection container
         _peers.push_back(std::move(newConn));
@@ -118,6 +121,9 @@ void keyser::NetInterface::acceptConnection()
                 std::cout << "[NODE] New connection: " << socket.remote_endpoint() << std::endl;
 
                 auto newConn = std::make_shared<Peer>(NodeInfo::Direction::Inbound, _context, std::move(socket), _messagesIn, _idCounter++);
+
+                newConn->info()._address = newConn->getEndpoint().address().to_string();
+                newConn->info()._port = newConn->getEndpoint().port();
 
                 // Give node a chance to deny connection
                 if (allowConnect(newConn))
@@ -227,6 +233,11 @@ int keyser::NetInterface::connectionCount() const
     return _peers.size();
 }
 
+keyser::NodeInfo keyser::NetInterface::getSelfInfo() const
+{
+    return _selfInfo;
+}
+
 std::shared_ptr<keyser::Peer> keyser::NetInterface::syncNode()
 {
     // TODO - potentially decide which node should be the sync node
@@ -277,6 +288,11 @@ std::vector<keyser::NodeInfo> keyser::NetInterface::getConnections() const
         connections.push_back(peer->info());
 
     return connections;
+}
+
+std::set<keyser::NodeInfo> keyser::NetInterface::getActiveNodes() const
+{
+    return _activeNodeList;
 }
 
 bool keyser::NetInterface::allowConnect(std::shared_ptr<Peer> peer)

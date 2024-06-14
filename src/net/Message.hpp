@@ -34,18 +34,10 @@ namespace keyser
             Message() = default;
             Message(MsgTypes id);
 
-            void serialize();
-            void deserialize();
+            void preparePayload();
+            void unpackPayload();
 
             nlohmann::json& json() { return _doc; }
-
-            void insert(Block& block);
-            void insert(Transaction& transaction);
-            void insert(NodeInfo& NodeInfo);
-
-            void extract(Block& block);
-            void extract(Transaction& transaction);
-            void extract(NodeInfo& nodeInfo);
 
             size_t size() const;
             void   print();

@@ -44,14 +44,18 @@ namespace keyser
 
             bool createTransaction(Transaction& transaction);
 
+            void broadcastSelf();
+
             void completedInitialBlockDownload();
 
-            // Requests and Responses
             void ping();
             void pong();
 
             void version(std::shared_ptr<Peer> peer);
             void verack(std::shared_ptr<Peer> peer);
+
+            void getHeaders();
+            void sendHeaders(std::shared_ptr<Peer> peer);
 
             void getBlocks();
             void sendBlocks(std::shared_ptr<Peer> peer, int blockIndex);
@@ -91,6 +95,8 @@ namespace keyser
             void handleBlock(std::shared_ptr<Peer> peer, Message& msg);
             void handleGetNodeList(std::shared_ptr<Peer> peer, Message& msg);
             void handleNodeInfo(std::shared_ptr<Peer> peer, Message& msg);
+            void handleGetHeaders(std::shared_ptr<Peer> peer, Message& msg);
+            void handleHeaders(std::shared_ptr<Peer> peer, Message& msg);
 
             // Members
             Status _status = Status::Offline;

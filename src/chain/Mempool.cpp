@@ -19,21 +19,21 @@ std::vector<keyser::Transaction> keyser::Mempool::popLeadingTransactions()
     return transactions;
 }
 
-double keyser::Mempool::getPendingBalance(std::string address)
-{
-    double balance = 0;
+// double keyser::Mempool::getPendingBalance(std::string address)
+// {
+//     double balance = 0;
 
-    for (Transaction tx : _pendingTransactions)
-    {
-        if (tx._recieverAddress == address)
-            balance += tx._amount;
+//     for (Transaction tx : _pendingTransactions)
+//     {
+//         if (tx._recieverAddress == address)
+//             balance += tx._amount;
 
-        if (tx._senderAddress == address)
-            balance -= tx._amount;
-    }
+//         if (tx._senderAddress == address)
+//             balance -= tx._amount;
+//     }
 
-    return balance;
-}
+//     return balance;
+// }
 
 void keyser::Mempool::printMempool()
 {

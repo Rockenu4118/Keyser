@@ -17,7 +17,7 @@ keyser::Message::Message(MsgTypes id)
     header.id = id;
 }
 
-void keyser::Message::serialize()
+void keyser::Message::preparePayload()
 {
     std::string msg = _doc.dump();
     int         len = msg.size();
@@ -30,7 +30,7 @@ void keyser::Message::serialize()
     header.size = size();
 }
 
-void keyser::Message::deserialize()
+void keyser::Message::unpackPayload()
 {
     std::string msg;
     int         len = body.size();
@@ -41,42 +41,6 @@ void keyser::Message::deserialize()
     }
 
     _doc = nlohmann::json::parse(msg);
-}
-
-void keyser::Message::insert(Block& block)
-{
-    utils::encodeJson(_doc, block);
-    serialize();
-}
-
-void keyser::Message::insert(Transaction& transaction)
-{
-    utils::encodeJson(_doc, transaction);
-    serialize();
-}
-
-void keyser::Message::insert(NodeInfo& nodeInfo)
-{
-    utils::encodeJson(_doc, nodeInfo);
-    serialize();
-}
-
-void keyser::Message::extract(Block& block)
-{
-    deserialize();
-    utils::decodeJson(block, _doc);
-}
-
-void keyser::Message::extract(Transaction& transaction)
-{
-    deserialize();
-    utils::decodeJson(transaction, _doc);
-}
-
-void keyser::Message::extract(NodeInfo& nodeInfo)
-{
-    deserialize();
-    utils::decodeJson(nodeInfo, _doc);
 }
 
 size_t keyser::Message::size() const
