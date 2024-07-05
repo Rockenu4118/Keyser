@@ -1,17 +1,22 @@
-#include <iostream>
-#include <string>
+#include <algorithm>
 
-#include <cryptography.hpp>
-#include <nlohmann/json.hpp>
-
-#include "../data/version.hpp"
 #include "./Transaction.hpp"
 #include "../wallet/Wallet.hpp"
 #include "../utils/utils.hpp"
+#include "../data/version.hpp"
 
 
+std::string keyser::OutPoint::calcHash() const
+{
+    std::string unhashed = _txHash + std::to_string(_index);
+    std::string hashed;
 
-// Constructors
+    cryptography::SHA256(unhashed, hashed);
+
+    return hashed;
+}
+
+
 keyser::Transaction::Transaction(nlohmann::json json)
 {
     _version = json["version"];
@@ -28,35 +33,64 @@ keyser::Transaction::Transaction(nlohmann::json json)
         TxOut txout(output);
         _outputs.push_back(txout);
     }
-
-    _sig = TxSig(json["signature"]);
 }
 
-keyser::Transaction::Transaction(double amount, std::string recievingAddress, std::string sendingPubKey)
+keyser::Transaction::Transaction(uint64_t amount, std::string recipientAddr)
 {
     _version = KEYSER_VERSION;
-    _time    = time(NULL);
+    _time = time(NULL);
 
+    TxOut txout;
+    txout._amount    = amount;
+    txout._recipient = recipientAddr;
 
-    // _amount          = amount;
-    // _recieverAddress = recievingAddress;
-    // _senderAddress   = keyser::utils::pubKeytoAddress(sendingPubKey);
-    // _senderPublicKey = sendingPubKey;
+    _outputs.push_back(txout);
 }
 
-// Modifiers
-std::string keyser::Transaction::calcHash()
+keyser::Transaction::Transaction(std::vector<UTXO> Utxos, uint64_t amount, uint64_t gas, std::string recipientAddr, std::string sendingPublicKey)
+{
+    _version = KEYSER_VERSION;
+    _time = time(NULL);
+
+    // Sum of all provided Utxos
+    uint64_t totalFunds = std::accumulate(Utxos.cbegin(), Utxos.cend(), 0, [](uint64_t sum, UTXO utxo) { return sum += utxo._output._amount; });
+
+    // Sent funds
+    TxOut transfer;
+    transfer._recipient = recipientAddr;
+    transfer._amount = amount;
+    _outputs.push_back(transfer);
+
+    // Create an output for change if there are leftover funds
+    if ((totalFunds - amount - gas) != 0)
+    {
+        // Excess funds
+        TxOut change;
+        change._recipient = utils::pubKeytoAddress(sendingPublicKey);
+        change._amount = totalFunds - amount - gas;
+        _outputs.push_back(change);
+    }
+
+    // Create inputs
+    for (auto utxo : Utxos)
+    {
+        TxIn input;
+        input._outPoint = utxo._outPoint;
+        input._pubKey = sendingPublicKey;
+        _inputs.push_back(input);
+    }
+}
+
+std::string keyser::Transaction::hash() const
 {
     std::string unhashed = _version + std::to_string(_time);
     std::string hashed;
 
     for (auto& input : _inputs)
-        unhashed.append(input._txHash + std::to_string(input._index));
+        unhashed.append(input._outPoint._txHash + std::to_string(input._outPoint._index) + input._pubKey);
 
     for (auto& output : _outputs)
         unhashed.append(std::to_string(output._amount) + output._recipient);
-
-    unhashed += _sig._rSigVal + _sig._sSigVal;
 
     cryptography::SHA256(unhashed, hashed);
 
@@ -64,29 +98,19 @@ std::string keyser::Transaction::calcHash()
 }
 
 void keyser::Transaction::sign(cryptography::ECKeyPair* signingKey)
-{   
-    signingKey->sign(calcHash(), _sig._rSigVal, _sig._sSigVal);
-}
-
-bool keyser::Transaction::isValid()
 {
-    // Transaction is not valid if it has not been signed
-    if (_sig._rSigVal == "" || _sig._sSigVal == "") {
-        std::cout << "No signature found." << std::endl;
-        return false;
-    }
-
     for (auto& input : _inputs)
     {
-        // Instantiate new ECKeyPair with the senders public key
-        cryptography::ECKeyPair keyPair = cryptography::ECKeyPair("public", input._pubKey);
+        signingKey->sign(hash(), input._sig._rSigVal, input._sig._sSigVal);
+    }
+}
 
-        // Use the instantiated ECKeyPair to verify the transactions signature
-        if (!keyPair.verify(calcHash(), _sig._rSigVal, _sig._sSigVal))
-        {
-            std::cout << "Invalid transaction." << std::endl;
+bool keyser::Transaction::isSigned() const
+{
+    for (auto input : _inputs)
+    {
+        if (input._sig._rSigVal == "" || input._sig._sSigVal == "")
             return false;
-        }
     }
 
     return true;
@@ -107,46 +131,33 @@ nlohmann::json keyser::Transaction::json() const
     for (auto& output : _outputs)
         json["outputs"].push_back(output.json());
 
-    json["signature"] = _sig.json();
-
     return json;
-}
-
-void keyser::Transaction::json(nlohmann::json json)
-{
-    // _time            = json["time"];
-    // _amount          = json["amount"];
-    // _recieverAddress = json["recieverAddress"];
-    // _senderAddress   = json["senderAddress"];
-    // _senderPublicKey = json["senderPublicKey"];
-    // _hash            = json["hash"];
-    // _rSigVal         = json["rSigVal"];
-    // _sSigVal         = json["sSigVal"];
-
-    // _version = json["version"];
-    // _time = json["time"];
-
-    // for (auto& input : json["inputs"])
-    // {
-
-    // }
 }
 
 // Operator overloading
 namespace keyser
 {
-//     std::ostream& operator<<(std::ostream& out, Transaction& data) {
-//         out << "Time: "              << utils::localTime(data._time) << ", ";
-//         out << "Amount: "            << data._amount                 << ", ";
-//         out << "Recieving Address: " << data._recieverAddress        << ", ";
-//         out << "Sender: "            << data._senderAddress;
+    std::ostream& operator<<(std::ostream& out, TxOut& data)
+    {
+        out << "Amount: " << data._amount << ", Recipient: " << data._recipient;
 
-//         return out;
-//     }
+        return out;
+    }
+
+    std::ostream& operator<<(std::ostream& out, UTXO& data)
+    {
+        out << "Origin: " << data._outPoint._txHash << ", Index: " << data._outPoint._index << std::endl; 
+        out << "Amount: " << data._output._amount << ", Recipient: " << data._output._recipient;
+
+        return out;
+    }
 
     std::ostream& operator<<(std::ostream& out, Transaction& data) 
     {
-        // TODO
+        out << "Time: "      << utils::localTime(data._time)   << std::endl;
+        out << "Inputs: "    << data._inputs.size()            << std::endl;
+        out << "Recipient: " << data._outputs.at(0)._recipient << std::endl;
+        out << "Amount: "    << data._outputs.at(0)._amount;
 
         return out;
     }

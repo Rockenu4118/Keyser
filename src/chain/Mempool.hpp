@@ -1,28 +1,33 @@
 #ifndef MEMPOOL_H
 #define MEMPOOL_H
 
-#include <deque>
+#include <string>
+#include <unordered_map>
 
+#include "../node/Node.hpp"
 #include "./Transaction.hpp"
 
 namespace keyser
 {
+    class Node;
+
     class Mempool
     {
         public:
-            Mempool() = default;
+            Mempool(Node* node);
 
-            std::vector<Transaction> popLeadingTransactions();
+            std::vector<Transaction> leadingTransactions();
 
-            // double getPendingBalance(std::string address);
+            void processBlock(std::shared_ptr<Block> block);
 
-            void printMempool();
+            void printMempool() const;
 
-            std::deque<Transaction>& pendingTransactions();
+            std::unordered_map<std::string, Transaction>& pendingTransactions();
 
-        protected:
-            std::deque<Transaction> _pendingTransactions;
+        private:
+            Node* _node;
 
+            std::unordered_map<std::string, Transaction> _pendingTransactions;
     };
 }
 

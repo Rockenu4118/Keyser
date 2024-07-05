@@ -35,17 +35,17 @@ void keyser::cli::NetworkView::display()
         {
             case '1':
                 displayTitle("Connections");
-                _node->displayConnections();
+                _node->network()->displayConnections();
                 continueMsg();
                 break;
             case '2':
                 displayTitle("Active Nodes");
-                _node->displayActiveNodes();
+                _node->network()->displayActiveNodes();
                 continueMsg();
                 break;
             case '3':
                 displayTitle("Self Info");
-                _node->displaySelfInfo();
+                _node->network()->displaySelfInfo();
                 continueMsg();
                 break;
             case '4':
@@ -72,5 +72,5 @@ void keyser::cli::NetworkView::newConnection()
     std::cout << "Port: ";
     std::cin >> nodeInfo._port;
 
-    _node->connect(nodeInfo);
+    _node->network()->client()->connect(nodeInfo);
 }

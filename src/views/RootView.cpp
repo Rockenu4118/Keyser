@@ -9,7 +9,7 @@
 #include "./WalletView.hpp"
 #include "./NetworkView.hpp"
 #include "../node/Node.hpp"
-#include "../wallet/WalletManager.hpp"
+#include "../wallet/Wallet.hpp"
 
 
 keyser::cli::RootView::RootView(Node* node)
@@ -59,7 +59,7 @@ void keyser::cli::RootView::display()
                 break;
             case '4':
             {
-                _node->ping();
+                _node->network()->ping();
             }
                 break;
             case '5':
@@ -100,9 +100,9 @@ void keyser::cli::RootView::initSetup()
             std::cout << "Port: ";
             std::cin >> nodeInfo._port;
 
-            success = _node->connect(nodeInfo);
+            success = _node->network()->client()->connect(nodeInfo);
         }
-        while (_node->connectionCount() < 1);
+        while (_node->network()->connectionCount() < 1);
 
         clearScreen();
 
@@ -112,7 +112,7 @@ void keyser::cli::RootView::initSetup()
         {
             loadingAnimation(500);
         } 
-        while (_node->getStatus() != Node::Status::Online);
+        while (_node->status() != Node::Status::Online);
         
         clearScreen();
     }

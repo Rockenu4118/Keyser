@@ -86,8 +86,8 @@ namespace keyser
             
             
         protected:
-            std::mutex              muxQueue;
-            std::deque<T>           deqQueue;
+            std::mutex    muxQueue;
+            std::deque<T> deqQueue;
     };
 }
 

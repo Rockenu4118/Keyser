@@ -22,10 +22,11 @@ void keyser::cli::ChainView::display()
 
         std::cout << "[1] View chain"              << std::endl;
         std::cout << "[2] View block transactions" << std::endl;
-        std::cout << "[3] View mempool"            << std::endl;  
-        std::cout << "[4] Mine continuously"       << std::endl;
-        std::cout << "[5] Mine single block"       << std::endl;
-        std::cout << "[6] Stop mining"             << std::endl;
+        std::cout << "[3] View mempool"            << std::endl;
+        std::cout << "[4] View Utxo set"           << std::endl;
+        std::cout << "[5] Mine continuously"       << std::endl;
+        std::cout << "[6] Mine single block"       << std::endl;
+        std::cout << "[7] Stop mining"             << std::endl;
         std::cout << "[0] Exit"                    << std::endl;
         std::cout << std::endl;
 
@@ -35,7 +36,7 @@ void keyser::cli::ChainView::display()
         {
             case '1':
                 displayTitle("Chain");
-                _node->printChain();
+                _node->chain()->printChain();
                 continueMsg();
                 break;
             case '2':
@@ -43,16 +44,21 @@ void keyser::cli::ChainView::display()
                 break;
             case '3':
                 displayTitle("Mempool");
-                _node->printMempool();
+                _node->mempool()->printMempool();
                 continueMsg();
                 break;
             case '4':
-                _node->beginMining();
+                displayTitle("Utxo Set");
+                _node->utxoSet()->printUtxoSet();
+                continueMsg();
                 break;
             case '5':
-                _node->beginMining(1);
+                _node->beginMining();
                 break;
             case '6':
+                _node->beginMining(1);
+                break;
+            case '7':
                 _node->stopMining();
                 break;
             default:
@@ -60,7 +66,7 @@ void keyser::cli::ChainView::display()
                 break;
         }
 
-        // clearScreen();
+        clearScreen();
     }
     while (selection != '0');
 }
@@ -74,8 +80,8 @@ void keyser::cli::ChainView::viewBlockTransactions()
 
     std::cout << std::endl;
 
-    if (index < _node->blocks().size())
-        _node->getBlock(index)->printTransactions();
+    if (index < _node->chain()->blocks().size())
+        _node->chain()->getBlock(index)->printTransactions();
     else
         std::cout << "Invalid block." << std::endl;
         

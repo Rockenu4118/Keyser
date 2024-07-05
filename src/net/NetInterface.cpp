@@ -1,62 +1,34 @@
 #include <chrono>
 #include <thread>
-#include <set>
-#include <vector>
-#include <string>
-#include <mutex>
-#include <condition_variable>
-#include <boost/asio.hpp>
-#include <tsqueue.hpp>
 
+#include "./NetInterface.hpp"
 #include "../data/version.hpp"
 #include "../net/MsgTypes.hpp"
-#include "./NetInterface.hpp"
-#include "../net/Message.hpp"
-#include "../node/NodeInfo.hpp"
 
 
-keyser::NetInterface::NetInterface(uint16_t port, bool& shutdownNode) : _acceptor(_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)), _shutdownNode(shutdownNode)
+
+keyser::NetInterface::NetInterface(Node* node, uint16_t port) : _node(node)
 {
-    // Close acceptor until server starts
-    _acceptor.close();
+    _client = std::make_shared<Client>(node, this, _context);
+    _server = std::make_shared<Server>(node, this, port, _context);
+    _server->start();
+
+    boost::asio::io_context::work idleWork(_context);
+    
+    _contextThread = std::thread([this]() { _context.run(); });
+
+    // Run thread to handle messsages
+    _responseThread = std::thread([this]() { update(); });
 
     // Save self info
     _selfInfo._version = KEYSER_VERSION;
     _selfInfo._alias   = "Keyser Node";
-    _selfInfo._address = "";
+    _selfInfo._address = "Unknown";
     _selfInfo._port    = port;
 }
 
 keyser::NetInterface::~NetInterface()
 {
-    shutdown();
-}
-
-bool keyser::NetInterface::startServer()
-{
-    try
-    {
-        // Setup server to be able to accept connections
-        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), _selfInfo._port);
-        _acceptor.open(endpoint.protocol());
-        _acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-        _acceptor.bind(endpoint);
-        _acceptor.listen();
-
-        acceptConnection();
-    }
-    catch (std::exception& e)
-    {
-        std::cerr << "[NODE] Exception: " << e.what() << std::endl;
-        return false; 
-    }
-
-    std::cout << "[NODE] Started!" << std::endl;
-    return false;
-}
-
-void keyser::NetInterface::shutdown()
-{   
     // Request the context to close
     _context.stop();
 
@@ -67,92 +39,7 @@ void keyser::NetInterface::shutdown()
     if (_responseThread.joinable())
         _responseThread.join();
 
-    std::cout << "[NODE] Stopped!" << std::endl;
-}
-
-bool keyser::NetInterface::connect(const NodeInfo nodeInfo)
-{   
-    if (_selfInfo == nodeInfo)
-        return false;
-
-    if (_connectedNodeList.count(nodeInfo) == 1)
-    {
-        return false;
-    }
-
-    try
-    {
-        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::make_address(nodeInfo._address), nodeInfo._port);
-
-        // Create connection
-        auto newConn = std::make_shared<Peer>(NodeInfo::Direction::Outbound, _context, boost::asio::ip::tcp::socket(_context), _messagesIn, _idCounter++);
-
-        // Tell connection object to connect, if failed return false and reset connection
-        if (!newConn->connect(endpoint))
-        {
-            newConn.reset();
-            return false;
-        }
-
-        newConn->info()._address = newConn->getEndpoint().address().to_string();
-        newConn->info()._port    = newConn->getEndpoint().port();
-
-        // Connection moved to back of connection container
-        _peers.push_back(std::move(newConn));
-
-        onOutgoingConnect(_peers.back());
-    }
-    catch (std::exception& e)
-    {
-        std::cerr << "[NODE] Exception: " << e.what() << std::endl;
-        return false;
-    }
-
-    return true;
-}
-
-void keyser::NetInterface::acceptConnection()
-{
-    _acceptor.async_accept(
-        [this](std::error_code ec, boost::asio::ip::tcp::socket socket)
-        {
-            if (!ec)
-            {
-                std::cout << "[NODE] New connection: " << socket.remote_endpoint() << std::endl;
-
-                auto newConn = std::make_shared<Peer>(NodeInfo::Direction::Inbound, _context, std::move(socket), _messagesIn, _idCounter++);
-
-                newConn->info()._address = newConn->getEndpoint().address().to_string();
-                newConn->info()._port = newConn->getEndpoint().port();
-
-                // Give node a chance to deny connection
-                if (allowConnect(newConn))
-                {
-                    onIncomingConnect(newConn);
-
-                    // Listen for message
-                    newConn->listen();
-                    
-                    // Connection allowed, connection pushed to back of connection container
-                    _peers.push_back(std::move(newConn));
-
-                    std::cout << "[" << _peers.back()->getId() << "] Connection Approved" << std::endl;
-                }
-                else
-                {
-                    std::cout << "[NODE] Connection Denied" << std::endl;
-                }
-            }
-            else
-            {
-                // Error during acceptance
-                std::cout << "[NODE] New connection error: " << ec.message() << std::endl;
-            }
-
-            // Prime asio context with more work, wait for another connection...
-            acceptConnection();
-        }
-    );
+    std::cout << "[NODE] Offline!" << std::endl;
 }
 
 void keyser::NetInterface::message(std::shared_ptr<Peer> peer, const Message& msg)
@@ -185,9 +72,17 @@ void keyser::NetInterface::managePeers()
         NodeInfo nodeInfo = _potentialConnections.front();
         _potentialConnections.pop_front();
             
-        connect(nodeInfo);
+        _client->connect(nodeInfo);
     }
 }
+
+void keyser::NetInterface::ping()
+{
+    Message msg(MsgTypes::Ping);
+    messageNeighbors(msg);
+}
+
+void keyser::NetInterface::pong() {}
 
 bool keyser::NetInterface::validateConnection(std::shared_ptr<Peer>& peer)
 {
@@ -209,7 +104,7 @@ void keyser::NetInterface::update(uint8_t maxMessages, bool wait)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         
-        if (_shutdownNode)
+        if (_node->shutdownFlag())
             break;
 
         uint8_t msgCount = 0;
@@ -242,6 +137,11 @@ std::shared_ptr<keyser::Peer> keyser::NetInterface::syncNode()
 {
     // TODO - potentially decide which node should be the sync node
     return _peers.front();
+}
+
+uint16_t keyser::NetInterface::assignId()
+{
+    return _idCounter++;
 }
 
 void keyser::NetInterface::displayConnections()
@@ -295,17 +195,154 @@ std::set<keyser::NodeInfo> keyser::NetInterface::getActiveNodes() const
     return _activeNodeList;
 }
 
-bool keyser::NetInterface::allowConnect(std::shared_ptr<Peer> peer)
-{ return true; }
+void keyser::NetInterface::distributeNodeInfo(NodeInfo& nodeInfo)
+{
+    Message msg(MsgTypes::DistributeNodeInfo);
+    msg.json() = nodeInfo.json();
+    msg.preparePayload();
+    messageNeighbors(msg);
+}
 
-void keyser::NetInterface::onOutgoingConnect(std::shared_ptr<Peer> peer)
-{}
+void keyser::NetInterface::distributeTransaction(Transaction& transaction)
+{
+    Message msg(MsgTypes::DistributeTransaction);
+    msg.json() = transaction.json();
+    msg.preparePayload();
+    messageNeighbors(msg);
+}
 
-void keyser::NetInterface::onIncomingConnect(std::shared_ptr<Peer> peer)
-{}
+void keyser::NetInterface::distributeBlock(Block& block)
+{
+    Message msg(MsgTypes::DistributeBlock);
+    msg.json() = block.json();
+    msg.preparePayload();
+    messageNeighbors(msg);
+}
 
 void keyser::NetInterface::onDisconnect(std::shared_ptr<Peer> peer)
 {}
 
 void keyser::NetInterface::onMessage(std::shared_ptr<Peer> peer, Message& msg)
-{}
+{
+    switch (msg.header.id)
+    {
+        case MsgTypes::Generic:
+            std::cout << "[NODE] Generic msg" << std::endl;
+            break;
+        case MsgTypes::Ping:
+            handlePing(peer, msg);
+            break;
+        case MsgTypes::DistributeNodeInfo:
+            handleDistributeNodeInfo(peer, msg);
+            break;
+        case MsgTypes::DistributeBlock:
+            handleDistributeBlock(peer, msg);
+            break;
+        case MsgTypes::DistributeTransaction:
+            handleDistributeTransaction(peer, msg);
+            break;
+        case MsgTypes::Version:
+            _server->handleVersion(peer, msg);
+            break;
+        case MsgTypes::Verack:
+            _client->handleVerack(peer, msg);
+            break;
+        case MsgTypes::GetBlocks:
+            _server->handleGetBlocks(peer, msg);
+            break;
+        case MsgTypes::Inv:
+            _client->handleInv(peer, msg);
+            break;
+        case MsgTypes::GetData:
+            _server->handleGetData(peer, msg);
+            break;
+        case MsgTypes::Block:
+            _client->handleBlock(peer, msg);
+            break;
+        case MsgTypes::GetNodeList:
+            _server->handleGetNodeList(peer, msg);
+            break;
+        case MsgTypes::NodeInfoList:
+            _client->handleNodeInfo(peer, msg);
+            break;
+        case MsgTypes::GetHeaders:
+
+            break;
+        default:
+            std::cout << "[NODE] Unknown Msg Type" << std::endl;
+            break;
+    }
+}
+
+void keyser::NetInterface::handlePing(std::shared_ptr<Peer> peer, Message& msg)
+{
+    std::cout << utils::localTimestamp() << "Ping: " << peer->getId() << std::endl;
+}
+
+void keyser::NetInterface::handleDistributeNodeInfo(std::shared_ptr<Peer> peer, Message& msg)
+{
+    msg.unpackPayload();
+    NodeInfo nodeInfo(msg.json());
+
+    if (_activeNodeList.count(nodeInfo))
+        return;
+
+    _activeNodeList.insert(nodeInfo);
+    _potentialConnections.push_back(nodeInfo);
+    managePeers();
+
+    messageNeighbors(msg, peer);
+}
+
+void keyser::NetInterface::handleDistributeTransaction(std::shared_ptr<Peer> peer, Message& msg)
+{
+    msg.unpackPayload();
+    Transaction transaction(msg.json());
+
+    if (_node->validationEngine()->validateTransaction(transaction))
+        messageNeighbors(msg, peer);
+}
+
+void keyser::NetInterface::handleDistributeBlock(std::shared_ptr<Peer> peer, Message& msg)
+{
+    msg.unpackPayload();
+    auto block = std::make_shared<Block>(msg.json());
+
+    if (_node->validationEngine()->validateBlock(block))
+        messageNeighbors(msg, peer);
+}
+
+std::shared_ptr<keyser::Client>& keyser::NetInterface::client()
+{
+    return _client;
+}
+
+std::shared_ptr<keyser::Server>& keyser::NetInterface::server()
+{
+    return _server;
+}
+
+std::deque<std::shared_ptr<keyser::Peer>>& keyser::NetInterface::peers()
+{
+    return _peers;
+}
+
+std::set<keyser::NodeInfo>& keyser::NetInterface::connectedNodeList()
+{
+    return _connectedNodeList;
+}
+
+std::set<keyser::NodeInfo>& keyser::NetInterface::activeNodeList()
+{
+    return _activeNodeList;
+}
+
+std::deque<keyser::NodeInfo>& keyser::NetInterface::potentialConnections()
+{
+    return _potentialConnections;
+}
+
+keyser::tsqueue<keyser::OwnedMessage>& keyser::NetInterface::messagesIn()
+{
+    return _messagesIn;
+}

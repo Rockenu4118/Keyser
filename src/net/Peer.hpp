@@ -1,6 +1,9 @@
 #ifndef PEER_H
 #define PEER_H
 
+#include <boost/asio.hpp>
+#include <tsqueue.hpp>
+
 #include "./Message.hpp"
 #include "./OwnedMessage.hpp"
 #include "../node/NodeInfo.hpp"
@@ -17,7 +20,7 @@ namespace keyser
 
         public:
             Peer(NodeInfo::Direction direction,
-                 boost::asio::io_context& asioContext, 
+                 boost::asio::io_context& asioContext,
                  boost::asio::ip::tcp::socket socket, 
                  tsqueue<OwnedMessage>& qMessagesIn, 
                  uint16_t uid);

@@ -1,7 +1,4 @@
-// Write an peer class that inherites or owns both a connection and set of info
 #include <memory>
-#include <boost/asio.hpp>
-#include <tsqueue.hpp>
 
 #include "./Peer.hpp"
 

@@ -7,40 +7,28 @@
 
 #include "../wallet/Wallet.hpp"
 #include "./Chain.hpp"
-#include "./Block.hpp"
 #include "./Mempool.hpp"
 #include "../data/keys.hpp"
 
 
-keyser::Chain::Chain()
-{
-    createGenesisBlock();
-}
+keyser::Chain::Chain(Node* node) : _node(node)
+{}
 
 void keyser::Chain::createGenesisBlock()
 {
-    // Wallet genesisWallet("genesis", genesisKey);
-
-    // Distribute genesis funds to private wallets
     std::vector<Transaction> initialBalances{};
 
-    // Transaction tx1(50000, "0xc6d8a2c830495d07318212e9f2cad16f", genesisWallet.getKeyPair()->getUPublicKey());
-    // tx1._time = 0;
-    // tx1.sign(genesisWallet.getKeyPair());
-    // Transaction tx2(50000, "0x183944191006324a447bdb2d98d4b408", genesisWallet.getKeyPair()->getUPublicKey());
-    // tx2._time = 0;
-    // tx2.sign(genesisWallet.getKeyPair());
+    Transaction tx1(50000, addr1);
+    tx1._time = 0;
 
-    // initialBalances.push_back(tx1);
-    // initialBalances.push_back(tx2);
+    initialBalances.push_back(tx1);
 
-    std::shared_ptr<Block> genesisBlock = std::make_shared<Block>(0, 0, "None", initialBalances);
+    auto genesisBlock = std::make_shared<Block>(0, 0, "None", initialBalances);
 
     genesisBlock->_time = 0;
+    genesisBlock->_bodyHash = genesisBlock->bodyHash();
 
-    genesisBlock->_hash = genesisBlock->calcHash();
-
-    _blocks.push_back(genesisBlock);
+    _node->validationEngine()->validateBlock(genesisBlock);
 }
 
 std::shared_ptr<keyser::Block> keyser::Chain::getCurrBlock()
@@ -60,6 +48,12 @@ uint keyser::Chain::calcDifficulty()
     return 4;
 }
 
+uint keyser::Chain::calcReward()
+{
+    // TODO - dynamically calculate reward
+    return 100;
+}
+
 void keyser::Chain::printChain()
 {
     if (_blocks.size() == 0)
@@ -74,16 +68,6 @@ void keyser::Chain::printChain()
     }
 }
 
-double keyser::Chain::getAddressBalance(std::string address)
-{
-    double balance = 0;
-
-    // TODO  - calc Balance
-
-    
-    return balance;
-}
-
 bool keyser::Chain::isValid()
 {
     for (int i = 1 ; i < _blocks.size() ; i++)
@@ -91,16 +75,10 @@ bool keyser::Chain::isValid()
         std::shared_ptr<Block> currBlock = _blocks.at(i);
         std::shared_ptr<Block> prevBlock = _blocks.at(i - 1);
 
-        if ((*prevBlock)._hash != (*currBlock)._prevHash)
+        if (prevBlock->hash() != currBlock->_prevHash)
             return false;
 
         if (!currBlock->hasValidTransactions())
-            return false;
-
-        std::string currBlockHash = currBlock->_hash;
-        currBlock->_hash = currBlock->calcHash();
-
-        if ((*currBlock)._hash != currBlockHash)
             return false;
     }
 
@@ -112,7 +90,12 @@ uint keyser::Chain::getHeight() const
     return _blocks.size();
 }
 
-std::vector<int> keyser::Chain::inventory()
+bool& keyser::Chain::blockInvRecieved()
+{
+    return _blockInvRecieved;
+}
+
+std::vector<int>& keyser::Chain::inventory()
 {
     return _inventory;
 }

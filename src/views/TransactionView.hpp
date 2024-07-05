@@ -3,7 +3,7 @@
 
 #include <CLI_View.hpp>
 
-#include "../wallet/WalletManager.hpp"
+#include "../wallet/Wallet.hpp"
 #include "../chain/Transaction.hpp"
 #include "../node/Node.hpp"
 

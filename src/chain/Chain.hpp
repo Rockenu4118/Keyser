@@ -1,22 +1,27 @@
 #ifndef CHAIN_H
 #define CHAIN_H
 
-#include <unordered_map>
 #include <vector>
 #include <memory>
 #include <thread>
 #include <list>
+#include <unordered_map>
 
+#include "../node/Node.hpp"
 #include "./Block.hpp"
 #include "./Transaction.hpp"
 #include "./Mempool.hpp"
 
 namespace keyser 
 {
+    class Node;
+
     class Chain
     {   
         public:
-            Chain();
+            Chain(Node* node);
+            
+            ~Chain() = default;
 
             // Initialize the one hardcoded block and add it to the chain
             void createGenesisBlock();
@@ -27,26 +32,28 @@ namespace keyser
             void   printChain();
             
             uint   calcDifficulty();
-            double getAddressBalance(std::string address);
+            uint   calcReward();
             bool   isValid();
             uint   getHeight() const;
-
-            std::vector<int> inventory();
+            
+            bool& blockInvRecieved();
+            std::vector<int>& inventory();
             std::vector<std::shared_ptr<Block>>& blocks();
         
-        protected:
+        private:
+            Node* _node;
+
             bool _blockInvRecieved = false;
 
             // Block indexes needed to complete local chain
             std::vector<int> _inventory;
 
+
+            // std::unordered_map<uint, std::string> _chainIndex;
+
             // Container of pointers to block objects
+            // std::unordered_map<std::string, Block> _blocks;
             std::vector<std::shared_ptr<Block>> _blocks;
-
-            
-
-            std::unordered_map<std::string, uint> _balances;
-        
     };
 }
 

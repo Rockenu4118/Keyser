@@ -1,83 +1,93 @@
 #include <iostream>
-#include <string>
-#include <nlohmann/json.hpp>
-#include <openssl/evp.h>
-#include <openssl/ec.h>
 
 #include "./Wallet.hpp"
-#include "../utils/utils.hpp"
-#include <cryptography.hpp>
+#include "../data/keys.hpp"
 
 
-keyser::Wallet::Wallet()
+keyser::Wallet::Wallet(Node* node) : _node(node)
 {
-    _name          = "";
-    _keyPair       = nullptr;
-    _publicAddress = "";
+    // Test wallets
+    importAccount("AJ", privKey1);
+    importAccount("Guy", privKey2);
 }
 
-keyser::Wallet::Wallet(nlohmann::json json)
+void keyser::Wallet::importAccount(std::string name, std::string privKey)
 {
-    _name          = json["name"];
-    _publicAddress = json["publicAddress"];
-    _keyPair       = new cryptography::ECKeyPair(json["keyPair"]);
+    Account account(name, privKey);
+    _accounts[name] = account;
 }
 
-keyser::Wallet::Wallet(std::string name)
-{    
-    _name = name;
-
-    // Generate EC Key Pair object
-    _keyPair = new cryptography::ECKeyPair();
-
-    // Calculate public address with previously generated EC uncompressed public key
-    _publicAddress = keyser::utils::pubKeytoAddress(_keyPair->getUPublicKey());
+void keyser::Wallet::createAccount(std::string name)
+{
+    Account newAcc(name);
+    _accounts[name] = newAcc;
 }
 
-keyser::Wallet::Wallet(std::string name, std::string privateKey)
+const keyser::Account& keyser::Wallet::get(std::string name)
 {
-    _name = name;
-
-    // Insert provided private key
-    _keyPair = new cryptography::ECKeyPair("private", privateKey);
-
-    // Calculate public address with previously provided private key
-    _publicAddress = keyser::utils::pubKeytoAddress(_keyPair->getUPublicKey());
+    return _accounts[name];
 }
 
-std::string keyser::Wallet::getPublicAddress() const
+bool keyser::Wallet::createTransaction(int64_t amount, std::string recipient, Account sender)
 {
-    return _publicAddress;
-}
+    int64_t currFunds = 0;
+    std::vector<UTXO> utxos;
 
-std::string keyser::Wallet::getName() const
-{
-    return _name;
-}
+    for (auto utxo : _node->utxoSet()->possibleUtxos(sender.getPublicAddress()))
+    {
+        if (currFunds < amount)
+        {
+            utxos.push_back(utxo);
+            currFunds += utxo._output._amount;
+        }
+        else
+            break;
+    }
 
-cryptography::ECKeyPair* keyser::Wallet::getKeyPair() const
-{
-    return _keyPair;
+    if (currFunds < amount)
+        return false;
+
+    
+    Transaction tx(utxos, amount, 0, recipient, sender.getKeyPair()->getUPublicKey());
+    tx.sign(sender.getKeyPair());
+
+    return _node->submitTransaction(tx);
 }
 
 nlohmann::json keyser::Wallet::json() const
 {
-    nlohmann::json json;
+    nlohmann::json json = nlohmann::json::array();
 
-    json["name"]          = _name;
-    json["publicAddress"] = _publicAddress;
-    json["keyPair"]       = _keyPair->json();
+    for (auto& account : _accounts)
+        json.push_back(account.second.json());
 
     return json;
 }
 
-// IO Stream operators
-namespace keyser
+void keyser::Wallet::json(nlohmann::json json)
 {
-    std::ostream& operator<<(std::ostream& out, Wallet& data) {
-        out << "Owner: "          << data.getName() << ", ";
-        out << "Public address: " << data.getPublicAddress();
-
-        return out;
+    for (auto accountJson : json)
+    {
+        Account account(accountJson);
+        _accounts[account.getName()] = account;
     }
+}
+
+void keyser::Wallet::displayAccounts()
+{
+    if (count() == 0)
+    {
+        std::cout << "No accounts." << std::endl;
+        return;
+    }
+
+    for (auto& account : _accounts)
+    {
+        std::cout << account.second << std::endl;
+    }
+}
+
+size_t keyser::Wallet::count() const
+{
+    return _accounts.size();
 }

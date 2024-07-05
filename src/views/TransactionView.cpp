@@ -4,15 +4,14 @@
 
 #include "./TransactionView.hpp"
 #include "../chain/Transaction.hpp"
-#include "../wallet/WalletManager.hpp"
+#include "../wallet/Wallet.hpp"
 
 
 keyser::cli::TransactionView::TransactionView(Node* node)
 {
     _node = node;
 
-    newTransaction();
-    clearScreen();
+    display();
 }
 
 void keyser::cli::TransactionView::display()
@@ -40,43 +39,34 @@ void keyser::cli::TransactionView::display()
                 break;
         }
 
-        clearScreen();
+        // clearScreen();
     }
     while(selection != '0');
 }
 
 void keyser::cli::TransactionView::newTransaction()
 {
-    uint        index;
+    std::string name;
     double      amount;
-    std::string recievingAddress;
+    std::string recipient;
     char        confirmation;
 
     displayTitle("Creating Transaction");
     displayTitle("Wallets");
 
-    _node->walletManager().displayWallets();
+    _node->wallet()->displayAccounts();
 
-    promptInput("Recieving address: ", recievingAddress);
-    promptInput("Sending wallet: ", index);
-    
-    if (index >= _node->walletManager().count())
-        return;
-
+    promptInput("Recieving address: ", recipient);
+    promptInput("Sending wallet: ", name);
     promptInput("Amount: ", amount);
 
-    Transaction transaction = Transaction(amount, recievingAddress, _node->walletManager().at(index).getKeyPair()->getUPublicKey());
-    transaction.sign(_node->walletManager().at(index).getKeyPair());
-    
-    std::cout << transaction << std::endl;
-    
     promptConfirmation(confirmation);
 
     if (confirmation != 'y')
         return;
 
-    bool success = _node->createTransaction(transaction);
-
+    bool success = _node->wallet()->createTransaction(amount, recipient, _node->wallet()->get(name));
+    
     if (!success)
-        std::cout << "Insufficient balance!" << std::endl;
+        std::cout << "Did not succeed!" << std::endl;
 }

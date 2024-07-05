@@ -1,41 +1,37 @@
 #include <iostream>
 #include <vector>
 
-#include "./Transaction.hpp"
 #include "./Mempool.hpp"
 
 
-std::vector<keyser::Transaction> keyser::Mempool::popLeadingTransactions()
+keyser::Mempool::Mempool(Node* node) : _node(node)
+{}
+
+std::vector<keyser::Transaction> keyser::Mempool::leadingTransactions()
 {
     // TODO - priortize gas fees
     std::vector<keyser::Transaction> transactions;
 
-    for (Transaction tx : _pendingTransactions)
+    for (auto tx : _pendingTransactions)
     {
-        transactions.push_back(tx);
-        _pendingTransactions.pop_front();
+        transactions.push_back(tx.second);
     }
     
     return transactions;
 }
 
-// double keyser::Mempool::getPendingBalance(std::string address)
-// {
-//     double balance = 0;
+void keyser::Mempool::processBlock(std::shared_ptr<Block> block)
+{
+    for (auto tx : block->_transactions)
+    {
+        auto iter = _pendingTransactions.find(tx.hash());
 
-//     for (Transaction tx : _pendingTransactions)
-//     {
-//         if (tx._recieverAddress == address)
-//             balance += tx._amount;
+        if (iter != _pendingTransactions.end())
+            _pendingTransactions.erase(iter);
+    }
+}
 
-//         if (tx._senderAddress == address)
-//             balance -= tx._amount;
-//     }
-
-//     return balance;
-// }
-
-void keyser::Mempool::printMempool()
+void keyser::Mempool::printMempool() const
 {
     if (_pendingTransactions.size() == 0)
     {
@@ -43,11 +39,11 @@ void keyser::Mempool::printMempool()
         return;
     }
 
-    for (Transaction tx : _pendingTransactions)
-        std::cout << tx << std::endl;
+    for (auto tx : _pendingTransactions)
+        std::cout << tx.second << std::endl;
 }
 
-std::deque<keyser::Transaction>& keyser::Mempool::pendingTransactions()
+std::unordered_map<std::string, keyser::Transaction>& keyser::Mempool::pendingTransactions()
 {
     return _pendingTransactions;
 }

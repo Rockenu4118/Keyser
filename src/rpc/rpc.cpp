@@ -158,27 +158,27 @@ void keyser::RPC::handleGetWallets(boost::beast::http::response<boost::beast::ht
 {
     nlohmann::json res = nlohmann::json::array();
 
-    for (int i = 0 ; i < _node->walletManager().count() ; i++)
-        res.push_back(_node->walletManager().at(i).json());
+    // for (int i = 0 ; i < _node->walletManager()->count() ; i++)
+    //     res.push_back(_node->walletManager()->at(i).json());
 
-    response.result(boost::beast::http::status::ok);
-    response.body() = res.dump(2);
+    // response.result(boost::beast::http::status::ok);
+    // response.body() = res.dump(2);
 }
 
 void keyser::RPC::handleCreateWallet(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
 {
     nlohmann::json res;
 
-    _node->walletManager().createWallet(params.at(0));
+    // _node->walletManager()->createWallet(params.at(0));
 
-    response.result(boost::beast::http::status::ok);
-    response.body() = res.dump();
+    // response.result(boost::beast::http::status::ok);
+    // response.body() = res.dump();
 }
 
 void keyser::RPC::handleGetBalance(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string> &params)
 {
     nlohmann::json res;
-    res["balance"] = _node->getAddressBalance(params.at(0));
+    res["balance"] = _node->utxoSet()->ownerTotalUtxo(params.at(0));
 
     response.result(boost::beast::http::status::ok);
     response.body() = res.dump();
@@ -187,7 +187,7 @@ void keyser::RPC::handleGetBalance(boost::beast::http::response<boost::beast::ht
 void keyser::RPC::handleGetHeight(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string> &params)
 {
     nlohmann::json res;
-    res["height"] = _node->getHeight();
+    res["height"] = _node->chain()->getHeight();
 
     response.result(boost::beast::http::status::ok);
     response.body() = res.dump();
@@ -199,7 +199,7 @@ void keyser::RPC::handleGetBlock(boost::beast::http::response<boost::beast::http
 
     try
     {
-        block = _node->getBlock(stoi(params.at(0)));
+        block = _node->chain()->getBlock(stoi(params.at(0)));
     }
     catch(const std::out_of_range& err)
     {
@@ -234,9 +234,9 @@ void keyser::RPC::handleGetBlocks(boost::beast::http::response<boost::beast::htt
     {
         for (int i = first ; i <= last ; i++)
         {
-            block = _node->getBlock(i);
+            block = _node->chain()->getBlock(i);
             res.push_back(block->json());
-        }  
+        }
     }
     catch(const std::out_of_range& e)
     {
@@ -255,8 +255,8 @@ void keyser::RPC::handleGetMempool(boost::beast::http::response<boost::beast::ht
 {
     nlohmann::json res = nlohmann::json::array();
 
-    for (auto& tx : _node->pendingTransactions())
-        res.push_back(tx.json());
+    for (auto& tx : _node->mempool()->pendingTransactions())
+        res.push_back(tx.second.json());
 
     response.result(boost::beast::http::status::ok);
     response.body() = res.dump();
@@ -288,14 +288,14 @@ void keyser::RPC::handleStopMining(boost::beast::http::response<boost::beast::ht
 void keyser::RPC::handleGetSelfInfo(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
 {
     response.result(boost::beast::http::status::ok);
-    response.body() = _node->getSelfInfo().json().dump();
+    response.body() = _node->network()->getSelfInfo().json().dump();
 }
 
 void keyser::RPC::handleGetPeerInfo(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
 {
     nlohmann::json res = nlohmann::json::array();
 
-    for (auto& info : _node->getConnections())
+    for (auto& info : _node->network()->getConnections())
         res.push_back(info.json());
 
     response.result(boost::beast::http::status::ok);
@@ -306,7 +306,7 @@ void keyser::RPC::handleGetActiveNodeInfo(boost::beast::http::response<boost::be
 {
     nlohmann::json res = nlohmann::json::array();
 
-    for (auto& info : _node->getActiveNodes())
+    for (auto& info : _node->network()->getActiveNodes())
         res.push_back(info.json());
 
     response.result(boost::beast::http::status::ok);

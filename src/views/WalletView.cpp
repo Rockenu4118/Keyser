@@ -55,24 +55,24 @@ void keyser::cli::WalletView::display()
 void keyser::cli::WalletView::viewWallets()
 {
     displayTitle("Wallets");
-    _node->walletManager().displayWallets();
+    _node->wallet()->displayAccounts();
 }
 
 void keyser::cli::WalletView::viewBalance()
 {
     displayTitle("Balance");
-    std::string address;
-    std::cout << "Address: ";
-    std::cin >> address;
-    std::cout << "Balance: " << _node->getAddressBalance(address) << std::endl;
+    std::string name;
+    std::cout << "Name: ";
+    std::cin >> name;
+    std::cout << "Balance: " << _node->utxoSet()->ownerTotalUtxo(_node->wallet()->get(name).getPublicAddress()) << std::endl;
 }
 
 void keyser::cli::WalletView::createWallet()
 {
     std::string name;
 
-    displayTitle("New Wallet");
+    displayTitle("New Account");
     std::cout << "Name: ";
     std::cin >> name;
-    _node->walletManager().createWallet(name);
+    _node->wallet()->createAccount(name);
 }

@@ -12,9 +12,3 @@
 | Public address | 0x183944191006324a447bdb2d98d4b408                                                                                                 |
 | Private Key    | 18E14A7B6A307F426A94F8114701E7C8E774E7F9A47E2C2035DB29A206321725                                                                   |
 | UPublic Key    | 0450863AD64A87AE8A2FE83C1AF1A8403CB53F53E486D8511DAD8A04887E5B23522CD470243453A299FA9E77237716103ABC11A1DF38855ED6F2EE187E9C582BA6 |
-
-| Genesis        |                                                                                                                                    |
-|----------------|------------------------------------------------------------------------------------------------------------------------------------|
-| Public address | 0x33a1f6d9f637df8a805f6cc659d2366b                                                                                                 |
-| Private Key    | 279E1F972138A63F3EB46B0513B20ECCFCBD6CAF80443E0A076D456556666BEC                                                                   |
-| UPublic Key    | 046E1C1B9214B0E59C89C0C4CB9A14723178157141C0BE7FA08469F12572BF839BB5EBC4C3AFB853792E67E7EDC9CD141881BF6403CB25FE62942FC20CED34F476 |

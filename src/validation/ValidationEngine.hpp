@@ -2,6 +2,7 @@
 #define VALIDATION_ENGINE_H
 
 #include <vector>
+#include <memory>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -21,15 +22,16 @@ namespace keyser
         public:
             ValidationEngine(Node* node);
 
-            bool validateBlock(Block& block);
+            ~ValidationEngine() = default;
+
+            bool validateBlock(std::shared_ptr<Block> block);
+
+            void processValidBlock(std::shared_ptr<Block> block);
 
             bool validateTransaction(Transaction transaction);
 
         private:
             Node* _node;
-
-            std::unordered_map<std::string, Block> _orphanBlocks{};
-  
     };
 }
 

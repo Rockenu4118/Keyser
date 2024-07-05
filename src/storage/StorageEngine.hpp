@@ -8,43 +8,42 @@
 
 #include "../app/Settings.hpp"
 #include "../chain/Block.hpp"
-#include "../wallet/WalletManager.hpp"
+#include "../wallet/Wallet.hpp"
 #include "../node/NodeInfo.hpp"
 
 
-namespace keyser
-{
-    // Forward declare
-    class Node;
+// namespace keyser
+// {
+//     class Wallet;
 
-    class StorageEngine
-    {
-        public:
-            StorageEngine();
+//     class StorageEngine
+//     {
+//         public:
+//             StorageEngine();
             
-            ~StorageEngine();
+//             ~StorageEngine();
 
-            void saveSettings(const Settings& settings);
-            void loadSettings(Settings& settings);
+//             void saveSettings(const Settings& settings);
+//             void loadSettings(Settings& settings);
 
-            void saveBlock(const Block& block);
-            void loadBlock(std::string hash, Block& block);
+//             void saveBlock(const Block& block);
+//             void loadBlock(std::string hash, Block& block);
 
-            void saveWallets(const WalletManager& wallets);
-            void loadWallets(WalletManager& wallets);
+//             void saveWallets(const Wallet& wallet);
+//             void loadWallets(Wallet& wallet);
 
-            void savePeer(const NodeInfo& nodeInfo);
-            void loadPeer(NodeInfo& nodeInfo);
+//             void savePeer(const NodeInfo& nodeInfo);
+//             void loadPeer(NodeInfo& nodeInfo);
 
-        private:
-            leveldb::Status status;
+//         private:
+//             leveldb::Status status;
 
-            leveldb::DB* _db;
-            leveldb::DB* _blocks;
-            leveldb::DB* _wallets;
-            leveldb::DB* _peers;
+//             leveldb::DB* _db;
+//             leveldb::DB* _blocks;
+//             leveldb::DB* _wallets;
+//             leveldb::DB* _peers;
 
-    };
-}
+//     };
+// }
 
 #endif

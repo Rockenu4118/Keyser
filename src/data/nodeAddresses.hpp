@@ -6,7 +6,7 @@
 
 #include "../node/NodeInfo.hpp"
 
-// Hard code nodeInfo in future
+// TODO - hardcode node info
 
 
 #endif

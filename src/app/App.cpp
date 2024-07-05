@@ -1,11 +1,8 @@
 #include <iostream>
 
 #include "./App.hpp"
-#include "../views/RootView.hpp"
-#include "../node/Node.hpp"
-#include "../rpc/rpc.hpp"
 
-keyser::App::App() : _node(nullptr), _rpc(nullptr), _view(nullptr)
+keyser::App::App() : _node(nullptr),  _view(nullptr)
 {}
 
 void keyser::App::run()
@@ -22,14 +19,13 @@ void keyser::App::run()
     _node->run();
 
     // Startup RPC API
-    _rpc = new keyser::RPC(_node, port + 2080);
-    _rpc->run();
-
-    
+    // _rpc = new keyser::RPC(_node, port + 2080);
+    // _rpc->run();
 
     // Initialize CLI
     _view = new cli::RootView(_node);
 
     delete _node;
-    delete _rpc;
+    delete _view;
+    // delete _rpc;
 }

@@ -1,117 +1,88 @@
 #ifndef NODE_H
 #define NODE_H
 
-#include "../net/NetInterface.hpp"
+#include <memory>
+
 #include "../net/Peer.hpp"
-
+#include "../chain/UtxoSet.hpp"
 #include "../chain/Chain.hpp"
-#include "../storage/StorageEngine.hpp"
-#include "../validation/ValidationEngine.hpp"
-#include "../chain/Transaction.hpp"
-#include "../chain/Block.hpp"
-#include "../node/NodeInfo.hpp"
-#include "../wallet/WalletManager.hpp"
+#include "../chain/Miner.hpp"
 #include "../chain/Mempool.hpp"
-
+#include "../net/NetInterface.hpp"
+#include "../validation/ValidationEngine.hpp"
+#include "../wallet/Wallet.hpp"
+#include "../chain/Transaction.hpp"
 
 namespace keyser
 {
     // Forward declare
+    class UtxoSet;
+    class Chain;
+    class Miner;
+    class Mempool;
+    class NetInterface;
     class ValidationEngine;
+    class Wallet;
 
-    class Node : public Chain, public Mempool, public NetInterface
+    class Node
     {
-        public:
-            enum class Status : uint32_t
-            {
-                Offline,
-                Syncing,
-                Online
-            };
+    public:
+        enum class Status : uint16_t
+        {
+            Offline,
+            Syncing,
+            Online
+        };
 
-            Node(uint16_t port);
+        Node(uint16_t port);
 
-            ~Node();
+        ~Node();
 
-            void run();
-            void shutdown();
+        void run();
 
-            Status getStatus() const;
-            time_t getUptime() const;
+        void shutdown();
 
-            void beginMining(uint numBlocks = -1);
-            void stopMining();
+        Status status() const;
 
-            bool createTransaction(Transaction& transaction);
+        void status(Status status);
 
-            void broadcastSelf();
+        time_t getUptime() const;
 
-            void completedInitialBlockDownload();
+        bool shutdownFlag() const;
 
-            void ping();
-            void pong();
+        void beginMining(uint numBlocks = -1);
 
-            void version(std::shared_ptr<Peer> peer);
-            void verack(std::shared_ptr<Peer> peer);
+        void stopMining();
 
-            void getHeaders();
-            void sendHeaders(std::shared_ptr<Peer> peer);
+        bool submitTransaction(Transaction transaction);
 
-            void getBlocks();
-            void sendBlocks(std::shared_ptr<Peer> peer, int blockIndex);
+        std::shared_ptr<Chain>& chain();
 
-            void getNodeList();
-            void nodeInfoStream(std::shared_ptr<Peer> peer);
+        std::shared_ptr<Miner>& miner();
 
-            void getData();
-            void inv(std::shared_ptr<Peer> peer, int startingBlock);
-            
-            WalletManager& walletManager();
+        std::shared_ptr<Mempool>& mempool();
 
-        protected:
-            // Event handlers
-            virtual bool allowConnect(std::shared_ptr<Peer> peer);
-            virtual void onOutgoingConnect(std::shared_ptr<Peer> peer);
-            virtual void onIncomingConnect(std::shared_ptr<Peer> peer);
-            virtual void onDisconnect(std::shared_ptr<Peer> peer);
-            virtual void onMessage(std::shared_ptr<Peer> peer, Message& msg);
+        std::shared_ptr<UtxoSet>& utxoSet();
 
-        private:
-            // Distribution msgs only called by public functions
-            void distributeNodeInfo(NodeInfo& nodeInfo);
-            void distributeBlock(Block& block);
-            void distributeTransaction(Transaction& transaction);
+        std::shared_ptr<NetInterface>& network();
 
-            // Msg Handlers
-            void handlePing(std::shared_ptr<Peer> peer, Message& msg);
-            void handleDistributeNodeInfo(std::shared_ptr<Peer> peer, Message& msg);
-            void handleDistributeBlock(std::shared_ptr<Peer> peer, Message& msg);
-            void handleDistributeTransaction(std::shared_ptr<Peer> peer, Message& msg);
-            void handleVersion(std::shared_ptr<Peer> peer, Message& msg);
-            void handleVerack(std::shared_ptr<Peer> peer, Message& msg);
-            void handleGetBlocks(std::shared_ptr<Peer> peer, Message& msg);
-            void handleInv(std::shared_ptr<Peer> peer, Message& msg);
-            void handleGetData(std::shared_ptr<Peer> peer, Message& msg);
-            void handleBlock(std::shared_ptr<Peer> peer, Message& msg);
-            void handleGetNodeList(std::shared_ptr<Peer> peer, Message& msg);
-            void handleNodeInfo(std::shared_ptr<Peer> peer, Message& msg);
-            void handleGetHeaders(std::shared_ptr<Peer> peer, Message& msg);
-            void handleHeaders(std::shared_ptr<Peer> peer, Message& msg);
+        std::shared_ptr<ValidationEngine>& validationEngine();
 
-            // Members
-            Status _status = Status::Offline;
+        std::shared_ptr<Wallet>& wallet();
 
-            StorageEngine     _storageEngine;
-            ValidationEngine* _validationEngine = nullptr;
-            
-            WalletManager _walletManager;
+    private:
+        Status _status = Status::Offline;
+        time_t _startTime;
 
-            std::thread _miningThr;
-            bool        _miningStatus = false;
+        std::shared_ptr<UtxoSet> _utxoSet;
+        std::shared_ptr<Chain> _chain;
+        std::shared_ptr<Miner> _miner;
+        std::shared_ptr<Mempool> _mempool;
+        std::shared_ptr<NetInterface> _network;
+        std::shared_ptr<ValidationEngine> _validationEngine;
+        std::shared_ptr<Wallet> _wallet;
 
-            time_t _startTime;
-
-            bool _shutdownNode = false;
+        bool _shutdownNode = false;
     };
 }
 

@@ -52,6 +52,19 @@ std::string keyser::utils::hexToString(const std::string& input)
     return output;
 }
 
+bool keyser::utils::isValidHash(std::string hash, uint8_t difficulty)
+{
+    for (uint i = 0 ; i < difficulty ; i++)
+    {
+        if (hash[i] != '0') 
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 std::string keyser::utils::localTimestamp()
 {
     time_t t = time(NULL);
