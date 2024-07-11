@@ -11,7 +11,7 @@
 #include "./MsgTypes.hpp"
 #include "../chain/Block.hpp"
 #include "../chain/Transaction.hpp"
-#include "../node/NodeInfo.hpp"
+#include "../node/PeerInfo.hpp"
 
 
 

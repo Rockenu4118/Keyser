@@ -7,7 +7,7 @@
 
 #include "../node/Node.hpp"
 #include "./NetInterface.hpp"
-#include "../node/NodeInfo.hpp"
+#include "../node/PeerInfo.hpp"
 #include "../net/Peer.hpp"
 
 namespace keyser
@@ -18,7 +18,7 @@ namespace keyser
     class Server
     {
         public:
-            Server(Node* node, NetInterface* network, uint16_t port, boost::asio::io_context& context);
+            Server(Node* node, NetInterface* network, uint16_t port, boost::asio::io_context& context, std::thread& contextThr);
 
             ~Server();
 
@@ -57,6 +57,10 @@ namespace keyser
 
             // Asio context
             boost::asio::io_context& _context;
+            std::thread& _contextThr;
+
+            boost::asio::io_context _serverContext;
+            std::thread _serverContextThr;
 
             // Asio acceptor
             boost::asio::ip::tcp::acceptor _acceptor; 

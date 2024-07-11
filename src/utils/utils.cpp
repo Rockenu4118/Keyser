@@ -14,7 +14,7 @@
 #include "../wallet/Wallet.hpp"
 #include "../chain/Transaction.hpp"
 #include "../chain/Block.hpp"
-#include "../node/NodeInfo.hpp"
+#include "../node/PeerInfo.hpp"
 
 
 std::string keyser::utils::pubKeytoAddress(const std::string& uPublicKey)

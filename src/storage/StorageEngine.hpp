@@ -9,7 +9,6 @@
 #include "../app/Settings.hpp"
 #include "../chain/Block.hpp"
 #include "../wallet/Wallet.hpp"
-#include "../node/NodeInfo.hpp"
 
 
 // namespace keyser

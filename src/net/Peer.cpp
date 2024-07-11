@@ -2,7 +2,7 @@
 
 #include "./Peer.hpp"
 
-keyser::Peer::Peer(NodeInfo::Direction direction,
+keyser::Peer::Peer(PeerInfo::Direction direction,
                    boost::asio::io_context& asioContext, 
                    boost::asio::ip::tcp::socket socket, 
                    tsqueue<OwnedMessage>& qMessagesIn,
@@ -35,7 +35,7 @@ bool keyser::Peer::isConnected() const
     return _socket.is_open();
 }
 
-keyser::NodeInfo& keyser::Peer::info()
+keyser::PeerInfo& keyser::Peer::info()
 {
     return _info;
 }
@@ -202,8 +202,8 @@ namespace keyser
     {
         out << "[" << data.getId() << "] ";
         out << data.getEndpoint() << ", ";
-        out << "Hosting on: " << data.info()._port << ", ";
-        out << "Direction: " << (data.info().direction == NodeInfo::Direction::Outbound ? "Outbound" : "Inbound");
+        out << "Hosting on: " << data.info().port << ", ";
+        out << "Direction: " << (data.info().direction == PeerInfo::Direction::Outbound ? "Outbound" : "Inbound");
 
         return out;
     }

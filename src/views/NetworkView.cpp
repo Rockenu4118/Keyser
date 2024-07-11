@@ -4,7 +4,7 @@
 
 #include "./NetworkView.hpp"
 #include "../node/Node.hpp"
-#include "../node/NodeInfo.hpp"
+#include "../node/PeerInfo.hpp"
 
 
 keyser::cli::NetworkView::NetworkView(Node* node)
@@ -26,6 +26,7 @@ void keyser::cli::NetworkView::display()
         std::cout << "[2] View active nodes"    << std::endl;
         std::cout << "[3] Self Info"            << std::endl;
         std::cout << "[4] New connection"       << std::endl;
+        std::cout << "[5] Start server"         << std::endl;
         std::cout << "[0] Exit"                 << std::endl;
         std::cout << std::endl;
 
@@ -35,12 +36,12 @@ void keyser::cli::NetworkView::display()
         {
             case '1':
                 displayTitle("Connections");
-                _node->network()->displayConnections();
+                _node->network()->displayPeers();
                 continueMsg();
                 break;
             case '2':
                 displayTitle("Active Nodes");
-                _node->network()->displayActiveNodes();
+                _node->network()->displayListeningNodes();
                 continueMsg();
                 break;
             case '3':
@@ -50,6 +51,10 @@ void keyser::cli::NetworkView::display()
                 break;
             case '4':
                 newConnection();
+                continueMsg();
+                break;
+            case '5':
+                _node->network()->startServer();
                 continueMsg();
                 break;
             default:
@@ -64,13 +69,13 @@ void keyser::cli::NetworkView::display()
 
 void keyser::cli::NetworkView::newConnection()
 {
-    NodeInfo nodeInfo;
-    nodeInfo._address = "127.0.0.1";
+    PeerInfo peerInfo;
+    peerInfo.address = "127.0.0.1";
 
     std::cout << "Ip: ";
-    std::cin >> nodeInfo._address;
+    std::cin >> peerInfo.address;
     std::cout << "Port: ";
-    std::cin >> nodeInfo._port;
+    std::cin >> peerInfo.port;
 
-    _node->network()->client()->connect(nodeInfo);
+    _node->network()->client()->connect(peerInfo);
 }

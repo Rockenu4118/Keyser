@@ -6,7 +6,7 @@
 
 #include "./Message.hpp"
 #include "./OwnedMessage.hpp"
-#include "../node/NodeInfo.hpp"
+#include "../node/PeerInfo.hpp"
 
 
 namespace keyser
@@ -19,7 +19,7 @@ namespace keyser
         friend std::ostream& operator<<(std::ostream& out, Peer& data);
 
         public:
-            Peer(NodeInfo::Direction direction,
+            Peer(PeerInfo::Direction direction,
                  boost::asio::io_context& asioContext,
                  boost::asio::ip::tcp::socket socket, 
                  tsqueue<OwnedMessage>& qMessagesIn, 
@@ -31,7 +31,7 @@ namespace keyser
             bool isConnected() const;
             boost::asio::ip::tcp::endpoint getEndpoint() const;
 
-            NodeInfo& info();
+            PeerInfo& info();
 
             bool connect(const boost::asio::ip::tcp::endpoint& endpoint);
             void disconnect();
@@ -52,7 +52,7 @@ namespace keyser
             tsqueue<OwnedMessage>&       _messagesIn;
             Message                      _msgTemporaryIn;
 
-            NodeInfo _info;
+            PeerInfo _info;
     };
 }
 

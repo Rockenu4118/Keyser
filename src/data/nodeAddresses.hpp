@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 
-#include "../node/NodeInfo.hpp"
 
 // TODO - hardcode node info
 

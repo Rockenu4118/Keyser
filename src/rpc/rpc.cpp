@@ -306,8 +306,8 @@ void keyser::RPC::handleGetActiveNodeInfo(boost::beast::http::response<boost::be
 {
     nlohmann::json res = nlohmann::json::array();
 
-    for (auto& info : _node->network()->getActiveNodes())
-        res.push_back(info.json());
+    for (const auto& pair : _node->network()->listeningNodes())
+        res.push_back(pair.second.json());
 
     response.result(boost::beast::http::status::ok);
     response.body() = res.dump();

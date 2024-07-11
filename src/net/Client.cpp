@@ -1,25 +1,29 @@
 #include "./Client.hpp"
 
 
-keyser::Client::Client(Node* node, NetInterface* network, boost::asio::io_context& context) : _node(node), _network(network), _context(context)
+keyser::Client::Client(Node* node, NetInterface* network, boost::asio::io_context& context, std::thread& contextThr)
+    : _node(node), _network(network), _context(context), _contextThr(contextThr)
 {}
 
-bool keyser::Client::connect(const NodeInfo nodeInfo)
-{   
-    if (_network->getSelfInfo() == nodeInfo)
-        return false;
+keyser::Client::~Client()
+{
+    _clientContext.stop();
 
-    if (_network->connectedNodeList().count(nodeInfo) == 1)
-    {
+    if (_clientContextThr.joinable())
+        _clientContextThr.join();
+}
+
+bool keyser::Client::connect(const PeerInfo peerInfo)
+{   
+    if (!allowConnect(peerInfo))
         return false;
-    }
 
     try
     {
-        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::make_address(nodeInfo._address), nodeInfo._port);
+        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::make_address(peerInfo.address), peerInfo.port);
 
         // Create connection
-        auto newConn = std::make_shared<Peer>(NodeInfo::Direction::Outbound, _context, boost::asio::ip::tcp::socket(_context), _network->messagesIn(), _network->assignId());
+        auto newConn = std::make_shared<Peer>(PeerInfo::Direction::Outbound, _clientContext, boost::asio::ip::tcp::socket(_clientContext), _network->messagesIn(), _network->assignId());
 
         // Tell connection object to connect, if failed return false and reset connection
         if (!newConn->connect(endpoint))
@@ -28,8 +32,10 @@ bool keyser::Client::connect(const NodeInfo nodeInfo)
             return false;
         }
 
-        newConn->info()._address = newConn->getEndpoint().address().to_string();
-        newConn->info()._port    = newConn->getEndpoint().port();
+        _clientContextThr = std::thread([this]() { _clientContext.run(); });
+
+        newConn->info().address = newConn->getEndpoint().address().to_string();
+        newConn->info().port    = newConn->getEndpoint().port();
 
         // Connection moved to back of connection container
         _network->peers().push_back(std::move(newConn));
@@ -45,13 +51,24 @@ bool keyser::Client::connect(const NodeInfo nodeInfo)
     return true;
 }
 
+bool keyser::Client::allowConnect(PeerInfo peerInfo) const
+{
+    if (_network->getSelfInfo() == peerInfo)
+        return false;
+
+    // if (_network->connectedNodeList().count(nodeInfo) == 1)
+    //     return false;
+
+    return true;
+}
+
 void keyser::Client::version(std::shared_ptr<Peer> peer)
 {
     // Send self info as well as their external address
     Message msg(MsgTypes::Version);
-    msg.json()["Outbound version"] = _network->getSelfInfo()._version;
-    msg.json()["Outbound alias"]   = _network->getSelfInfo()._alias;
-    msg.json()["Outbound port"]    = _network->getSelfInfo()._port;
+    msg.json()["Outbound version"] = _network->getSelfInfo().version;
+    msg.json()["Outbound alias"]   = _network->getSelfInfo().alias;
+    msg.json()["Outbound port"]    = _network->getSelfInfo().port;
     msg.json()["chainHeight"]      = _node->chain()->getHeight();
     msg.json()["address"]          = peer->getEndpoint().address().to_string();
     
@@ -107,34 +124,27 @@ void keyser::Client::handleVerack(std::shared_ptr<Peer> peer, Message& msg)
     msg.unpackPayload();
 
     // Save external address
-    _network->getSelfInfo()._address = msg.json()["address"];
+    _network->getSelfInfo().address = msg.json()["address"];
 
     // unpackPayload incoming node info
-    peer->info()._version = msg.json()["Outbound version"];
-    peer->info()._alias   = msg.json()["Outbound alias"];
-
-    // Add info to connected node list and active node list
-    _network->connectedNodeList().insert(peer->info());
-    _network->activeNodeList().insert(peer->info());
+    peer->info().version = msg.json()["Outbound version"];
+    peer->info().alias   = msg.json()["Outbound alias"];
     
     // Get block inv if needed
     if (!_node->chain()->blockInvRecieved())
         getBlocks();
     
-    // Get node list if needed
-    // if (!_recievedNodeList)
-    //     getNodeList();
+    getNodeList();
 }
 
-void keyser::Client::handleNodeInfo(std::shared_ptr<Peer> peer, Message& msg)
+void keyser::Client::handlePeerInfo(std::shared_ptr<Peer> peer, Message& msg)
 {
     msg.unpackPayload();
 
     for (auto& info : msg.json())
     {
-        NodeInfo nodeInfo(info);
-        _network->activeNodeList().insert(nodeInfo);
-        _network->potentialConnections().push_back(nodeInfo);
+        PeerInfo peerInfo(info);
+        _network->listeningNodes()[peerInfo.endpoint()] = peerInfo;
     }
 
     _network->managePeers();
@@ -157,7 +167,7 @@ void keyser::Client::handleInv(std::shared_ptr<Peer> peer, Message& msg)
         _node->chain()->inventory().push_back(i);
     }
 
-    getData(); 
+    getData();
 }
 
 void keyser::Client::handleBlock(std::shared_ptr<Peer> peer, Message& msg)
@@ -173,4 +183,6 @@ void keyser::Client::handleBlock(std::shared_ptr<Peer> peer, Message& msg)
 }
 
 void keyser::Client::onOutgoingConnect(std::shared_ptr<Peer> peer)
-{}
+{
+    // version(peer);
+}

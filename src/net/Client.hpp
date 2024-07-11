@@ -17,11 +17,13 @@ namespace keyser
     class Client
     {
         public:
-            Client(Node* node, NetInterface* network, boost::asio::io_context& context);
+            Client(Node* node, NetInterface* network, boost::asio::io_context& context, std::thread& contextThr);
 
-            ~Client() = default;
+            ~Client();
 
-            bool connect(const NodeInfo nodeInfo);
+            bool connect(PeerInfo peerInfo);
+
+            bool allowConnect(PeerInfo peerInfo) const;
 
             void version(std::shared_ptr<Peer> peer);
 
@@ -37,7 +39,7 @@ namespace keyser
 
             // Msg Handlers
             void handleVerack(std::shared_ptr<Peer> peer, Message& msg);
-            void handleNodeInfo(std::shared_ptr<Peer> peer, Message& msg);
+            void handlePeerInfo(std::shared_ptr<Peer> peer, Message& msg);
             void handleHeaders(std::shared_ptr<Peer> peer, Message& msg);
             void handleInv(std::shared_ptr<Peer> peer, Message& msg);
             void handleBlock(std::shared_ptr<Peer> peer, Message& msg);
@@ -49,6 +51,12 @@ namespace keyser
             NetInterface* _network;
 
             boost::asio::io_context& _context;
+
+            std::thread& _contextThr;
+
+            boost::asio::io_context _clientContext;
+
+            std::thread _clientContextThr;
 
     };
 }
