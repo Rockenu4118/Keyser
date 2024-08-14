@@ -195,60 +195,60 @@ void keyser::RPC::handleGetHeight(boost::beast::http::response<boost::beast::htt
 
 void keyser::RPC::handleGetBlock(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string> &params)
 {
-    std::shared_ptr<Block> block;
+    // std::shared_ptr<Block> block;
 
-    try
-    {
-        block = _node->chain()->getBlock(stoi(params.at(0)));
-    }
-    catch(const std::out_of_range& err)
-    {
-        std::cerr << err.what() << std::endl;
+    // try
+    // {
+    //     block = _node->chain()->getBlock(stoi(params.at(0)));
+    // }
+    // catch(const std::out_of_range& err)
+    // {
+    //     std::cerr << err.what() << std::endl;
 
-        response.result(boost::beast::http::status::bad_request);
-        response.body() = "Invalid block.";
-        return;
-    }
+    //     response.result(boost::beast::http::status::bad_request);
+    //     response.body() = "Invalid block.";
+    //     return;
+    // }
      
-    response.result(boost::beast::http::status::ok);
-    response.body() = block->json().dump();
+    // response.result(boost::beast::http::status::ok);
+    // response.body() = block->json().dump();
 }
 
 void keyser::RPC::handleGetBlocks(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
 {
-    nlohmann::json res = nlohmann::json::array();
+    // nlohmann::json res = nlohmann::json::array();
 
-    int first = stoi(params.at(0));
-    int last  = stoi(params.at(1));
+    // int first = stoi(params.at(0));
+    // int last  = stoi(params.at(1));
 
-    if ((last - first) > 100)
-    {
-        response.result(boost::beast::http::status::bad_request);
-        response.body() = "Excessive blocks requested.";
-        return;
-    }
+    // if ((last - first) > 100)
+    // {
+    //     response.result(boost::beast::http::status::bad_request);
+    //     response.body() = "Excessive blocks requested.";
+    //     return;
+    // }
 
-    std::shared_ptr<Block> block;
+    // std::shared_ptr<Block> block;
 
-    try
-    {
-        for (int i = first ; i <= last ; i++)
-        {
-            block = _node->chain()->getBlock(i);
-            res.push_back(block->json());
-        }
-    }
-    catch(const std::out_of_range& e)
-    {
-        std::cerr << e.what() << '\n';
+    // try
+    // {
+    //     for (int i = first ; i <= last ; i++)
+    //     {
+    //         block = _node->chain()->getBlock(i);
+    //         res.push_back(block->json());
+    //     }
+    // }
+    // catch(const std::out_of_range& e)
+    // {
+    //     std::cerr << e.what() << '\n';
 
-        response.result(boost::beast::http::status::bad_request);
-        response.body() = "Invalid blocks.";
-        return;
-    }
+    //     response.result(boost::beast::http::status::bad_request);
+    //     response.body() = "Invalid blocks.";
+    //     return;
+    // }
     
-    response.result(boost::beast::http::status::ok);
-    response.body() = res.dump();
+    // response.result(boost::beast::http::status::ok);
+    // response.body() = res.dump();
 }
 
 void keyser::RPC::handleGetMempool(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
@@ -288,7 +288,7 @@ void keyser::RPC::handleStopMining(boost::beast::http::response<boost::beast::ht
 void keyser::RPC::handleGetSelfInfo(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)
 {
     response.result(boost::beast::http::status::ok);
-    response.body() = _node->network()->getSelfInfo().json().dump();
+    response.body() = _node->network()->selfInfo().json().dump();
 }
 
 void keyser::RPC::handleGetPeerInfo(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string>& params)

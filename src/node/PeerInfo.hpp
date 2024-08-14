@@ -9,11 +9,30 @@ namespace keyser
 {
     struct Endpoint
     {
+        friend bool operator==(const Endpoint& lhs, const Endpoint& rhs);
+
+        Endpoint() = default;
+
+        std::string string();
+
         std::string address;
         uint16_t    port;
     };
 
-    struct PeerInfo
+    struct NodeInfo
+    {
+        NodeInfo() = default;
+
+        NodeInfo(nlohmann::json json);
+
+        nlohmann::json json() const;
+
+        std::string version;
+        std::string services;
+        Endpoint    endpoint;
+    };
+
+    struct PeerInfo : public NodeInfo
     {
         enum class Direction : uint8_t
         {
@@ -24,39 +43,16 @@ namespace keyser
         // IO Stream operators
         friend std::ostream& operator<<(std::ostream& out, PeerInfo& data);
 
-        // Need to overload < operator to be compatible with std::set
-        friend bool operator<(const PeerInfo& lhs, const PeerInfo& rhs);
-
         friend bool operator==(const PeerInfo& lhs, const PeerInfo& rhs);
 
         PeerInfo() = default;
 
         PeerInfo(nlohmann::json json);
 
-        std::string endpoint() const
-        { 
-            std::string endpoint = address + ":" + std::to_string(port);
-            return endpoint;
-        };
-
-        nlohmann::json json() const
-        {
-            nlohmann::json json;
-
-            json["version"] = version;
-            json["alias"]   = alias;
-            json["address"] = address;
-            json["port"]    = port;
-
-            return json;
-        }
+        nlohmann::json json() const;
 
         uint16_t    id;
         Direction   direction;
-        std::string version;
-        std::string alias;
-        std::string address;
-        uint16_t    port;
     };
 }
 

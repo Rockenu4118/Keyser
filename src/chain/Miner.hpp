@@ -26,7 +26,7 @@ namespace keyser
 
             void stop();
 
-            std::shared_ptr<Block> constructBlock(std::string rewardRecipient);
+            Block constructBlock(std::string rewardRecipient);
 
         private:
             Node* _node;

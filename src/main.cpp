@@ -5,40 +5,67 @@
 //  Copyright (c) 2023 Hermosillo. All rights reserved.
 //
 
-#include "./app/App.hpp"
-#include "./chain/Block.hpp"
-#include "./chain/Transaction.hpp"
-#include "./storage/StorageEngine.hpp"
-#include "./wallet/Account.hpp"
+// #include "./app/App.hpp"
+// #include "./chain/Block.hpp"
+// #include "./chain/Transaction.hpp"
+// #include "./storage/StorageEngine.hpp"
+// #include "./wallet/Account.hpp"
 
-#include <leveldb/db.h>
+#include <Stealth.hpp>
 #include <string>
 #include <map>
 
+#include <openssl/aes.h>
+#include <openssl/evp.h>
+
+#include <crypto++/sha.h>
+#include <crypto++/integer.h>
+#include <crypto++/eccrypto.h>
+
+using namespace std;
+using namespace CryptoPP;
+
+void ahh()
+{
+    
+}
 
 
+std::string addrGen(std::string pubSpend, std::string pubView)
+{
+    return pubSpend + pubView;
+}
 
 int main()
-{  
+{   
+
     std::cout << "Running..." << std::endl;
+    crypto::StealthKeys aj;
 
-    // keyser::UTXO tx1;
-    // tx1._output._amount = 1000;
-    // keyser::UTXO tx2;
-    // tx2._output._amount = 122;
+    // std::cout << aj << std::endl;
 
-    // std::vector<keyser::UTXO> txs;
-    // txs.push_back(tx1);
-    // txs.push_back(tx2);
+    crypto::StealthKeys alice("D1D215CF7D7D790D52BF2C380269A1B64699385B4FE119E7DFD16BCD2BF0DCFD");
 
 
-    // keyser::Transaction tx(txs, 1100, 0, "0x183944191006324a447bdb2d98d4b408", "jim");
+    crypto::StealthKeys bob("F14B047E6EBD4C0A371E3DC0478561EA686C327EB9FFE593A35A300D8072A271");
 
-    // for (auto out : tx._outputs)
-    //     std::cout << out << std::endl;
+    std::string R;
 
-    keyser::App app;
-    app.run();
+    std::string bob2aliceAddr = bob.genStealthAddr(alice.getPublicAddr(), R);
+
+    std::string image =  alice.genImage(bob2aliceAddr, R);
+
+    std::cout << "Image: " << image << std::endl;
+
+
+
+
+    // std::cout << bob << std::endl;
+
+    // std::cout << 
+
+    // keyser::App app;
+    // app.run();
 
     return 0;
 }

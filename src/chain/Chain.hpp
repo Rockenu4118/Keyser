@@ -6,6 +6,7 @@
 #include <thread>
 #include <list>
 #include <unordered_map>
+#include <map>
 
 #include "../node/Node.hpp"
 #include "./Block.hpp"
@@ -26,34 +27,49 @@ namespace keyser
             // Initialize the one hardcoded block and add it to the chain
             void createGenesisBlock();
 
-            std::shared_ptr<Block> getCurrBlock();
-            std::shared_ptr<Block> getBlock(int index);
+            void processBlock(Block& block);
 
-            void   printChain();
+            Block& getCurrBlock();
+            Block& getBlock(int index);
+            Block& getBlock(std::string hash);
+
+            void printChain();
+
+            void printHeaders();
             
-            uint   calcDifficulty();
-            uint   calcReward();
-            bool   isValid();
-            uint   getHeight() const;
+            uint calcDifficulty() const;
+            uint calcReward() const;
+            bool isValid() const;
+            uint getHeight() const;
             
-            bool& blockInvRecieved();
-            std::vector<int>& inventory();
-            std::vector<std::shared_ptr<Block>>& blocks();
+            std::vector<std::string>& inventory();
+
+            std::map<int, std::string>& blockIndex();
+
+            std::unordered_map<std::string, BlockHeader>& headers();
+
+            std::unordered_map<std::string, Block>& blocks();
         
         private:
             Node* _node;
 
-            bool _blockInvRecieved = false;
+            // bool _blockInvRecieved = false;
 
             // Block indexes needed to complete local chain
-            std::vector<int> _inventory;
+            std::vector<std::string> _inventory;
+
+            std::map<int, std::string> _blockIndex;
+
+            std::unordered_map<std::string, BlockHeader> _headers;
+
+            std::unordered_map<std::string, Block> _blocks;
 
 
             // std::unordered_map<uint, std::string> _chainIndex;
 
             // Container of pointers to block objects
             // std::unordered_map<std::string, Block> _blocks;
-            std::vector<std::shared_ptr<Block>> _blocks;
+            // std::vector<std::shared_ptr<Block>> _blocks;
     };
 }
 

@@ -15,10 +15,9 @@ keyser::NetInterface::NetInterface(Node* node, uint16_t port) : _node(node)
     _responseThread = std::thread([this]() { update(); });
 
     // Save self info
-    _selfInfo.version = KEYSER_VERSION;
-    _selfInfo.alias   = "Keyser Node";
-    _selfInfo.address = "Unknown";
-    _selfInfo.port    = port;
+    _selfInfo.version          = KEYSER_VERSION;
+    _selfInfo.endpoint.address = "Unknown";
+    _selfInfo.endpoint.port    = port;
 }
 
 keyser::NetInterface::~NetInterface()
@@ -39,7 +38,7 @@ void keyser::NetInterface::startServer()
     if (_server.use_count() != 0)
         return;
 
-    _server = std::make_shared<Server>(_node, this, _selfInfo.port, _context, _contextThr);
+    _server = std::make_shared<Server>(_node, this, _selfInfo.endpoint.port, _context, _contextThr);
     _server->start();
 }
 
@@ -66,12 +65,12 @@ void keyser::NetInterface::messageNeighbors(const Message& msg, std::shared_ptr<
 void keyser::NetInterface::managePeers()
 {
     // Try connecting to peers until either an adequate number of connections have been made
-    for (const auto& pair : _listeningNodes)
+    for (const auto&[key, info] : _listeningNodes)
     {
         if (connectionCount() >= 3)
             return;
 
-        _client->connect(pair.second);
+        _client->connect(info.endpoint);
     }
 }
 
@@ -127,7 +126,7 @@ int keyser::NetInterface::connectionCount() const
     return _peers.size();
 }
 
-keyser::PeerInfo keyser::NetInterface::getSelfInfo() const
+keyser::PeerInfo& keyser::NetInterface::selfInfo()
 {
     return _selfInfo;
 }
@@ -166,17 +165,16 @@ void keyser::NetInterface::displayListeningNodes()
         return;
     }
 
-    for (auto& pair : _listeningNodes)
+    for (const auto&[key, info] : _listeningNodes)
     {
-        std::cout << pair.second.address << ":" << pair.second.port << std::endl;
+        std::cout << info.endpoint.address << ":" << info.endpoint.port << std::endl;
     }
 }
 
 void keyser::NetInterface::displaySelfInfo()
 {
-    std::cout << "Alias:   " << _selfInfo.alias   << std::endl;
-    std::cout << "Address: " << _selfInfo.address << std::endl;
-    std::cout << "Port:    " << _selfInfo.port    << std::endl;
+    std::cout << "Address: " << _selfInfo.endpoint.address << std::endl;
+    std::cout << "Port:    " << _selfInfo.endpoint.port    << std::endl;
 }
 
 std::vector<keyser::PeerInfo> keyser::NetInterface::getConnections() const
@@ -187,6 +185,26 @@ std::vector<keyser::PeerInfo> keyser::NetInterface::getConnections() const
         connections.push_back(peer->info());
 
     return connections;
+}
+
+void keyser::NetInterface::inv(std::shared_ptr<Peer> peer)
+{
+    Message msg(MsgTypes::Inv);
+
+    // if (startingBlock == _node->chain()->getHeight() - 1)
+    // {
+    //     _network->message(peer, msg);
+    //     return;
+    // }
+    
+    // for (int i = startingBlock + 1 ; i < _node->chain()->getHeight() ; i++)
+    // {
+    //     msg.json()["blockIndexes"].push_back(i);
+    // }
+
+    msg.preparePayload();
+
+    message(peer, msg);
 }
 
 void keyser::NetInterface::distributePeerInfo(PeerInfo& peerInfo)
@@ -241,9 +259,6 @@ void keyser::NetInterface::onMessage(std::shared_ptr<Peer> peer, Message& msg)
         case MsgTypes::Verack:
             _client->handleVerack(peer, msg);
             break;
-        case MsgTypes::GetBlocks:
-            _server->handleGetBlocks(peer, msg);
-            break;
         case MsgTypes::Inv:
             _client->handleInv(peer, msg);
             break;
@@ -260,7 +275,10 @@ void keyser::NetInterface::onMessage(std::shared_ptr<Peer> peer, Message& msg)
             _client->handlePeerInfo(peer, msg);
             break;
         case MsgTypes::GetHeaders:
-
+            _server->handleGetHeaders(peer, msg);
+            break;
+        case MsgTypes::Headers:
+            _client->handleHeaders(peer, msg);
             break;
         default:
             std::cout << "[NODE] Unknown Msg Type" << std::endl;
@@ -278,11 +296,12 @@ void keyser::NetInterface::handleDistributePeerInfo(std::shared_ptr<Peer> peer, 
     msg.unpackPayload();
     PeerInfo peerInfo(msg.json());
 
-    auto iter = _listeningNodes.find(peerInfo.endpoint());
+    auto iter = _listeningNodes.find(peerInfo.endpoint.string());
+
     if (iter != nullptr)
         return;
 
-    _listeningNodes[peerInfo.endpoint()] = peerInfo;
+    _listeningNodes.insert(std::pair(peerInfo.endpoint.string(), peerInfo));
 
     managePeers();
 
@@ -301,7 +320,7 @@ void keyser::NetInterface::handleDistributeTransaction(std::shared_ptr<Peer> pee
 void keyser::NetInterface::handleDistributeBlock(std::shared_ptr<Peer> peer, Message& msg)
 {
     msg.unpackPayload();
-    auto block = std::make_shared<Block>(msg.json());
+    Block block = Block(msg.json());
 
     if (_node->validationEngine()->validateBlock(block))
         messageNeighbors(msg, peer);
@@ -322,7 +341,7 @@ std::deque<std::shared_ptr<keyser::Peer>>& keyser::NetInterface::peers()
     return _peers;
 }
 
-std::unordered_map<std::string, keyser::PeerInfo>& keyser::NetInterface::listeningNodes()
+std::unordered_map<std::string, keyser::NodeInfo>& keyser::NetInterface::listeningNodes()
 {
     return _listeningNodes;
 }

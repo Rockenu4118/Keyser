@@ -6,16 +6,16 @@
 keyser::ValidationEngine::ValidationEngine(Node* node) : _node(node)
 {}
 
-bool keyser::ValidationEngine::validateBlock(std::shared_ptr<Block> block)
+bool keyser::ValidationEngine::validateBlock(Block& block)
 {
     // TODO - validate block transactions and hash difficulty
 
     // Make sure there is only one block reward included
-    if (!(std::count_if(block->_transactions.begin(), block->_transactions.end(), [](Transaction tx){ return tx._inputs.size() == 0; }) == 1))
-    {
-        std::cout << "Not valid block" << std::endl;
-        return false;
-    }
+    // if (!(std::count_if(block._transactions.begin(), block._transactions.end(), [](Transaction tx){ return tx._inputs.size() == 0; }) == 1))
+    // {
+    //     std::cout << "Not valid block" << std::endl;
+    //     return false;
+    // }
 
     processValidBlock(block);
 
@@ -23,7 +23,7 @@ bool keyser::ValidationEngine::validateBlock(std::shared_ptr<Block> block)
 }
 
 
-void keyser::ValidationEngine::processValidBlock(std::shared_ptr<Block> block)
+void keyser::ValidationEngine::processValidBlock(Block& block)
 {
     // Update mempool
     _node->mempool()->processBlock(block);
@@ -32,7 +32,26 @@ void keyser::ValidationEngine::processValidBlock(std::shared_ptr<Block> block)
     _node->utxoSet()->processBlock(block);
 
     // Add block to chain
-    _node->chain()->blocks().push_back(block);
+    _node->chain()->processBlock(block);
+}
+
+bool keyser::ValidationEngine::validateHeader(BlockHeader header)
+{
+    std::string currHash = std::prev(_node->chain()->blockIndex().end())->second;
+
+    if (_node->chain()->headers().at(currHash).hash() != header._prevHash)
+        return false;
+
+    processValidHeader(header);
+    
+    return true;
+}
+
+void keyser::ValidationEngine::processValidHeader(BlockHeader header)
+{
+    _node->chain()->blockIndex().insert(std::pair(header._index, header.hash()));
+
+    _node->chain()->headers().insert(std::pair(header.hash(), header));
 }
 
 bool keyser::ValidationEngine::validateTransaction(Transaction transaction)

@@ -92,15 +92,15 @@ void keyser::cli::RootView::initSetup()
 
         do
         {
-            PeerInfo peerInfo;
-            peerInfo.address = "127.0.0.1";
+            Endpoint endpoint;
+            endpoint.address = "127.0.0.1";
 
             // std::cout << "Ip: ";
             // std::cin >> nodeInfo._address;
             std::cout << "Port: ";
-            std::cin >> peerInfo.port;
+            std::cin >> endpoint.port;
 
-            success = _node->network()->client()->connect(peerInfo);
+            success = _node->network()->client()->connect(endpoint);
         }
         while (_node->network()->connectionCount() < 1);
 

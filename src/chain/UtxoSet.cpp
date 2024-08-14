@@ -6,9 +6,11 @@
 keyser::UtxoSet::UtxoSet(Node* node) : _node(node)
 {}
 
-void keyser::UtxoSet::processBlock(std::shared_ptr<Block> block)
+void keyser::UtxoSet::processBlock(Block& block)
 {
-    for (auto tx : block->_transactions)
+    // auto iter = _utxoSet
+
+    for (auto tx : block._transactions)
     {
         for (auto input : tx._inputs)
         {

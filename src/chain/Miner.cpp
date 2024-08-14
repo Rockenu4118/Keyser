@@ -28,17 +28,17 @@ void keyser::Miner::start(uint numBlocks)
 
         while (!_node->shutdownFlag() && _minerActive && (blocksMined < numBlocks))
         {
-            std::shared_ptr<Block> newBlock = constructBlock("0xc6d8a2c830495d07318212e9f2cad16f");
+            Block newBlock = constructBlock("0xc6d8a2c830495d07318212e9f2cad16f");
 
             while (1)
             {
                 if (_node->shutdownFlag() || !_minerActive)
                     return;
 
-                if (utils::isValidHash(newBlock->hash(), _node->chain()->calcDifficulty()))
+                if (utils::isValidHash(newBlock.hash(), _node->chain()->calcDifficulty()))
                     break;
 
-                newBlock->_nonce++;
+                newBlock._nonce++;
             }
 
             blocksMined++;
@@ -46,7 +46,7 @@ void keyser::Miner::start(uint numBlocks)
             std::cout << "[CHAIN] Block Mined." << std::endl;
 
             if (_node->validationEngine()->validateBlock(newBlock))
-                _node->network()->distributeBlock(*_node->chain()->getCurrBlock());
+                _node->network()->distributeBlock(newBlock);
         }
 
         _minerActive = false;
@@ -61,15 +61,13 @@ void keyser::Miner::stop()
         _miningThr.join();
 }
 
-std::shared_ptr<keyser::Block> keyser::Miner::constructBlock(std::string rewardRecipient)
+keyser::Block keyser::Miner::constructBlock(std::string rewardRecipient)
 {
-    auto block = std::make_shared<Block>(_node->chain()->getCurrBlock()->_index + 1, time(NULL), _node->chain()->getCurrBlock()->hash(), _node->mempool()->leadingTransactions());
-
     Transaction blockReward(_node->chain()->calcReward(), rewardRecipient);
 
-    block->_transactions.push_back(blockReward);
-
-    block->_bodyHash = block->bodyHash();
+    Block block = Block(_node->chain()->getCurrBlock()._index + 1, time(NULL), _node->chain()->getCurrBlock().hash(), blockReward, _node->mempool()->leadingTransactions());
+    
+    block._bodyHash = block.bodyHash();
 
     return block;
 }

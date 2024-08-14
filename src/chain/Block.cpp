@@ -12,7 +12,7 @@
 #include "../data/version.hpp"
 
 
-keyser::Block::Block(nlohmann::json json)
+keyser::BlockHeader::BlockHeader(nlohmann::json json)
 {
     _index           = json["index"];
     _version         = json["version"];
@@ -20,6 +20,47 @@ keyser::Block::Block(nlohmann::json json)
     _bodyHash        = json["bodyHash"];
     _time            = json["time"];
     _nonce           = json["nonce"];
+}
+
+nlohmann::json keyser::BlockHeader::json() const
+{
+    nlohmann::json json;
+
+    json["index"]    = _index;
+    json["version"]  = _version;
+    json["prevHash"] = _prevHash;
+    json["bodyHash"] = _bodyHash;
+    json["time"]     = _time;
+    json["nonce"]    = _nonce;
+
+    return json;
+}
+
+std::string keyser::BlockHeader::hash() const
+{
+    std::string unhashed = std::to_string(_index) + 
+                           _version + 
+                           _prevHash + 
+                           _bodyHash + 
+                           _reward.hash();
+                           std::to_string(_time) +
+                           std::to_string(_nonce);
+    std::string hashed;
+
+    cryptography::SHA256(unhashed, hashed);
+
+    return hashed;
+}
+
+keyser::Block::Block(nlohmann::json json)
+{
+    _index    = json["index"];
+    _version  = json["version"];
+    _prevHash = json["prevHash"];
+    _bodyHash = json["bodyHash"];
+    _reward   = json["reward"];
+    _time     = json["time"];
+    _nonce    = json["nonce"];
 
     for (auto& element : json["transactions"])
     {
@@ -28,11 +69,12 @@ keyser::Block::Block(nlohmann::json json)
     }
 }
 
-keyser::Block::Block(uint index, time_t time, std::string prevHash, std::vector<Transaction> transactions)
+keyser::Block::Block(uint index, time_t time, std::string prevHash, Transaction reward, std::vector<Transaction> transactions)
 {
     _index           = index;
     _version         = KEYSER_VERSION;
     _prevHash        = prevHash;
+    _reward          = reward;
     _time            = time;
     _nonce           = 0;
     _transactions    = transactions;
@@ -45,25 +87,11 @@ keyser::BlockHeader keyser::Block::getHeader() const
     header._version  = _version;
     header._prevHash = _prevHash;
     header._bodyHash = _bodyHash;
+    header._reward   = _reward;
     header._time     = _time;
     header._nonce    = _nonce;
     
     return header;
-}
-
-std::string keyser::Block::hash() const
-{
-    std::string unhashed = std::to_string(_index) + 
-                           _version + 
-                           _prevHash + 
-                           _bodyHash + 
-                           std::to_string(_time) +
-                           std::to_string(_nonce);
-    std::string hashed;
-
-    cryptography::SHA256(unhashed, hashed);
-
-    return hashed;
 }
 
 std::string keyser::Block::bodyHash() const
@@ -97,6 +125,7 @@ nlohmann::json keyser::Block::json() const
     json["version"]       = _version;
     json["prevHash"]      = _prevHash;
     json["bodyHash"]      = _bodyHash;
+    json["reward"]        = _reward.json();
     json["time"]          = _time;
     json["nonce"]         = _nonce;
     json["transactions"]  = nlohmann::json::array();
@@ -119,6 +148,17 @@ void keyser::Block::printTransactions()
 
 namespace keyser
 {
+    std::ostream& operator<<(std::ostream& out, BlockHeader& data) {
+        out << "Index:        " << data._index                  << std::endl;
+        out << "Prev Hash:    " << data._prevHash               << std::endl;
+        out << "Body Hash:    " << data._bodyHash               << std::endl;
+        out << "Hash:         " << data.hash()                  << std::endl;
+        out << "Time:         " << utils::localTime(data._time) << std::endl;
+        out << "Nonce:        " << data._nonce                  << std::endl;
+
+        return out;
+    }
+
     std::ostream& operator<<(std::ostream& out, Block& data) {
         out << "Index:        " << data._index                  << std::endl;
         out << "Prev Hash:    " << data._prevHash               << std::endl;

@@ -69,13 +69,13 @@ void keyser::cli::NetworkView::display()
 
 void keyser::cli::NetworkView::newConnection()
 {
-    PeerInfo peerInfo;
-    peerInfo.address = "127.0.0.1";
+    Endpoint endpoint;
+    endpoint.address = "127.0.0.1";
 
     std::cout << "Ip: ";
-    std::cin >> peerInfo.address;
+    std::cin >> endpoint.address;
     std::cout << "Port: ";
-    std::cin >> peerInfo.port;
+    std::cin >> endpoint.port;
 
-    _node->network()->client()->connect(peerInfo);
+    _node->network()->client()->connect(endpoint);
 }

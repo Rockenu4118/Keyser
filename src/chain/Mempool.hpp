@@ -18,7 +18,7 @@ namespace keyser
 
             std::vector<Transaction> leadingTransactions();
 
-            void processBlock(std::shared_ptr<Block> block);
+            void processBlock(Block& block);
 
             void printMempool() const;
 

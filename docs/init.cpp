@@ -7,7 +7,26 @@
 #include <boost/asio/ts/internet.hpp>
 
 
-int InitNet::initNet()
+void fetchData(boost::asio::ip::tcp::socket& socket, std::vector<char>& vBuffer)
+{
+    socket.async_read_some(boost::asio::buffer(vBuffer.data(), vBuffer.size()),
+        [&](std::error_code ec, std::size_t length)
+        {
+            if (!ec)
+            {
+                std::cout << "\n\nRead " << length << " bytes\n\n";
+
+                for (int i = 0 ; i < length ; i++) {
+                    std::cout << vBuffer[i];
+                }
+
+                fetchData(socket, vBuffer);
+            }
+        }
+    );
+}
+
+int initNet()
 {
     boost::system::error_code ec;
 
@@ -32,8 +51,14 @@ int InitNet::initNet()
     if (socket.is_open()) {
         std::cout << "Socket is open" << std::endl;
 
-        _vBuffer.resize(256);
-        fetchData(socket);
+        std::vector<char> vBuffer;
+        vBuffer.resize(1024);
+        // fetchData(socket, vBuffer);
+        boost::beast::flat_buffer buffer;
+        boost::beast::http::response<boost::beast::http::string_body> response;
+        
+
+        
 
         std::string request = 
             "GET / HTTP/1.1\r\n"
@@ -45,6 +70,12 @@ int InitNet::initNet()
 
         sleep(1);
 
+        boost::beast::http::read(socket, buffer, response);
+
+        std::string ip = response.body();
+
+        std::cout << ip << std::endl;    
+
         context.stop();
         
         if (thrContext.joinable()) {
@@ -54,23 +85,4 @@ int InitNet::initNet()
 
 
     return 0;
-}
-
-void InitNet::fetchData(boost::asio::ip::tcp::socket& socket)
-{
-    socket.async_read_some(boost::asio::buffer(_vBuffer.data(), _vBuffer.size()),
-        [&](std::error_code ec, std::size_t length)
-        {
-            if (!ec)
-            {
-                std::cout << "\n\nRead " << length << " bytes\n\n";
-
-                for (int i = 0 ; i < length ; i++) {
-                    std::cout << _vBuffer[i];
-                }
-
-                fetchData(socket);
-            }
-        }
-    );
 }

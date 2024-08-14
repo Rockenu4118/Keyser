@@ -20,7 +20,6 @@ enum class MsgTypes : uint32_t
     GetNodeList,
     NodeInfoList,
 
-    GetBlocks,
     Block,
 
     Inv,
@@ -28,6 +27,14 @@ enum class MsgTypes : uint32_t
     
     GetHeaders,
     Headers,
+};
+
+enum class DataTypes : uint8_t
+{
+    Error,
+    TX,
+    Header,
+    Block
 };
 
 #endif

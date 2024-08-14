@@ -2,7 +2,6 @@
 #define CLIENT_H
 
 #include <memory>
-
 #include <boost/asio.hpp>
 
 #include "../node/Node.hpp"
@@ -21,9 +20,9 @@ namespace keyser
 
             ~Client();
 
-            bool connect(PeerInfo peerInfo);
+            bool connect(const Endpoint endpoint);
 
-            bool allowConnect(PeerInfo peerInfo) const;
+            bool allowConnect(Endpoint endpoint) const;
 
             void version(std::shared_ptr<Peer> peer);
 
@@ -31,9 +30,7 @@ namespace keyser
 
             void getHeaders();
 
-            void getBlocks();
-
-            void getData();
+            void getData(DataTypes type, std::string hash);
 
             void completedInitialBlockDownload();
 

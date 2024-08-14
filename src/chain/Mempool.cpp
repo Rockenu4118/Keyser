@@ -20,9 +20,9 @@ std::vector<keyser::Transaction> keyser::Mempool::leadingTransactions()
     return transactions;
 }
 
-void keyser::Mempool::processBlock(std::shared_ptr<Block> block)
+void keyser::Mempool::processBlock(Block& block)
 {
-    for (auto tx : block->_transactions)
+    for (auto tx : block._transactions)
     {
         auto iter = _pendingTransactions.find(tx.hash());
 

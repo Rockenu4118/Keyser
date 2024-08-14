@@ -52,6 +52,7 @@ namespace keyser
             tsqueue<OwnedMessage>&       _messagesIn;
             Message                      _msgTemporaryIn;
 
+            boost::asio::ip::tcp::endpoint _endpoint;
             PeerInfo _info;
     };
 }

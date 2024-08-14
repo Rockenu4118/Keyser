@@ -21,34 +21,48 @@ void keyser::Chain::createGenesisBlock()
     Transaction tx1(50000, addr1);
     tx1._time = 0;
 
-    initialBalances.push_back(tx1);
+    Block genesisBlock = Block(0, 0, "None", tx1, initialBalances);
 
-    auto genesisBlock = std::make_shared<Block>(0, 0, "None", initialBalances);
-
-    genesisBlock->_time = 0;
-    genesisBlock->_bodyHash = genesisBlock->bodyHash();
+    genesisBlock._time = 0;
+    genesisBlock._bodyHash = genesisBlock.bodyHash();
 
     _node->validationEngine()->validateBlock(genesisBlock);
 }
 
-std::shared_ptr<keyser::Block> keyser::Chain::getCurrBlock()
+void keyser::Chain::processBlock(Block& block)
 {
-    return _blocks.back();
+    _blockIndex.insert(std::pair(block._index, block.hash()));
+
+    _headers.insert(std::pair(block.hash(), block.getHeader()));
+
+    _blocks.insert(std::pair(block.hash(), block));
 }
 
-std::shared_ptr<keyser::Block> keyser::Chain::getBlock(int index)
+keyser::Block& keyser::Chain::getCurrBlock()
 {
-    return _blocks.at(index);
+    std::string hash = std::prev(_blockIndex.end())->second;
+    return _blocks.at(hash);
 }
 
-uint keyser::Chain::calcDifficulty()
+keyser::Block& keyser::Chain::getBlock(int index)
+{
+    std::string hash = _blockIndex.at(index);
+    return _blocks.at(hash);
+}
+
+keyser::Block& keyser::Chain::getBlock(std::string hash)
+{
+    return _blocks.at(hash);
+}
+
+uint keyser::Chain::calcDifficulty() const
 {
     // TODO - dynamically calculate the difficulty based on amount of time
     // taken to mine previous blocks
     return 4;
 }
 
-uint keyser::Chain::calcReward()
+uint keyser::Chain::calcReward() const
 {
     // TODO - dynamically calculate reward
     return 100;
@@ -62,26 +76,29 @@ void keyser::Chain::printChain()
         return;
     }
 
-    for (int i = 0 ; i < _blocks.size() ; i++)
+    for (const auto&[index, hash] : _blockIndex)
     {
-        std::cout << *_blocks.at(i) << std::endl;
+        std::cout << _blocks.at(hash) << std::endl;
     }
 }
 
-bool keyser::Chain::isValid()
+void keyser::Chain::printHeaders()
 {
-    for (int i = 1 ; i < _blocks.size() ; i++)
+    if (_headers.size() == 0)
     {
-        std::shared_ptr<Block> currBlock = _blocks.at(i);
-        std::shared_ptr<Block> prevBlock = _blocks.at(i - 1);
-
-        if (prevBlock->hash() != currBlock->_prevHash)
-            return false;
-
-        if (!currBlock->hasValidTransactions())
-            return false;
+        std::cout << "Headers empty." << std::endl;
+        return;
     }
 
+    for (const auto&[index, hash] : _blockIndex)
+    {
+        std::cout << _headers.at(hash) << std::endl;
+    }
+}
+
+bool keyser::Chain::isValid() const
+{
+    // TODO - make chain isValid func
     return true;
 }
 
@@ -90,17 +107,22 @@ uint keyser::Chain::getHeight() const
     return _blocks.size();
 }
 
-bool& keyser::Chain::blockInvRecieved()
-{
-    return _blockInvRecieved;
-}
-
-std::vector<int>& keyser::Chain::inventory()
+std::vector<std::string>& keyser::Chain::inventory()
 {
     return _inventory;
 }
 
-std::vector<std::shared_ptr<keyser::Block>>& keyser::Chain::blocks()
+std::map<int, std::string>& keyser::Chain::blockIndex()
+{
+    return _blockIndex;
+}
+
+std::unordered_map<std::string, keyser::BlockHeader>& keyser::Chain::headers()
+{
+    return _headers;
+}
+
+std::unordered_map<std::string, keyser::Block>& keyser::Chain::blocks()
 {
     return _blocks;
 }

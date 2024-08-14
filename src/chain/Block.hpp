@@ -12,10 +12,21 @@ namespace keyser
 {
     struct BlockHeader
     {
+        friend std::ostream& operator<<(std::ostream& out, BlockHeader& data);
+
+        BlockHeader() = default;
+
+        BlockHeader(nlohmann::json json);
+
+        nlohmann::json json() const;
+
+        std::string hash() const;
+
         uint        _index;
         std::string _version;
         std::string _prevHash;
         std::string _bodyHash;
+        Transaction _reward;
         time_t      _time;
         uint64_t    _nonce = 0;
     };
@@ -30,13 +41,11 @@ namespace keyser
             Block(nlohmann::json json);
 
             // Main block constructor miners will use to form a block
-            Block(uint index, time_t time, std::string prevHash, std::vector<Transaction> transactions);
+            Block(uint index, time_t time, std::string prevHash, Transaction reward, std::vector<Transaction> transactions);
 
             ~Block() = default;
 
             BlockHeader getHeader() const;
-
-            std::string hash() const;
 
             std::string bodyHash() const;
 

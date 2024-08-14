@@ -1,0 +1,138 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3
+					],
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22.1"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "libs/cli_core",
+					"jsonFile" : "directory-libs.cli_core-Debug-cf20712f0c5c58d079a1.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22.1"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "libs/cli_core",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"build" : "libs/cryptography",
+					"jsonFile" : "directory-libs.cryptography-Debug-7525ba99a201c3d4e34b.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22.1"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "libs/cryptography",
+					"targetIndexes" : 
+					[
+						2
+					]
+				},
+				{
+					"build" : "libs/net_core",
+					"jsonFile" : "directory-libs.net_core-Debug-889ae25df856462046a9.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22.1"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "libs/net_core",
+					"targetIndexes" : 
+					[
+						3
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					],
+					"name" : "Keyser",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "Keyser::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Keyser-Debug-da662279966b939986d0.json",
+					"name" : "Keyser",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "cli_core::@cf7e6d4d807565789b64",
+					"jsonFile" : "target-cli_core-Debug-9329b229410fb12ccec8.json",
+					"name" : "cli_core",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "cryptography::@e471f28f24fabba86c2b",
+					"jsonFile" : "target-cryptography-Debug-8cf399a825b441b2d8c3.json",
+					"name" : "cryptography",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "net_core::@d5ca741b84c06faf3dda",
+					"jsonFile" : "target-net_core-Debug-6dde171c6b1029bf19ce.json",
+					"name" : "net_core",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/aj/Desktop/keyser/cmake-build-debug",
+		"source" : "/home/aj/Desktop/keyser"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}

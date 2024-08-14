@@ -3,8 +3,6 @@
 
 #include <vector>
 #include <string>
-#include <mutex>
-#include <condition_variable>
 #include <boost/asio.hpp>
 #include <unordered_map>
 #include <tsqueue.hpp>
@@ -47,7 +45,7 @@ namespace keyser
             // Accessors
             int connectionCount() const;
 
-            PeerInfo getSelfInfo() const;
+            PeerInfo& selfInfo();
             
             std::shared_ptr<Peer> syncNode();
 
@@ -60,6 +58,8 @@ namespace keyser
             std::vector<PeerInfo> getConnections() const;
 
             bool validateConnection(std::shared_ptr<Peer>& connection);
+
+            void inv(std::shared_ptr<Peer> peer);
 
             void distributePeerInfo(PeerInfo& peerInfo);
             void distributeBlock(Block& block);
@@ -78,7 +78,7 @@ namespace keyser
 
             std::deque<std::shared_ptr<Peer>>& peers();
             
-            std::unordered_map<std::string, PeerInfo>& listeningNodes();
+            std::unordered_map<std::string, NodeInfo>& listeningNodes();
 
             tsqueue<OwnedMessage>& messagesIn();
 
@@ -95,7 +95,7 @@ namespace keyser
             std::deque<std::shared_ptr<Peer>> _peers;
 
             // Container for listening nodes
-            std::unordered_map<std::string, PeerInfo> _listeningNodes;
+            std::unordered_map<std::string, NodeInfo> _listeningNodes;
 
             // Asio context and thread to run in
             boost::asio::io_context _context;

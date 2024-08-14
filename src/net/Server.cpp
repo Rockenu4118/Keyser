@@ -31,6 +31,8 @@ bool keyser::Server::start()
         return false; 
     }
 
+    announceSelf();
+
     std::cout << "[SERVER] Started!" << std::endl;
     return false;
 }
@@ -52,11 +54,11 @@ void keyser::Server::acceptConnection()
         {
             if (!ec)
             {
-                std::cout << "[NODE] New connection: " << socket.remote_endpoint() << std::endl;
+                std::cout << "[SERVER] New connection: " << socket.remote_endpoint() << std::endl;
 
                 auto newConn = std::make_shared<Peer>(PeerInfo::Direction::Inbound, _serverContext, std::move(socket), _network->messagesIn(), _network->assignId());
 
-                newConn->info().address = newConn->getEndpoint().address().to_string();
+                newConn->info().endpoint.address = newConn->getEndpoint().address().to_string();
 
                 // Give node a chance to deny connection
                 if (allowConnect(newConn))
@@ -73,13 +75,13 @@ void keyser::Server::acceptConnection()
                 }
                 else
                 {
-                    std::cout << "[NODE] Connection Denied" << std::endl;
+                    std::cout << "[SERVER] Connection Denied" << std::endl;
                 }
             }
             else
             {
                 // Error during acceptance
-                std::cout << "[NODE] New connection error: " << ec.message() << std::endl;
+                std::cout << "[SERVER] New connection error: " << ec.message() << std::endl;
             }
 
             // Prime asio context with more work, wait for another connection...
@@ -88,12 +90,12 @@ void keyser::Server::acceptConnection()
     );
 }
 
-void keyser::Server::broadcastSelf()
+void keyser::Server::announceSelf()
 {
-    _network->listeningNodes()[_network->getSelfInfo().endpoint()] = _network->getSelfInfo();
+    _network->listeningNodes().insert(std::pair(_network->selfInfo().endpoint.string(), _network->selfInfo()));
 
     Message msg(MsgTypes::DistributeNodeInfo);
-    msg.json() = _network->getSelfInfo().json();
+    msg.json() = _network->selfInfo().json();
     msg.preparePayload();
     _network->messageNeighbors(msg);
 }
@@ -101,9 +103,8 @@ void keyser::Server::broadcastSelf()
 void keyser::Server::verack(std::shared_ptr<Peer> peer)
 {
     Message newMsg(MsgTypes::Verack);
-    newMsg.json()["Outbound version"] = _network->getSelfInfo().version;
-    newMsg.json()["Outbound alias"]   = _network->getSelfInfo().alias;
-    newMsg.json()["Outbound port"]    = _network->getSelfInfo().port;
+    newMsg.json()["Outbound version"] = _network->selfInfo().version;
+    newMsg.json()["Outbound port"]    = _network->selfInfo().endpoint.port;
     newMsg.json()["address"]          = peer->getEndpoint().address().to_string();
 
     newMsg.preparePayload();
@@ -116,43 +117,39 @@ void keyser::Server::nodeInfoStream(std::shared_ptr<Peer> peer)
 
     msg.json() = nlohmann::json::array();
 
-    for (auto& pair : _network->listeningNodes())
-        msg.json().push_back(pair.second.json());
+    for (const auto&[key, info] : _network->listeningNodes())
+        msg.json().push_back(info.json());
 
     msg.preparePayload();
     _network->message(peer, msg);
 }
 
-void keyser::Server::sendHeaders(std::shared_ptr<Peer> peer)
+void keyser::Server::sendHeaders(std::shared_ptr<Peer> peer, std::string latestHash)
 {
-    // TODO - headers only
     Message msg(MsgTypes::Headers);
-}
+    msg.json() = nlohmann::json::array();
 
-void keyser::Server::inv(std::shared_ptr<Peer> peer, int startingBlock)
-{
-    Message msg(MsgTypes::Inv);
+    int index = _node->chain()->headers().at(latestHash)._index;
+    auto iter = std::next(_node->chain()->blockIndex().find(index));
 
-    if (startingBlock == _node->chain()->getHeight() - 1)
-    {
-        _network->message(peer, msg);
+    if (iter == _node->chain()->blockIndex().end())
         return;
-    }
-    
-    for (int i = startingBlock + 1 ; i < _node->chain()->getHeight() ; i++)
+
+    for ( ; iter != _node->chain()->blockIndex().end() ; iter++)
     {
-        msg.json()["blockIndexes"].push_back(i);
+        BlockHeader header = _node->chain()->headers().at(iter->second);
+        msg.json().push_back(header.json());
     }
 
     msg.preparePayload();
-
     _network->message(peer, msg);
 }
 
-void keyser::Server::sendBlocks(std::shared_ptr<Peer> peer, int blockIndex)
+void keyser::Server::sendBlock(std::shared_ptr<Peer> peer, std::string hash)
 {
     Message msg(MsgTypes::Block);
-    msg.json() = _node->chain()->blocks().at(blockIndex)->json();
+    msg.json() = _node->chain()->blocks().at(hash).json();
+
     msg.preparePayload();
     _network->message(peer, msg);
 }
@@ -161,16 +158,12 @@ void keyser::Server::handleVersion(std::shared_ptr<Peer> peer, Message& msg)
 {
     msg.unpackPayload();
 
-    // Save external address and add self to list of active nodes
-    _network->getSelfInfo().address = msg.json()["address"];
+    // Save external address
+    _network->selfInfo().endpoint.address = msg.json()["address"];
 
     // unpackPayload incoming node info
-    peer->info().version = msg.json()["Outbound version"];
-    peer->info().alias   = msg.json()["Outbound alias"];
-    peer->info().port    = msg.json()["Outbound port"];
-
-    // Add this node to connectedNodeList
-    // _network->connectedNodeList().insert(peer->info());
+    peer->info().version       = msg.json()["Outbound version"];
+    peer->info().endpoint.port = msg.json()["Outbound port"];
 
     // Send self info as well as their external ip
     verack(peer);
@@ -181,35 +174,30 @@ void keyser::Server::handleGetNodeList(std::shared_ptr<Peer> peer, Message& msg)
     nodeInfoStream(peer);
 }
 
-void keyser::Server::handleGetBlocks(std::shared_ptr<Peer> peer, Message& msg)
-{   
+void keyser::Server::handleGetHeaders(std::shared_ptr<Peer> peer, Message& msg)
+{
     msg.unpackPayload();
-    std::string topBlockHash = msg.json()["topBlock"];
 
-    int topBlockI = 0;
-
-    for (auto& block : _node->chain()->blocks())
-    {   
-        if (block->hash() == topBlockHash)
-            break;
-
-        topBlockI++;
-    }
-
-    inv(peer, topBlockI);
+    sendHeaders(peer, msg.json()["latestHash"]);
 }
 
 void keyser::Server::handleGetData(std::shared_ptr<Peer> peer, Message& msg)
 {
     msg.unpackPayload();
 
-    for (auto i : msg.json()["blockIndexes"])
+    if (msg.json()["type"] == DataTypes::Block)
     {
-        Message msg(MsgTypes::Block);
-        msg.json() = _node->chain()->blocks().at(i)->json();
-        msg.preparePayload();
-        _network->message(peer, msg);
+        Message newMsg(MsgTypes::Block);
+        newMsg.json() = _node->chain()->blocks().at(msg.json()["hash"]).json();
+
+        newMsg.preparePayload();
+        _network->message(peer, newMsg);
     }
+
+    // if (msg.json()["type"] == DataTypes::TX)
+    // {
+
+    // }
 }
 
 bool keyser::Server::allowConnect(std::shared_ptr<Peer> peer)

@@ -22,6 +22,8 @@ namespace keyser
         std::string localTimestamp();
         std::string localTime(time_t time);
 
+        
+
     }
 }
 

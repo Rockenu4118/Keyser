@@ -21,7 +21,7 @@ namespace keyser
 
             ~UtxoSet() = default;
 
-            void processBlock(std::shared_ptr<Block> block);
+            void processBlock(Block& block);
 
             std::vector<UTXO> possibleUtxos(std::string owner) const;
 

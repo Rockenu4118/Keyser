@@ -24,9 +24,13 @@ namespace keyser
 
             ~ValidationEngine() = default;
 
-            bool validateBlock(std::shared_ptr<Block> block);
+            bool validateBlock(Block& block);
 
-            void processValidBlock(std::shared_ptr<Block> block);
+            void processValidBlock(Block& block);
+
+            bool validateHeader(BlockHeader header);
+
+            void processValidHeader(BlockHeader header);
 
             bool validateTransaction(Transaction transaction);
 

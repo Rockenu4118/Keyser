@@ -13,6 +13,9 @@ keyser::Peer::Peer(PeerInfo::Direction direction,
 {
     _info.direction = direction;
     _info.id = uid;
+
+    if (direction == PeerInfo::Direction::Inbound)
+        _endpoint = _socket.remote_endpoint();
 }
 
 keyser::Peer::~Peer()
@@ -27,7 +30,7 @@ uint16_t keyser::Peer::getId() const
 
 boost::asio::ip::tcp::endpoint keyser::Peer::getEndpoint() const
 {
-    return _socket.remote_endpoint();
+    return _endpoint;
 }
 
 bool keyser::Peer::isConnected() const
@@ -178,6 +181,7 @@ bool keyser::Peer::connect(const boost::asio::ip::tcp::endpoint& endpoint)
     if (!ec)
     {
         readHeader();
+        _endpoint = _socket.remote_endpoint();
         return true;
     }
     else
@@ -202,7 +206,7 @@ namespace keyser
     {
         out << "[" << data.getId() << "] ";
         out << data.getEndpoint() << ", ";
-        out << "Hosting on: " << data.info().port << ", ";
+        out << "Hosting on: " << data.info().endpoint.port << ", ";
         out << "Direction: " << (data.info().direction == PeerInfo::Direction::Outbound ? "Outbound" : "Inbound");
 
         return out;
