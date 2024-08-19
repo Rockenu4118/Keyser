@@ -21,12 +21,12 @@ file(GLOB SOURCES "src/*.cpp")
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 add_subdirectory(libs/cli_core)
-add_subdirectory(libs/cryptography)
+add_subdirectory(libs/keycrypto)
 add_subdirectory(libs/net_core)
 
-target_link_libraries(${PROJECT_NAME} ssl crypto leveldb snappy cryptopp cryptography net_core cli_core)
+target_link_libraries(${PROJECT_NAME} ssl crypto leveldb snappy keycrypto net_core cli_core)
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_BINARY_DIR}" 
-                                                   "${PROJECT_SOURCE_DIR}/libs/cryptography" 
+                                                   "${PROJECT_SOURCE_DIR}/libs/keycrypto" 
                                                    "${PROJECT_SOURCE_DIR}/libs/net_core"
                                                    "${PROJECT_SOURCE_DIR}/libs/cli_core")

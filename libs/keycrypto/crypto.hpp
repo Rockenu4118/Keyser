@@ -1,5 +1,5 @@
-#ifndef CRYPTOGRAPHY_H
-#define CRYPTOGRAPHY_H
+#ifndef CRYPTO_H
+#define CRYPTO_H
 
 #include <string>
 #include <openssl/ec.h>

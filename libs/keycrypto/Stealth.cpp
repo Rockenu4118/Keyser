@@ -183,6 +183,7 @@ std::string crypto::StealthKeys::genImage(std::string addr, std::string RStr)
     const BIGNUM* order      = EC_GROUP_get0_order(secp256k1Group);
     const BIGNUM* cofactor   = EC_GROUP_get0_cofactor(secp256k1Group);
 
+    // Calculate Stealth Key(x) to Addr(P)
     std::string stealthKey = genStealthKey(addr, RStr);
     
     BIGNUM*   x    = BN_new();
@@ -191,16 +192,11 @@ std::string crypto::StealthKeys::genImage(std::string addr, std::string RStr)
 
     BN_hex2bn(&x, stealthKey.c_str());
 
-    std::string Hp = hash::SHA3(utils::hexToString(addr));
+    std::string HP = hash::SHA3(utils::hexToString(addr));
 
-    HpP = utils::ssvg_hash_to_curve(Hp, secp256k1Group);
-
-    std::cout << "Curr on curve: " << EC_POINT_is_on_curve(secp256k1Group, HpP, nullptr) << std::endl;
-    std::cout << "Curr infinity: " << EC_POINT_is_at_infinity(secp256k1Group, HpP) << std::endl;
+    HpP = utils::ssvg_hash_to_curve(HP, secp256k1Group);
 
     EC_GROUP_set_generator(secp256k1Group, HpP, order, cofactor);
-
-    
 
     EC_POINT_mul(secp256k1Group, I, x, nullptr, nullptr, nullptr);
 
@@ -208,8 +204,6 @@ std::string crypto::StealthKeys::genImage(std::string addr, std::string RStr)
     secp256k1Group = EC_GROUP_new_by_curve_name(NID_secp256k1);
 
     image = EC_POINT_point2hex(secp256k1Group, I, POINT_CONVERSION_COMPRESSED, nullptr);
-
-
 
     EC_GROUP_free(secp256k1Group);
     BN_free(x);

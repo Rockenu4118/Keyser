@@ -10,21 +10,14 @@ unsigned char crypto::utils::parse_hex(char c)
 
 void crypto::utils::parse_string(unsigned char* arr, const std::string& s)
 {
-    if (s.size() % 2 != 0) std::abort();
+    if (s.size() % 2 != 0)
+    {
+        std::cout << "Uneven length\n";
+    }
     std::vector<unsigned char> result(s.size() / 2);
 
     for (std::size_t i = 0; i != s.size() / 2; ++i)
         arr[i] = 16 * parse_hex(s[2 * i]) + parse_hex(s[2 * i + 1]);
-}
-
-void crypto::utils::sc_reduce32(BIGNUM*& scalar, const EC_GROUP* curve)
-{
-    const BIGNUM* order = EC_GROUP_get0_order(curve);
-    BN_CTX* bnCtx = BN_CTX_new();
-    
-    BN_mod(scalar, scalar, order, bnCtx);
-
-    BN_CTX_free(bnCtx);
 }
 
 std::string crypto::utils::hexToString(const std::string& input)
@@ -42,6 +35,27 @@ std::string crypto::utils::hexToString(const std::string& input)
         output.push_back(static_cast<unsigned char>(s));
     }
     return output;
+}
+
+std::string crypto::utils::uChar2Str(unsigned char* arr, int len)
+{
+    std::stringstream ss;
+    for(unsigned int i = 0; i < len; ++i)
+    {
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)arr[i];
+    }
+    
+    return ss.str();
+}
+
+void crypto::utils::sc_reduce32(BIGNUM*& scalar, const EC_GROUP* curve)
+{
+    const BIGNUM* order = EC_GROUP_get0_order(curve);
+    BN_CTX* bnCtx = BN_CTX_new();
+    
+    BN_mod(scalar, scalar, order, bnCtx);
+
+    BN_CTX_free(bnCtx);
 }
 
 EC_POINT* crypto::utils::ssvg_hash_to_curve(std::string hash, const EC_GROUP* curve) 
@@ -91,4 +105,11 @@ EC_POINT* crypto::utils::ssvg_hash_to_curve(std::string hash, const EC_GROUP* cu
     delete hashHex;
 
     return finalP;
+}
+
+std::string crypto::utils::randomBytes(size_t size)
+{
+    unsigned char arr[size];
+    RAND_bytes(arr, size);
+    return uChar2Str(arr, size);
 }

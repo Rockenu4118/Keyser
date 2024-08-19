@@ -12,23 +12,15 @@
 // #include "./wallet/Account.hpp"
 
 #include <Stealth.hpp>
+#include <aes.hpp>
 #include <string>
 #include <map>
 
 #include <openssl/aes.h>
 #include <openssl/evp.h>
 
-#include <crypto++/sha.h>
-#include <crypto++/integer.h>
-#include <crypto++/eccrypto.h>
-
 using namespace std;
-using namespace CryptoPP;
 
-void ahh()
-{
-    
-}
 
 
 std::string addrGen(std::string pubSpend, std::string pubView)
@@ -38,31 +30,32 @@ std::string addrGen(std::string pubSpend, std::string pubView)
 
 int main()
 {   
-
     std::cout << "Running..." << std::endl;
-    crypto::StealthKeys aj;
 
-    // std::cout << aj << std::endl;
+    crypto::sym::AESCipher cipher;
 
-    crypto::StealthKeys alice("D1D215CF7D7D790D52BF2C380269A1B64699385B4FE119E7DFD16BCD2BF0DCFD");
+    std::string msg = "This is a really long image, oh im sorry, a text to demonstarte symmetric encryption using the AES algo!";
+
+    unsigned char ciphertext[256];
+    unsigned char decryptedtext[256];
+
+    int decryptedtext_len, ciphertext_len;
+
+    ciphertext_len = cipher.encrypt(msg, ciphertext);
+
+    decryptedtext_len = cipher.decrypt(ciphertext, ciphertext_len, decryptedtext);
+
+    decryptedtext[decryptedtext_len] = '\0';
+
+    std::string text = (char*)decryptedtext;
+
+    std::cout << "Str: " << text << std::endl;
+
+    
 
 
-    crypto::StealthKeys bob("F14B047E6EBD4C0A371E3DC0478561EA686C327EB9FFE593A35A300D8072A271");
-
-    std::string R;
-
-    std::string bob2aliceAddr = bob.genStealthAddr(alice.getPublicAddr(), R);
-
-    std::string image =  alice.genImage(bob2aliceAddr, R);
-
-    std::cout << "Image: " << image << std::endl;
 
 
-
-
-    // std::cout << bob << std::endl;
-
-    // std::cout << 
 
     // keyser::App app;
     // app.run();
