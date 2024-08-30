@@ -11,8 +11,12 @@
 // #include "./storage/StorageEngine.hpp"
 // #include "./wallet/Account.hpp"
 
-#include <Stealth.hpp>
-#include <aes.hpp>
+#include <keycrypto/Stealth.hpp>
+#include <keycrypto/aes.hpp> 
+#include <keycrypto/Ring.hpp>
+#include <keycrypto/utils.hpp>
+#include <keycrypto/sha.hpp>
+#include <tests/ring.cpp>
 #include <string>
 #include <map>
 
@@ -23,33 +27,11 @@ using namespace std;
 
 
 
-std::string addrGen(std::string pubSpend, std::string pubView)
-{
-    return pubSpend + pubView;
-}
-
 int main()
 {   
     std::cout << "Running..." << std::endl;
 
-    crypto::sym::AESCipher cipher;
-
-    std::string msg = "This is a really long image, oh im sorry, a text to demonstarte symmetric encryption using the AES algo!";
-
-    unsigned char ciphertext[256];
-    unsigned char decryptedtext[256];
-
-    int decryptedtext_len, ciphertext_len;
-
-    ciphertext_len = cipher.encrypt(msg, ciphertext);
-
-    decryptedtext_len = cipher.decrypt(ciphertext, ciphertext_len, decryptedtext);
-
-    decryptedtext[decryptedtext_len] = '\0';
-
-    std::string text = (char*)decryptedtext;
-
-    std::cout << "Str: " << text << std::endl;
+    test();
 
     
 

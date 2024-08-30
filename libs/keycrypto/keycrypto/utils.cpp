@@ -58,6 +58,13 @@ void crypto::utils::sc_reduce32(BIGNUM*& scalar, const EC_GROUP* curve)
     BN_CTX_free(bnCtx);
 }
 
+BIGNUM* crypto::utils::Hs(std::string hash)
+{   
+    BIGNUM* s = BN_new();
+    BN_hex2bn(&s, hash.c_str());
+    return s;
+}
+
 EC_POINT* crypto::utils::ssvg_hash_to_curve(std::string hash, const EC_GROUP* curve) 
 {
     BIGNUM* x = BN_new();
@@ -107,9 +114,36 @@ EC_POINT* crypto::utils::ssvg_hash_to_curve(std::string hash, const EC_GROUP* cu
     return finalP;
 }
 
+EC_POINT* crypto::utils::ec_mul(BIGNUM* s, EC_POINT* P = nullptr)
+{
+    EC_GROUP* curve = EC_GROUP_new_by_curve_name(NID_secp256k1);
+    EC_POINT* S = EC_POINT_new(curve);
+
+    if (P == nullptr)
+    {
+        EC_POINT_mul(curve, S, s, nullptr, nullptr, nullptr);
+    }
+    else
+    {
+        const BIGNUM* order = EC_GROUP_get0_order(curve);
+        const BIGNUM* cofactor = EC_GROUP_get0_cofactor(curve);
+        EC_GROUP_set_generator(curve, P, order, cofactor);
+        EC_POINT_mul(curve, S, s, nullptr, nullptr, nullptr);
+    }
+
+    EC_GROUP_free(curve);
+
+    return S;
+}
+
 std::string crypto::utils::randomBytes(size_t size)
 {
     unsigned char arr[size];
     RAND_bytes(arr, size);
     return uChar2Str(arr, size);
+}
+
+std::string crypto::utils::keyserAddrGen(std::string pubSpend, std::string pubView)
+{
+    return pubSpend + pubView;
 }

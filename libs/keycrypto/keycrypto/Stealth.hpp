@@ -30,6 +30,8 @@ namespace crypto
 
             bool verifyStealthAddr(std::string addr, std::string RStr) const;
 
+            bool verifyStealthKey(std::string addr, std::string key) const;
+
             std::string genImage(std::string addr, std::string RStr);
 
             inline std::string getPrivateSpendKey() const { return _ecKeys->getPrivateKey(); }
