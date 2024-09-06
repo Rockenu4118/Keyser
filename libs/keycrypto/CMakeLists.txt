@@ -6,7 +6,7 @@ project(${PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD 20)
 
-file(GLOB SOURCES "keycrypto/*.cpp")
+file(GLOB SOURCES "keycrypto/*.cpp" "tests/*.cpp")
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
 

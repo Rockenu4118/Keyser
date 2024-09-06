@@ -73,7 +73,6 @@ EC_POINT* crypto::utils::ssvg_hash_to_curve(std::string hash, const EC_GROUP* cu
     // Create initial points
     EC_POINT* finalP = EC_POINT_new(curve);
     EC_POINT* P = EC_POINT_new(curve);
-    EC_POINT_set_compressed_coordinates(curve, P, x, 0, nullptr);
     EC_POINT* Q = EC_POINT_dup(P, curve); // Duplicate P for efficiency
 
     while (true)
@@ -109,7 +108,7 @@ EC_POINT* crypto::utils::ssvg_hash_to_curve(std::string hash, const EC_GROUP* cu
     EC_POINT_free(P);
     EC_POINT_free(Q);
     BN_free(x);
-    delete hashHex;
+    delete[] hashHex;
 
     return finalP;
 }
@@ -146,4 +145,16 @@ std::string crypto::utils::randomBytes(size_t size)
 std::string crypto::utils::keyserAddrGen(std::string pubSpend, std::string pubView)
 {
     return pubSpend + pubView;
+}
+
+void crypto::utils::print(BIGNUM* bn)
+{
+    std::cout << BN_bn2hex(bn) << "\n";
+}
+
+void crypto::utils::print(EC_POINT* point)
+{
+    EC_GROUP* group = EC_GROUP_new_by_curve_name(NID_secp256k1);
+    std::cout << EC_POINT_point2hex(group, point, POINT_CONVERSION_COMPRESSED, nullptr) << "\n";
+    EC_GROUP_free(group);
 }

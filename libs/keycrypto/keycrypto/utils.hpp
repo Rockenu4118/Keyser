@@ -63,6 +63,9 @@ namespace crypto
         // Print Structures
         ///////////////////////////////////////////////////////////////////////////////////////////
 
+        void print(BIGNUM* bn);
+
+        void print(EC_POINT* point);
 
         
     }

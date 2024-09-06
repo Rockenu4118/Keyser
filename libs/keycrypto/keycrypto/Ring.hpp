@@ -18,32 +18,16 @@ namespace crypto
     class Ring
     {
         public:
-            Ring(std::vector<std::string> fakeKeys, std::string signingKey);
+            Ring() = delete;
 
-            ~Ring();
+            static std::vector<std::string> sign(std::string hash, std::vector<std::string> outputs, std::string realOutput, std::string stealthKey, std::string keyImage);
 
-            std::vector<std::string> sign(std::string hash, std::string stealthKey);
+            static bool verify(std::string hash, std::vector<std::string> sig, std::vector<std::string> publicAddrs, std::string keyImage);
 
-            static bool verify(std::string hash, std::vector<std::string> sig, std::vector<std::string> publicAddrs);
-
-            void printRing() const;
+            static void printSig(std::vector<std::string> sig);
 
         private:
-            void freeRing();
-
-            static BIGNUM* calc_e(std::string hash, BIGNUM* s, BIGNUM* e, EC_POINT* P);
-
-            std::vector<std::string> _keys;
-            
-            int _signingKeyI;
-
-            EC_GROUP* _curve;
-
-            const int _N;
-
-            std::vector<BIGNUM*>   _e;
-            std::vector<BIGNUM*>   _s;
-            std::vector<EC_POINT*> _P;
+            static BIGNUM* calc_e(std::string hash, BIGNUM* s, BIGNUM* e, EC_POINT* P, EC_POINT* I);
     };
 }
 

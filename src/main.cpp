@@ -17,6 +17,7 @@
 #include <keycrypto/utils.hpp>
 #include <keycrypto/sha.hpp>
 #include <tests/ring.cpp>
+#include <tests/pcommitment.cpp>
 #include <string>
 #include <map>
 
@@ -32,7 +33,7 @@ int main()
     std::cout << "Running..." << std::endl;
 
     test();
-
+    // commitment_test();
     
 
 
