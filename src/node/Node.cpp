@@ -1,24 +1,13 @@
-#include <iostream>
-#include <string>
-#include <ctime>
-#include <nlohmann/json.hpp>
-
 #include "./Node.hpp"
-#include "../data/version.hpp"
-#include "../data/nodeAddresses.hpp"
-#include "../data/keys.hpp"
-#include "../net/MsgTypes.hpp"
-#include "../utils/utils.hpp"
-#include "../wallet/Wallet.hpp"
 
 
 keyser::Node::Node(uint16_t port)
 {
-    _startTime = time(NULL);
+    _startTime = time(nullptr);
 
     _chain            = std::make_shared<Chain>(this);
     _mempool          = std::make_shared<Mempool>(this);
-    _utxoSet          = std::make_shared<UtxoSet>(this);
+    _txoSet           = std::make_shared<TxoSet>(this);
     _network          = std::make_shared<NetInterface>(this, port);
     _validationEngine = std::make_shared<ValidationEngine>(this);
     _wallet           = std::make_shared<Wallet>(this);
@@ -104,9 +93,9 @@ std::shared_ptr<keyser::Mempool>& keyser::Node::mempool()
     return _mempool;
 }
 
-std::shared_ptr<keyser::UtxoSet>& keyser::Node::utxoSet()
+std::shared_ptr<keyser::TxoSet>& keyser::Node::txoSet()
 {
-    return _utxoSet;
+    return _txoSet;
 }
 
 std::shared_ptr<keyser::NetInterface>& keyser::Node::network()

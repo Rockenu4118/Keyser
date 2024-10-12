@@ -178,7 +178,7 @@ void keyser::RPC::handleCreateWallet(boost::beast::http::response<boost::beast::
 void keyser::RPC::handleGetBalance(boost::beast::http::response<boost::beast::http::string_body>& response, const std::vector<std::string> &params)
 {
     nlohmann::json res;
-    res["balance"] = _node->utxoSet()->ownerTotalUtxo(params.at(0));
+    // res["balance"] = _node->txoSet()->ownerTotalUtxo(params.at(0));
 
     response.result(boost::beast::http::status::ok);
     response.body() = res.dump();

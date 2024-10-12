@@ -9,7 +9,7 @@
 #include <openssl/ec.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
-#include "./utils.hpp"
+#include "./cryptoUtils.hpp"
 #include "./sha.hpp"
 
 

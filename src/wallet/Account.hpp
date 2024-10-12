@@ -3,10 +3,9 @@
 
 #include <string>
 #include <iostream>
-#include <memory>
 #include <openssl/ec.h>
 #include <nlohmann/json.hpp>
-#include <cryptography.hpp>
+#include <keycrypto/Stealth.hpp>
 
 
 namespace keyser
@@ -19,9 +18,9 @@ namespace keyser
         public:
             Account() = default;
 
-            Account(nlohmann::json json);
+            explicit Account(nlohmann::json json);
 
-            Account(std::string name);
+            explicit Account(std::string name);
 
             Account(std::string name, std::string privateKey);
 
@@ -31,14 +30,13 @@ namespace keyser
 
             std::string getPublicAddress() const;
 
-            cryptography::ECKeyPair* getKeyPair() const;
+            crypto::StealthKeys* getKeyPair() const;
 
             nlohmann::json json() const;
 
         private:
-            std::string               _name;
-            std::string               _publicAddress;
-            cryptography::ECKeyPair*  _keyPair;
+            std::string           _name;
+            crypto::StealthKeys*  _keyPair;
     };
 }
 

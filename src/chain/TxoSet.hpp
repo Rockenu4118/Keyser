@@ -1,5 +1,5 @@
-#ifndef UTXO_SET_H
-#define UTXO_SET_H
+#ifndef TXO_SET_H
+#define TXO_SET_H
 
 #include <string>
 #include <vector>
@@ -7,6 +7,7 @@
 
 #include "../node/Node.hpp"
 #include "./Transaction.hpp"
+#include "./Block.hpp"
 
 
 namespace keyser
@@ -22,22 +23,22 @@ namespace keyser
 
             void processBlock(Block& block);
 
-            std::vector<TXO> possibleUtxos(std::string owner) const;
+            std::vector<TXO> selectRingMembers(int numMembers, std::string realMember);
 
-            bool isUtxoPresent(std::string utxoHash) const;
+            bool isTxoPresent(std::string txoHash) const;
 
-            uint64_t ownerTotalUtxo(std::string owner) const;
+            uint64_t ownerTotalTxo(std::string privViewKey, std::string pubSpendKey) const;
 
-            uint64_t totalUtxo() const;
+            uint64_t totalTxo() const;
 
-            void printUtxoSet() const;
+            void printTxoSet() const;
 
-            std::unordered_map<std::string, TXO>& utxoSet();
+            std::unordered_map<std::string, TXO>& txoSet();
 
         private:
             Node* _node;
 
-            std::unordered_map<std::string, TXO> _utxoSet;
+            std::unordered_map<std::string, TXO> _txoSet;
     };
 }
 

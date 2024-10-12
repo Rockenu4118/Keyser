@@ -18,29 +18,33 @@ namespace crypto
         public:
             StealthKeys();
 
-            StealthKeys(std::string key);
+            explicit StealthKeys(std::string key);
 
             ~StealthKeys() = default;
 
             std::string getPublicAddr() const;
 
-            std::string genStealthAddr(std::string recipient, std::string& RStr) const;
+            static std::string genStealthAddr(std::string recipient, uint8_t index, std::string rStr);
 
-            std::string genStealthKey(std::string addr, std::string RStr) const;
+            std::string deriveStealthKey(std::string addr, uint8_t index, std::string RStr) const;
 
-            bool verifyStealthAddr(std::string addr, std::string RStr) const;
+            bool identifyOutput(std::string addr, uint8_t index, std::string RStr) const;
 
-            bool verifyStealthKey(std::string addr, std::string key) const;
+            bool verifyOutputOwnership(std::string addr, std::string key) const;
 
-            std::string genImage(std::string addr, std::string RStr);
+            std::string deriveImage(std::string addr, uint8_t index, std::string RStr);
 
             inline std::string getPrivateSpendKey() const { return _ecKeys->getPrivateKey(); }
             inline std::string getPublicSpendKey()  const { return _ecKeys->getCPublicKey(); }
             inline std::string getPrivateViewKey()  const { return _privateViewKey; }
             inline std::string getPublicViewKey()   const { return _publicViewKey;  }
 
+            static std::string genTxPrivKey();
+
+            static std::string deriveTxPubKey(std::string rStr);
+
         private:
-            void genViewKeys();
+            void deriveViewKeys();
 
             std::shared_ptr<asym::ECKeyPair> _ecKeys;
 

@@ -20,7 +20,7 @@ namespace keyser
     class Chain
     {   
         public:
-            Chain(Node* node);
+            explicit Chain(Node* node);
             
             ~Chain() = default;
 

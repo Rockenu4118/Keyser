@@ -64,7 +64,7 @@ void keyser::cli::WalletView::viewBalance()
     std::string name;
     std::cout << "Name: ";
     std::cin >> name;
-    std::cout << "Balance: " << _node->utxoSet()->ownerTotalUtxo(_node->wallet()->get(name).getPublicAddress()) << std::endl;
+    // std::cout << "Balance: " << _node->txoSet()->ownerTotalTxo(_node->wallet()->get(name).getKeyPair()->getPrivateViewKey()) << std::endl;
 }
 
 void keyser::cli::WalletView::createWallet()

@@ -63,6 +63,21 @@ std::string crypto::PCommitment::genCommitment(std::vector<uint64_t> vals, std::
     return CStr;
 }
 
+EC_POINT* crypto::PCommitment::commitment(BIGNUM* v, BIGNUM* r)
+{
+    EC_GROUP* group = EC_GROUP_new_by_curve_name(NID_secp256k1);
+    EC_POINT* C = EC_POINT_new(group);
+    EC_POINT* V = utils::ec_mul(v, H());
+    EC_POINT* R = utils::ec_mul(r, nullptr);
+    EC_POINT_add(group, C, V, R, nullptr);
+
+    EC_GROUP_free(group);
+    EC_POINT_free(V);
+    EC_POINT_free(R);
+
+    return C;
+}
+
 bool crypto::PCommitment::verifyCommitment(std::string cIn, std::string cOut)
 {
     EC_GROUP* group = EC_GROUP_new_by_curve_name(NID_secp256k1);

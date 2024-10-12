@@ -1,6 +1,5 @@
-#include <algorithm>
-
 #include "./ValidationEngine.hpp"
+
 
 
 keyser::ValidationEngine::ValidationEngine(Node* node) : _node(node)
@@ -29,7 +28,7 @@ void keyser::ValidationEngine::processValidBlock(Block& block)
     _node->mempool()->processBlock(block);
 
     // Update utxo set
-    _node->utxoSet()->processBlock(block);
+    _node->txoSet()->processBlock(block);
 
     // Add block to chain
     _node->chain()->processBlock(block);
@@ -69,18 +68,18 @@ bool keyser::ValidationEngine::validateTransaction(Transaction transaction)
     // Validate inputs
     for (auto input : transaction._inputs)
     {
-        if (!_node->utxoSet()->isUtxoPresent(input._outPoint.calcHash()))
-            return false;
+        // if (!_node->utxoSet()->isUtxoPresent(input._outPoint.calcHash()))
+        //     return false;
 
-        UTXO utxo = _node->utxoSet()->utxoSet()[input._outPoint.calcHash()];
+        // UTXO utxo = _node->utxoSet()->utxoSet()[input._outPoint.calcHash()];
 
-        cryptography::ECKeyPair keyPair = cryptography::ECKeyPair("public", input._pubKey);
+        // cryptog::ECKeyPair keyPair = cryptography::ECKeyPair("public", input._pubKey);
 
-        if (!keyPair.verify(transaction.hash(), input._sig._rSigVal, input._sig._sSigVal))
-            return false;
+        // if (!keyPair.verify(transaction.hash(), input._sig._rSigVal, input._sig._sSigVal))
+        //     return false;
 
-        if (utils::pubKeytoAddress(input._pubKey) != utxo._output._recipient)
-            return false;
+        // if (utils::pubKeytoAddress(input._pubKey) != utxo._output._recipient)
+        //     return false;
     }
 
     // Add to mempool

@@ -12,47 +12,47 @@ namespace keyser
 {
     struct BlockHeader
     {
-        friend std::ostream& operator<<(std::ostream& out, BlockHeader& data);
+        friend std::ostream& operator<<(std::ostream& out, const BlockHeader& data);
 
         BlockHeader() = default;
 
-        BlockHeader(nlohmann::json json);
+        explicit BlockHeader(nlohmann::json json);
 
-        nlohmann::json json() const;
+        [[nodiscard]] nlohmann::json json() const;
 
-        std::string hash() const;
+        [[nodiscard]] std::string hash() const;
 
-        uint        _index;
+        uint        _index{};
         std::string _version;
         std::string _prevHash;
         std::string _bodyHash;
         Transaction _reward;
-        time_t      _time;
+        time_t      _time{};
         uint64_t    _nonce = 0;
     };
 
     class Block : public BlockHeader
     {
         // IO Stream operators
-        friend std::ostream& operator<<(std::ostream& out, Block& data);
+        friend std::ostream& operator<<(std::ostream& out, const Block& data);
 
         public:
             // Json parsing
-            Block(nlohmann::json json);
+            explicit Block(nlohmann::json json);
 
             // Main block constructor miners will use to form a block
             Block(uint index, time_t time, std::string prevHash, Transaction reward, std::vector<Transaction> transactions);
 
             ~Block() = default;
 
-            BlockHeader getHeader() const;
+            [[nodiscard]] BlockHeader getHeader() const;
 
-            std::string bodyHash() const;
+            [[nodiscard]] std::string bodyHash() const;
 
             // Validate all transactions within block
             bool hasValidTransactions();
 
-            nlohmann::json json() const;
+            [[nodiscard]] nlohmann::json json() const;
 
             // Print all transactions within block
             void printTransactions();

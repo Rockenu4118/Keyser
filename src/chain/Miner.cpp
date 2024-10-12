@@ -63,9 +63,11 @@ void keyser::Miner::stop()
 
 keyser::Block keyser::Miner::constructBlock(std::string rewardRecipient)
 {
-    Transaction blockReward(_node->chain()->calcReward(), rewardRecipient);
+    int currBlockI = _node->chain()->getCurrBlock()._index;
 
-    Block block = Block(_node->chain()->getCurrBlock()._index + 1, time(NULL), _node->chain()->getCurrBlock().hash(), blockReward, _node->mempool()->leadingTransactions());
+    Transaction blockReward(_node->chain()->calcReward(), rewardRecipient, currBlockI + 6);
+
+    Block block = Block(currBlockI + 1, time(nullptr), _node->chain()->getCurrBlock().hash(), blockReward, _node->mempool()->leadingTransactions());
     
     block._bodyHash = block.bodyHash();
 

@@ -6,7 +6,7 @@
 #include <openssl/evp.h>
 #include <openssl/ec.h>
 #include "./aes.hpp"
-#include "./utils.hpp"
+#include "./cryptoUtils.hpp"
 #include "./sha.hpp"
 
 namespace crypto
@@ -16,14 +16,16 @@ namespace crypto
         public:
             PCommitment() = default;
 
-            std::string genCommitment(std::vector<uint64_t> vals, std::vector<std::string>& RVals);
+            static std::string genCommitment(std::vector<uint64_t> vals, std::vector<std::string>& RVals);
 
-            bool verifyCommitment(std::string cIn, std::string cOut);
+            static EC_POINT* commitment(BIGNUM* v, BIGNUM* r);
+
+            static bool verifyCommitment(std::string cIn, std::string cOut);
 
             void decryptCommitment(std::string commitment);
 
         private:
-            EC_POINT* H();
+            static EC_POINT* H();
 
     };
 }

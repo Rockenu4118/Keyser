@@ -13,7 +13,7 @@ namespace keyser
     class Wallet
     {
         public:
-            Wallet(Node* node);
+            explicit Wallet(Node* node);
 
             ~Wallet() = default;
 

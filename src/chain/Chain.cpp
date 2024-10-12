@@ -18,7 +18,7 @@ void keyser::Chain::createGenesisBlock()
 {
     std::vector<Transaction> initialBalances{};
 
-    Transaction tx1(50000, addr1);
+    Transaction tx1(50000, addr1, 5);
     tx1._time = 0;
 
     Block genesisBlock = Block(0, 0, "None", tx1, initialBalances);

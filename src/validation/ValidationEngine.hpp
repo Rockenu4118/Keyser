@@ -5,7 +5,9 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <algorithm>
 #include <unordered_map>
+#include <keycrypto/Stealth.hpp>
 
 #include "../chain/Block.hpp"
 #include "../chain/Transaction.hpp"

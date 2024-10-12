@@ -1,26 +1,29 @@
 #include "../keycrypto/Stealth.hpp"
 #include "../keycrypto/Ring.hpp"
-#include "../keycrypto/utils.hpp"
+#include "../keycrypto/cryptoUtils.hpp"
 #include <time.h>
 #include <memory>
 
 
-void test()
+void ring_test()
 {
     crypto::StealthKeys aj;
     crypto::StealthKeys bob;
 
-    std::string R;
+    std::cout << aj << "\n";
 
-    std::string fakeP1 = aj.genStealthAddr(bob.getPublicAddr(), R);
-    std::string fakeP2 = aj.genStealthAddr(bob.getPublicAddr(), R);
-    std::string fakeP3 = aj.genStealthAddr(bob.getPublicAddr(), R);
+    std::string r = crypto::StealthKeys::genTxPrivKey();
+    std::string R = crypto::StealthKeys::deriveTxPubKey(r);
 
-    std::string P = aj.genStealthAddr(bob.getPublicAddr(), R);
-    std::string x = bob.genStealthKey(P, R);
+    std::string fakeP1 = aj.genStealthAddr(bob.getPublicAddr(), 0, r);
+    std::string fakeP2 = aj.genStealthAddr(bob.getPublicAddr(), 1, r);
+    std::string fakeP3 = aj.genStealthAddr(bob.getPublicAddr(), 2, r);
 
-    bool validAddr = bob.verifyStealthAddr(P, R);
-    bool validKey = bob.verifyStealthKey(P, x);
+    std::string P = aj.genStealthAddr(bob.getPublicAddr(), 3, r);
+    std::string x = bob.deriveStealthKey(P, 3, R);
+
+    bool validAddr = bob.identifyOutput(P, 3, R);
+    bool validKey = bob.verifyOutputOwnership(P, x);
 
     std::cout << "Bobs output: " << validAddr << std::endl;
     std::cout << "Valid Stealth Key: " << validKey << std::endl;
@@ -33,27 +36,20 @@ void test()
     keys.push_back(P);
     keys.push_back(fakeP2);
 
-    // BIGNUM* bruh = nullptr;
-    // std::unique_ptr<BIGNUM> ptr = std::make_unique<BIGNUM>(BN_new());
-    // bruh = ptr.get();
-
-    // crypto::utils::print(bruh);
-
-
 
     // RNG gen and suffle key order within ring
     std::random_device rd;
     std::mt19937 g(rd());
-  
+
     // Shuffle the vector
     shuffle(keys.begin(), keys.end(), g);
 
     // ring.printRing();
-    std::string image = bob.genImage(P, R);
+    std::string image = bob.deriveImage(P, 3, R);
     std::cout << "Image: " << image << std::endl;
     double time1, timedif;
 
-  
+
 
     std::vector<std::string> sig = crypto::Ring::sign(msg, keys, P, x, image);
     std::vector<std::string> fakesig = crypto::Ring::sign(modmsg, keys, P, x, image);
@@ -74,9 +70,9 @@ void test()
 
 
 
-    
 
-    
 
-    
+
+
+
 }

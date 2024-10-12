@@ -5,14 +5,14 @@ crypto::StealthKeys::StealthKeys()
 {   
     _ecKeys = std::make_shared<asym::ECKeyPair>();
 
-    genViewKeys();
+    deriveViewKeys();
 }
 
 crypto::StealthKeys::StealthKeys(std::string key)
 {
     _ecKeys = std::make_shared<asym::ECKeyPair>(KeyType::Private, key);
 
-    genViewKeys();
+    deriveViewKeys();
 }
 
 std::string crypto::StealthKeys::getPublicAddr() const
@@ -20,7 +20,7 @@ std::string crypto::StealthKeys::getPublicAddr() const
     return getPublicSpendKey() + getPublicViewKey();
 }
 
-std::string crypto::StealthKeys::genStealthAddr(std::string recipient, std::string& RStr) const
+std::string crypto::StealthKeys::genStealthAddr(std::string recipient, uint8_t index, std::string rStr)
 {
     std::string pubSpend = recipient.substr(0, 66);
     std::string pubView  = recipient.substr(66, 66);
@@ -32,7 +32,6 @@ std::string crypto::StealthKeys::genStealthAddr(std::string recipient, std::stri
     const BIGNUM* cofactor   = EC_GROUP_get0_cofactor(secp256k1Group);
 
     BIGNUM*   r = BN_new();
-    EC_POINT* R = EC_POINT_new(secp256k1Group);
     EC_POINT* A = EC_POINT_new(secp256k1Group);
     EC_POINT* B = EC_POINT_new(secp256k1Group);
     EC_POINT* D = EC_POINT_new(secp256k1Group);
@@ -40,21 +39,16 @@ std::string crypto::StealthKeys::genStealthAddr(std::string recipient, std::stri
     EC_POINT* F = EC_POINT_new(secp256k1Group);
     EC_POINT* P = EC_POINT_new(secp256k1Group);
 
-    BN_rand(r, 256, BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY);
-    utils::sc_reduce32(r, secp256k1Group);
+    BN_hex2bn(&r, rStr.c_str());
 
     A = EC_POINT_hex2point(secp256k1Group, pubView.c_str(), nullptr, nullptr);
     B = EC_POINT_hex2point(secp256k1Group, pubSpend.c_str(), nullptr, nullptr);
-
-    R = utils::ec_mul(r, nullptr);
-
-    RStr = EC_POINT_point2hex(secp256k1Group, R, POINT_CONVERSION_COMPRESSED, nullptr);
 
     D = utils::ec_mul(r, A);
 
     std::string DStr = EC_POINT_point2hex(secp256k1Group, D, POINT_CONVERSION_COMPRESSED, nullptr);
 
-    f = utils::Hs(hash::SHA3(utils::hexToString(DStr)));
+    f = utils::Hs(hash::SHA3(utils::hexToString(DStr) + std::to_string(index)));
 
     F = utils::ec_mul(f, nullptr);
 
@@ -75,7 +69,7 @@ std::string crypto::StealthKeys::genStealthAddr(std::string recipient, std::stri
     return stealthAddr;
 }
 
-std::string crypto::StealthKeys::genStealthKey(std::string addr, std::string RStr) const
+std::string crypto::StealthKeys::deriveStealthKey(std::string addr, uint8_t index, std::string RStr) const
 {
     EC_GROUP* secp256k1Group = EC_GROUP_new_by_curve_name(NID_secp256k1);
     const BIGNUM* order      = EC_GROUP_get0_order(secp256k1Group);
@@ -97,7 +91,7 @@ std::string crypto::StealthKeys::genStealthKey(std::string addr, std::string RSt
 
     std::string DStr = EC_POINT_point2hex(secp256k1Group, D, POINT_CONVERSION_COMPRESSED, nullptr);
 
-    f = utils::Hs(hash::SHA3(utils::hexToString(DStr)));
+    f = utils::Hs(hash::SHA3(utils::hexToString(DStr) + std::to_string(index)));
 
     BN_add(x, f, b);
 
@@ -114,7 +108,7 @@ std::string crypto::StealthKeys::genStealthKey(std::string addr, std::string RSt
     return xStr;
 }
 
-bool crypto::StealthKeys::verifyStealthAddr(std::string addr, std::string RStr) const
+bool crypto::StealthKeys::identifyOutput(std::string addr, uint8_t index, std::string RStr) const
 {
     EC_GROUP* secp256k1Group = EC_GROUP_new_by_curve_name(NID_secp256k1);
     const BIGNUM* order      = EC_GROUP_get0_order(secp256k1Group);
@@ -137,7 +131,7 @@ bool crypto::StealthKeys::verifyStealthAddr(std::string addr, std::string RStr) 
 
     std::string DStr = EC_POINT_point2hex(secp256k1Group, D, POINT_CONVERSION_COMPRESSED, nullptr);
 
-    f = utils::Hs(hash::SHA3(utils::hexToString(DStr)));
+    f = utils::Hs(hash::SHA3(utils::hexToString(DStr) + std::to_string(index)));
 
     F = utils::ec_mul(f, nullptr);
 
@@ -157,7 +151,7 @@ bool crypto::StealthKeys::verifyStealthAddr(std::string addr, std::string RStr) 
     return PStr == addr;
 }
 
-bool crypto::StealthKeys::verifyStealthKey(std::string addr, std::string key) const
+bool crypto::StealthKeys::verifyOutputOwnership(std::string addr, std::string key) const
 {
     EC_GROUP* curve = EC_GROUP_new_by_curve_name(NID_secp256k1);
 
@@ -173,16 +167,14 @@ bool crypto::StealthKeys::verifyStealthKey(std::string addr, std::string key) co
     return addr == PStr;
 }
 
-std::string crypto::StealthKeys::genImage(std::string addr, std::string RStr)
+std::string crypto::StealthKeys::deriveImage(std::string addr, uint8_t index, std::string RStr)
 {
     std::string image;
 
     EC_GROUP* group = EC_GROUP_new_by_curve_name(NID_secp256k1);
-    const BIGNUM* order      = EC_GROUP_get0_order(group);
-    const BIGNUM* cofactor   = EC_GROUP_get0_cofactor(group);
 
     // Calculate Stealth Key(x) to Addr(P)
-    std::string stealthKey = genStealthKey(addr, RStr);
+    std::string stealthKey = deriveStealthKey(addr, index, RStr);
     
     BIGNUM*   x    = BN_new();
     EC_POINT* HpP  = EC_POINT_new(group);
@@ -205,42 +197,69 @@ std::string crypto::StealthKeys::genImage(std::string addr, std::string RStr)
     return image;
 }
 
-void crypto::StealthKeys::genViewKeys()
+std::string crypto::StealthKeys::genTxPrivKey()
 {
-    // Initalize secp256k1 group and get its order
-    EC_GROUP*     secp256k1Group = EC_GROUP_new_by_curve_name(NID_secp256k1);
-    const BIGNUM* secp256k1Order = EC_GROUP_get0_order(secp256k1Group);
+    EC_GROUP* group = EC_GROUP_new_by_curve_name(NID_secp256k1);
+    const BIGNUM* order = EC_GROUP_get0_order(group);
+
+    BIGNUM* r = BN_new();
+    BN_rand_range(r, order);
+
+    std::string rStr = BN_bn2hex(r);
+
+    EC_GROUP_free(group);
+    BN_free(r);
+
+    return rStr;
+}
+
+std::string crypto::StealthKeys::deriveTxPubKey(std::string rStr)
+{
+    EC_GROUP* group = EC_GROUP_new_by_curve_name(NID_secp256k1);
+
+    BIGNUM* r = BN_new();
+    EC_POINT* R = EC_POINT_new(group);
+
+    BN_hex2bn(&r, rStr.c_str());
+    R = utils::ec_mul(r, nullptr);
+
+    std::string RStr = EC_POINT_point2hex(group, R, POINT_CONVERSION_COMPRESSED, nullptr);
+
+    EC_GROUP_free(group);
+    BN_free(r);
+    EC_POINT_free(R);
+
+    return RStr;
+}
+
+void crypto::StealthKeys::deriveViewKeys()
+{
+    // Initalize secp256k1 group
+    EC_GROUP* secp256k1Group = EC_GROUP_new_by_curve_name(NID_secp256k1);
 
     BIGNUM* privKeyScalar = BN_new();
 
     // Hash private spend key
-    std::string privKeyUnhashed = utils::hexToString(_ecKeys->getPrivateKey());
-    std::string privKeyHashed = hash::SHA3(privKeyUnhashed);
+    std::string privKeyHashed = hash::SHA3(utils::hexToString(_ecKeys->getPrivateKey()));
 
     // Convert hashed value to a BIGNUM and reduce it to make it a valid secp256k1 scalar
     BN_hex2bn(&privKeyScalar, privKeyHashed.c_str());
-
     utils::sc_reduce32(privKeyScalar, secp256k1Group);
 
-    // // Convert reduced scalar to hex and assign it to _privateViewKey
-    char* privViewKey = BN_bn2hex(privKeyScalar);
-
-    _privateViewKey = privViewKey;
+    // Convert reduced scalar to hex and assign it to _privateViewKey
+    _privateViewKey = BN_bn2hex(privKeyScalar);
 
     // Derive public view key from private view key
-    EC_POINT* pubKey = EC_POINT_new(secp256k1Group);
+    EC_POINT* pubKey = utils::ec_mul(privKeyScalar, nullptr);
 
-    EC_POINT_mul(secp256k1Group, pubKey, privKeyScalar, nullptr, nullptr, nullptr);
-
-    char* pubViewKey = EC_POINT_point2hex(secp256k1Group, pubKey, POINT_CONVERSION_COMPRESSED, nullptr);
-
-    _publicViewKey = pubViewKey;
+    _publicViewKey = EC_POINT_point2hex(secp256k1Group, pubKey, POINT_CONVERSION_COMPRESSED, nullptr);
 }
 
 namespace crypto
 {
     std::ostream& operator<<(std::ostream& out, StealthKeys& data)
     {
+        out << "Public Addr:   " << data.getPublicAddr()      << "\n";
         out << "Private Spend: " << data.getPrivateSpendKey() << "\n";
         out << "Public Spend:  " << data.getPublicSpendKey()  << "\n";
         out << "Private View:  " << data.getPrivateViewKey()  << "\n";

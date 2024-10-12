@@ -1,11 +1,6 @@
-// TODO - potentially create a structure that will be responsible for
-// mining and contain a mining thread. This structure will be dynamically called
-// whenever a using wants to begin mining, and destroyed when they are finished.
-
 #ifndef MINER_H
 #define MINER_H
 
-#include <memory>
 #include <thread>
 
 #include "../node/Node.hpp"
@@ -18,7 +13,7 @@ namespace keyser
     class Miner
     {
         public:
-            Miner(Node* node);
+            explicit Miner(Node* node);
 
             ~Miner();
 

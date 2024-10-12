@@ -3,14 +3,12 @@
 
 #include <iostream>
 #include <string>
-// #include <openssl/conf.h>
 #include <openssl/aes.h>
 #include <openssl/rand.h>
 #include <openssl/evp.h>
 #include <openssl/kdf.h>
-// #include <openssl/err.h>
 
-#include "./utils.hpp"
+#include "./cryptoUtils.hpp"
 
 #define KEY_LEN 32
 #define IV_LEN 16

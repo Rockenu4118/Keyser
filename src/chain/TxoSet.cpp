@@ -1,6 +1,4 @@
-#include <iostream>
-
-#include "./UtxoSet.hpp"
+#include "./TxoSet.hpp"
 
 
 keyser::TxoSet::TxoSet(Node* node) : _node(node)
@@ -32,68 +30,64 @@ void keyser::TxoSet::processBlock(Block& block)
     // }
 }
 
-std::vector<keyser::TXO> keyser::TxoSet::possibleUtxos(std::string owner) const
+std::vector<keyser::TXO> keyser::TxoSet::selectRingMembers(int numMembers, std::string realMember)
 {
-    std::vector<TXO> utxos;
+    std::vector<keyser::TXO> members;
 
-    for (auto utxo : _utxoSet)
-    {
-        if (utxo.second._output._recipient == owner)
-            utxos.push_back(utxo.second);
-    }
 
-    return utxos;
+    return members;
 }
 
-bool keyser::TxoSet::isUtxoPresent(std::string utxoHash) const
+
+bool keyser::TxoSet::isTxoPresent(std::string txoHash) const
 {
-    if (_utxoSet.find(utxoHash) == _utxoSet.end())
+    if (_txoSet.find(txoHash) == _txoSet.end())
         return false;
 
     return true;
 }
 
-uint64_t keyser::TxoSet::ownerTotalUtxo(std::string owner) const
+uint64_t keyser::TxoSet::ownerTotalTxo(std::string privViewKey, std::string pubSpendKey) const
 {
     uint64_t balance = 0;
 
-    for (auto utxo : _utxoSet)
-    {
-        if (utxo.second._output._recipient == owner)
-            balance += utxo.second._output._amount;
-    }
+    // for (auto utxo : _utxoSet)
+    // {
+    //     if (utxo.second._output._recipient == owner)
+    //         balance += utxo.second._output._amount;
+    // }
 
     return balance;
 }
 
-uint64_t keyser::TxoSet::totalUtxo() const
+uint64_t keyser::TxoSet::totalTxo() const
 {
     uint64_t total = 0;
 
-    for (auto utxo : _utxoSet)
+    for (const auto&[hash, txo] : _txoSet)
     {
-        total += utxo.second._output._amount;
+        total += txo._output._amount;
     }
 
     return total;
 }
 
-void keyser::TxoSet::printUtxoSet() const
+void keyser::TxoSet::printTxoSet() const
 {
-    // if (_utxoSet.size() == 0)
-    // {
-    //     std::cout << "Utxo Set empty." << std::endl;
-    //     return;
-    // }
-    //
-    // for (auto utxo : _utxoSet)
-    // {
-    //     std::cout << utxo.second << std::endl;
-    // }
+    if (_txoSet.size() == 0)
+    {
+        std::cout << "Txo Set empty." << std::endl;
+        return;
+    }
+
+    for (const auto&[hash, txo] : _txoSet)
+    {
+        std::cout << txo._output._amount << std::endl;
+    }
 }
 
-std::unordered_map<std::string, keyser::TXO>& keyser::TxoSet::utxoSet()
+std::unordered_map<std::string, keyser::TXO>& keyser::TxoSet::txoSet()
 {
-    return _utxoSet;
+    return _txoSet;
 }
 

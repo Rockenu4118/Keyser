@@ -2,9 +2,9 @@
 #define NODE_H
 
 #include <memory>
+#include <ctime>
 
-#include "../net/Peer.hpp"
-#include "../chain/UtxoSet.hpp"
+#include "../chain/TxoSet.hpp"
 #include "../chain/Chain.hpp"
 #include "../chain/Miner.hpp"
 #include "../chain/Mempool.hpp"
@@ -13,10 +13,11 @@
 #include "../wallet/Wallet.hpp"
 #include "../chain/Transaction.hpp"
 
+
 namespace keyser
 {
     // Forward declare
-    class UtxoSet;
+    class TxoSet;
     class Chain;
     class Miner;
     class Mempool;
@@ -34,7 +35,7 @@ namespace keyser
             Online
         };
 
-        Node(uint16_t port);
+        explicit Node(uint16_t port);
 
         ~Node();
 
@@ -62,7 +63,7 @@ namespace keyser
 
         std::shared_ptr<Mempool>& mempool();
 
-        std::shared_ptr<UtxoSet>& utxoSet();
+        std::shared_ptr<TxoSet>& txoSet();
 
         std::shared_ptr<NetInterface>& network();
 
@@ -74,7 +75,7 @@ namespace keyser
         Status _status = Status::Offline;
         time_t _startTime;
 
-        std::shared_ptr<UtxoSet> _utxoSet;
+        std::shared_ptr<TxoSet> _txoSet;
         std::shared_ptr<Chain> _chain;
         std::shared_ptr<Miner> _miner;
         std::shared_ptr<Mempool> _mempool;

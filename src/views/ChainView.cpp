@@ -55,7 +55,7 @@ void keyser::cli::ChainView::display()
                 break;
             case '5':
                 displayTitle("Utxo Set");
-                _node->utxoSet()->printUtxoSet();
+                _node->txoSet()->printTxoSet();
                 continueMsg();
                 break;
             case '6':

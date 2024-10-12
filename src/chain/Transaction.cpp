@@ -6,21 +6,18 @@
 #include "../data/version.hpp"
 
 
-std::string keyser::OutPoint::calcHash() const
+std::string keyser::OutPoint::hash() const
 {
-    std::string unhashed = _txHash + std::to_string(_index);
-    std::string hashed;
-
-    cryptography::SHA256(unhashed, hashed);
-
-    return hashed;
+    return crypto::hash::SHA3(utils::hexToString(_R) + std::to_string(_index));
 }
-
 
 keyser::Transaction::Transaction(nlohmann::json json)
 {
     _version = json["version"];
     _time    = json["time"];
+    _lockTime= json["lockTime"];
+    _gas     = json["gas"];
+    _extra   = json["extra"];
 
     for (auto& input : json["inputs"])
     {
@@ -35,29 +32,44 @@ keyser::Transaction::Transaction(nlohmann::json json)
     }
 }
 
-keyser::Transaction::Transaction(uint64_t amount, std::string recipientAddr)
+keyser::Transaction::Transaction(uint64_t amount, std::string recipientAddr, uint64_t lockTime)
 {
-    _version = KEYSER_VERSION;
-    _time = time(NULL);
+    _version  = KEYSER_VERSION;
+    _time     = time(nullptr);
+    _lockTime = lockTime;
+    _gas      = 0;
+
+    std::string r = crypto::StealthKeys::genTxPrivKey();
+    std::string R = crypto::StealthKeys::deriveTxPubKey(r);
 
     TxOut txout;
     txout._amount    = amount;
-    txout._recipient = recipientAddr;
+    txout._recipient = crypto::StealthKeys::genStealthAddr(recipientAddr, 0, r);
 
     _outputs.push_back(txout);
+
+    _extra = R;
 }
 
-keyser::Transaction::Transaction(std::vector<UTXO> Utxos, uint64_t amount, uint64_t gas, std::string recipientAddr, std::string sendingPublicKey)
+keyser::Transaction::Transaction(std::vector<TxOut> outputs, uint64_t amount, uint64_t lockTime, uint64_t gas, std::string recipientAddr, std::string changeAddr)
 {
     _version = KEYSER_VERSION;
-    _time = time(NULL);
+    _time = time(nullptr);
+    _lockTime = lockTime;
+    _gas = gas;
 
     // Sum of all provided Utxos
-    uint64_t totalFunds = std::accumulate(Utxos.cbegin(), Utxos.cend(), 0, [](uint64_t sum, UTXO utxo) { return sum += utxo._output._amount; });
+    uint64_t totalFunds = std::accumulate(outputs.cbegin(), outputs.cend(), 0, [](uint64_t sum, const TxOut& txout) { return sum += txout._amount; });
+
+    if (totalFunds < (amount + gas))
+        throw std::runtime_error("Insufficient funds to initalize tx!");
+
+    std::string r = crypto::StealthKeys::genTxPrivKey();
+    std::string R = crypto::StealthKeys::deriveTxPubKey(r);
 
     // Sent funds
     TxOut transfer;
-    transfer._recipient = recipientAddr;
+    transfer._recipient = crypto::StealthKeys::genStealthAddr(recipientAddr, 0, r);
     transfer._amount = amount;
     _outputs.push_back(transfer);
 
@@ -66,18 +78,9 @@ keyser::Transaction::Transaction(std::vector<UTXO> Utxos, uint64_t amount, uint6
     {
         // Excess funds
         TxOut change;
-        change._recipient = utils::pubKeytoAddress(sendingPublicKey);
+        change._recipient = crypto::StealthKeys::genStealthAddr(changeAddr, 1, r);
         change._amount = totalFunds - amount - gas;
         _outputs.push_back(change);
-    }
-
-    // Create inputs
-    for (auto utxo : Utxos)
-    {
-        TxIn input;
-        input._outPoint = utxo._outPoint;
-        input._pubKey = sendingPublicKey;
-        _inputs.push_back(input);
     }
 }
 
@@ -86,30 +89,34 @@ std::string keyser::Transaction::hash() const
     std::string unhashed = _version + std::to_string(_time);
     std::string hashed;
 
-    for (auto& input : _inputs)
-        unhashed.append(input._outPoint._txHash + std::to_string(input._outPoint._index) + input._pubKey);
+    // for (auto& input : _inputs)
+    //     unhashed.append(input._outPoint._txHash + std::to_string(input._outPoint._index) + input._pubKey);
 
     for (auto& output : _outputs)
         unhashed.append(std::to_string(output._amount) + output._recipient);
 
-    cryptography::SHA256(unhashed, hashed);
+    hashed = crypto::hash::SHA3(unhashed);
 
     return hashed;
 }
 
-void keyser::Transaction::sign(cryptography::ECKeyPair* signingKey)
+bool keyser::Transaction::sign(crypto::StealthKeys* signingKey)
 {
-    for (auto& input : _inputs)
-    {
-        signingKey->sign(hash(), input._sig._rSigVal, input._sig._sSigVal);
-    }
+    // for (auto& input : _inputs)
+    // {
+    //     // signingKey->sign(hash(), input._sig._rSigVal, input._sig._sSigVal);
+    // }
+
+
+
+    return false;
 }
 
 bool keyser::Transaction::isSigned() const
 {
-    for (auto input : _inputs)
+    for (const auto& input : _inputs)
     {
-        if (input._sig._rSigVal == "" || input._sig._sSigVal == "")
+        if (input._ringSig.size() != input._ringMembers.size() + 1)
             return false;
     }
 
@@ -137,22 +144,14 @@ nlohmann::json keyser::Transaction::json() const
 // Operator overloading
 namespace keyser
 {
-    std::ostream& operator<<(std::ostream& out, TxOut& data)
+    std::ostream& operator<<(std::ostream& out, const TxOut& data)
     {
         out << "Amount: " << data._amount << ", Recipient: " << data._recipient;
 
         return out;
     }
 
-    std::ostream& operator<<(std::ostream& out, UTXO& data)
-    {
-        out << "Origin: " << data._outPoint._txHash << ", Index: " << data._outPoint._index << std::endl; 
-        out << "Amount: " << data._output._amount << ", Recipient: " << data._output._recipient;
-
-        return out;
-    }
-
-    std::ostream& operator<<(std::ostream& out, Transaction& data) 
+    std::ostream& operator<<(std::ostream& out, const Transaction& data)
     {
         out << "Time: "      << utils::localTime(data._time)   << std::endl;
         out << "Inputs: "    << data._inputs.size()            << std::endl;

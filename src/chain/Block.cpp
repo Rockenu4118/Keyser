@@ -58,7 +58,7 @@ keyser::Block::Block(nlohmann::json json)
     _version  = json["version"];
     _prevHash = json["prevHash"];
     _bodyHash = json["bodyHash"];
-    _reward   = json["reward"];
+    _reward     = Transaction(json["reward"]);
     _time     = json["time"];
     _nonce    = json["nonce"];
 
@@ -109,9 +109,9 @@ std::string keyser::Block::bodyHash() const
 
 bool keyser::Block::hasValidTransactions()
 {
-    for (int i = 0 ; i < _transactions.size() ; i++)
+    for (const auto & _transaction : _transactions)
     {
-        if (!_transactions.at(i).isSigned())
+        if (!_transaction.isSigned())
             return false;
     }
     return true;
@@ -140,15 +140,15 @@ nlohmann::json keyser::Block::json() const
 
 void keyser::Block::printTransactions()
 {   
-    for (uint i = 0 ; i < _transactions.size() ; i++)
+    for (auto& tx : _transactions)
     {
-        std::cout << _transactions.at(i) << std::endl;
+        std::cout << tx << std::endl;
     }
 }
 
 namespace keyser
 {
-    std::ostream& operator<<(std::ostream& out, BlockHeader& data) {
+    std::ostream& operator<<(std::ostream& out, const BlockHeader& data) {
         out << "Index:        " << data._index                  << std::endl;
         out << "Prev Hash:    " << data._prevHash               << std::endl;
         out << "Body Hash:    " << data._bodyHash               << std::endl;
@@ -159,7 +159,7 @@ namespace keyser
         return out;
     }
 
-    std::ostream& operator<<(std::ostream& out, Block& data) {
+    std::ostream& operator<<(std::ostream& out, const Block& data) {
         out << "Index:        " << data._index                  << std::endl;
         out << "Prev Hash:    " << data._prevHash               << std::endl;
         out << "Body Hash:    " << data._bodyHash               << std::endl;

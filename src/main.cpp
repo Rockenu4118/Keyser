@@ -5,18 +5,14 @@
 //  Copyright (c) 2023 Hermosillo. All rights reserved.
 //
 
-// #include "./app/App.hpp"
+#include "./app/App.hpp"
 // #include "./chain/Block.hpp"
 // #include "./chain/Transaction.hpp"
 // #include "./storage/StorageEngine.hpp"
 // #include "./wallet/Account.hpp"
 
-#include <keycrypto/Stealth.hpp>
-#include <keycrypto/aes.hpp> 
-#include <keycrypto/Ring.hpp>
-#include <keycrypto/utils.hpp>
-#include <keycrypto/sha.hpp>
 #include <tests/ring.cpp>
+#include <tests/stealth.cpp>
 #include <tests/pcommitment.cpp>
 #include <string>
 #include <map>
@@ -32,16 +28,17 @@ int main()
 {   
     std::cout << "Running..." << std::endl;
 
-    test();
+    // ring_test();
     // commitment_test();
+    // stealth_test();
     
 
 
 
 
 
-    // keyser::App app;
-    // app.run();
+    keyser::App app;
+    app.run();
 
     return 0;
 }

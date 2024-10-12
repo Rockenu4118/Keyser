@@ -1,7 +1,7 @@
 #include <openssl/evp.h>
 #include "../keycrypto/PCommitment.hpp"
 #include "../keycrypto/sha.hpp"
-#include "../keycrypto/utils.hpp"
+#include "../keycrypto/cryptoUtils.hpp"
 
 void commitment_test()
 {
@@ -12,33 +12,43 @@ void commitment_test()
 
     std::cout << "G: " << gHex << std::endl;
 
-    std::string Ghash = crypto::hash::SHA3(crypto::utils::hexToString(gHex));
-
-
-    EC_POINT* H = crypto::utils::ssvg_hash_to_curve(Ghash, group);
+    EC_POINT* H = crypto::utils::ssvg_hash_to_curve(crypto::hash::SHA3(crypto::utils::hexToString(gHex)), group);
     std::cout << "Is on curve: " << EC_POINT_is_on_curve(group, H, nullptr) << std::endl;
-    std::string hHash = EC_POINT_point2hex(group, H, POINT_CONVERSION_COMPRESSED, nullptr);
-    std::cout << "H: " << hHash << std::endl;
+    std::string hHex = EC_POINT_point2hex(group, H, POINT_CONVERSION_COMPRESSED, nullptr);
+    std::cout << "H: " << hHex << std::endl;
 
-    std::vector<uint64_t> vals;
-    vals.push_back(10);
-    vals.push_back(5);
-    vals.push_back(25);
+    BIGNUM* v = BN_new();
+    BN_set_word(v, 10);
+    BIGNUM* r = crypto::utils::rand(256);
+    EC_POINT* C = crypto::PCommitment::commitment(v, r);
 
-    std::vector<std::string> RVals;
+    std::cout << "C: ";
+    crypto::utils::print(C);
 
-    crypto::PCommitment pc;
+    // EC_POINT_point2oct()
 
-    std::string commitment = pc.genCommitment(vals, RVals);
 
-    std::cout << "Commitment: " << commitment << "\n";
 
-    bool valid = pc.verifyCommitment("", "");
 
-    std::cout << "Valid C Out: " << valid << "\n";
-
-    std::cout << "-----R Vals-----\n";
-    for (const auto& R : RVals)
-        std::cout << R << "\n";
+    // std::vector<uint64_t> vals;
+    // vals.push_back(10);
+    // vals.push_back(5);
+    // vals.push_back(25);
+    //
+    // std::vector<std::string> RVals;
+    //
+    // crypto::PCommitment pc;
+    //
+    // std::string commitment = pc.genCommitment(vals, RVals);
+    //
+    // std::cout << "Commitment: " << commitment << "\n";
+    //
+    // bool valid = pc.verifyCommitment("", "");
+    //
+    // std::cout << "Valid C Out: " << valid << "\n";
+    //
+    // std::cout << "-----R Vals-----\n";
+    // for (const auto& R : RVals)
+    //     std::cout << R << "\n";
 
 }

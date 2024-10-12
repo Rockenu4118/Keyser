@@ -54,6 +54,11 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("/home/aj/Desktop/keyser/cmake-build-debug/libs/keycrypto/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("/home/aj/Desktop/keyser/cmake-build-debug/libs/net_core/cmake_install.cmake")
 endif()
 

@@ -5,7 +5,7 @@
 #include <openssl/ec.h>
 #include <nlohmann/json.hpp>
 
-#include "./utils.hpp"
+#include "./cryptoUtils.hpp"
 
 
 namespace crypto

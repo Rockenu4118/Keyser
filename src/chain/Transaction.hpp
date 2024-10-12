@@ -6,39 +6,16 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-#include <cryptography.hpp>
+#include <keycrypto/sha.hpp>
+#include <keycrypto/Stealth.hpp>
 
 namespace keyser
 {
-    struct TxSig
-    {
-        TxSig() = default;
-
-        TxSig(nlohmann::json json)
-        {
-            _rSigVal = json["rSigVal"];
-            _sSigVal = json["sSigVal"];
-        }
-
-        ~TxSig() = default;
-
-        nlohmann::json json() const
-        {
-            nlohmann::json json;
-            json["rSigVal"] = _rSigVal;
-            json["sSigVal"] = _sSigVal;
-            return json;
-        }
-
-        std::string _rSigVal;
-        std::string _sSigVal;
-    };
-
     struct OutPoint
     {
-        std::string calcHash() const;
+        std::string hash() const;
 
-        std::string _txHash;
+        std::string _R;
         uint        _index;
     };
 
@@ -46,11 +23,11 @@ namespace keyser
     {
         TxIn() = default;
 
-        TxIn(nlohmann::json json) : _sig(json["sig"])
+        explicit TxIn(nlohmann::json json)
         {
-            _outPoint._txHash = json["txHash"];
-            _outPoint._index  = json["index"];
-            _pubKey = json["pubKey"];
+            _ringMembers = json["ringMembers"];
+            _ringSig     = json["ringSig"];
+            _keyImage    = json["keyImage"];
         }
 
         ~TxIn() = default;
@@ -58,25 +35,24 @@ namespace keyser
         nlohmann::json json() const
         {
             nlohmann::json json;
-            json["txHash"] = _outPoint._txHash;
-            json["index"]  = _outPoint._index;
-            json["sig"]    = _sig.json();
-            json["pubKey"] = _pubKey;
+            json["ringMembers"] = _ringMembers;
+            json["ringSig"]     = _ringSig;
+            json["keyImage"]    = _keyImage;
             return json;
         }
 
-        OutPoint    _outPoint;
-        TxSig       _sig;
-        std::string _pubKey;
+        std::vector<std::string> _ringMembers;
+        std::vector<std::string> _ringSig;
+        std::string              _keyImage;
     };
 
     struct TxOut
     {
-        friend std::ostream& operator<<(std::ostream& out, TxOut& data);
+        friend std::ostream& operator<<(std::ostream& out, const TxOut& data);
 
         TxOut() = default;
 
-        TxOut(nlohmann::json json)
+        explicit TxOut(nlohmann::json json)
         {
             _amount    = json["amount"];
             _recipient = json["recipient"];
@@ -84,7 +60,7 @@ namespace keyser
 
         ~TxOut() = default;
 
-        nlohmann::json json() const 
+        [[nodiscard]] nlohmann::json json() const
         {
             nlohmann::json json;
             json["amount"]    = _amount;
@@ -92,13 +68,13 @@ namespace keyser
             return json;
         }
 
-        uint64_t    _amount;
+        uint64_t    _amount{};
         std::string _recipient;
     };
 
-    struct UTXO
+    struct TXO
     {
-        friend std::ostream& operator<<(std::ostream& out, UTXO& data);
+        friend std::ostream& operator<<(std::ostream& out, TXO& data);
 
         OutPoint _outPoint;
         TxOut    _output;
@@ -106,16 +82,16 @@ namespace keyser
 
     struct Transaction
     {
-        friend std::ostream& operator<<(std::ostream& out, Transaction& data);
+        friend std::ostream& operator<<(std::ostream& out, const Transaction& data);
 
         Transaction() = default;
 
-        Transaction(nlohmann::json json);
+        explicit Transaction(nlohmann::json json);
 
         // Constructor for coinbase transactions
-        Transaction(uint64_t amount, std::string recipientAddr);
+        Transaction(uint64_t amount, std::string recipientAddr, uint64_t lockTime);
 
-        Transaction(std::vector<UTXO> Utxos, uint64_t amount, uint64_t gas, std::string recipientAddress, std::string sendingPublicKey);
+        Transaction(std::vector<TxOut> outputs, uint64_t amount, uint64_t lockTime, uint64_t gas, std::string recipientAddress, std::string changeAddr);
 
         ~Transaction() = default;
 
@@ -123,14 +99,19 @@ namespace keyser
             
         std::string hash() const;
 
-        void sign(cryptography::ECKeyPair* signingKey);
+        // void addInput();
+
+        bool sign(crypto::StealthKeys* signingKey);
 
         bool isSigned() const;
         
         std::string        _version;
-        time_t             _time;
+        time_t             _time{};
+        uint64_t           _lockTime{};
+        uint64_t           _gas{};
         std::vector<TxIn>  _inputs;
         std::vector<TxOut> _outputs;
+        std::string        _extra;
     };
 }
 

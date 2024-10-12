@@ -30,28 +30,29 @@ const keyser::Account& keyser::Wallet::get(std::string name)
 
 bool keyser::Wallet::createTransaction(int64_t amount, std::string recipient, Account sender)
 {
-    int64_t currFunds = 0;
-    std::vector<UTXO> utxos;
+    // int64_t currFunds = 0;
+    // std::vector<UTXO> utxos;
 
-    for (auto utxo : _node->utxoSet()->possibleUtxos(sender.getPublicAddress()))
-    {
-        if (currFunds < amount)
-        {
-            utxos.push_back(utxo);
-            currFunds += utxo._output._amount;
-        }
-        else
-            break;
-    }
+    // for (auto utxo : _node->utxoSet()->possibleUtxos(sender.getPublicAddress()))
+    // {
+    //     if (currFunds < amount)
+    //     {
+    //         utxos.push_back(utxo);
+    //         currFunds += utxo._output._amount;
+    //     }
+    //     else
+    //         break;
+    // }
 
-    if (currFunds < amount)
-        return false;
+    // if (currFunds < amount)
+    //     return false;
 
     
-    Transaction tx(utxos, amount, 0, recipient, sender.getKeyPair()->getUPublicKey());
-    tx.sign(sender.getKeyPair());
+    // Transaction tx(utxos, amount, 0, recipient, sender.getKeyPair()->getUPublicKey());
+    // tx.sign(sender.getKeyPair());
 
-    return _node->submitTransaction(tx);
+    // return _node->submitTransaction(tx);
+    return true;
 }
 
 nlohmann::json keyser::Wallet::json() const
