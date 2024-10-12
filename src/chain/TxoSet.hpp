@@ -1,7 +1,6 @@
 #ifndef UTXO_SET_H
 #define UTXO_SET_H
 
-#include <memory>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -14,16 +13,16 @@ namespace keyser
 {
     class Node;
 
-    class UtxoSet
+    class TxoSet
     {
         public:
-            UtxoSet(Node* node);
+            explicit TxoSet(Node* node);
 
-            ~UtxoSet() = default;
+            ~TxoSet() = default;
 
             void processBlock(Block& block);
 
-            std::vector<UTXO> possibleUtxos(std::string owner) const;
+            std::vector<TXO> possibleUtxos(std::string owner) const;
 
             bool isUtxoPresent(std::string utxoHash) const;
 
@@ -33,12 +32,12 @@ namespace keyser
 
             void printUtxoSet() const;
 
-            std::unordered_map<std::string, UTXO>& utxoSet();
+            std::unordered_map<std::string, TXO>& utxoSet();
 
         private:
             Node* _node;
 
-            std::unordered_map<std::string, UTXO> _utxoSet;
+            std::unordered_map<std::string, TXO> _utxoSet;
     };
 }
 
