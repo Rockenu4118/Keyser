@@ -51,7 +51,7 @@ void keyser::Peer::listen()
     }
 }
 
-void keyser::Peer::send(const Message& msg)
+void keyser::Peer::send(const NetMessage& msg)
 {
     boost::asio::post(_context,
         [this, msg]()
@@ -70,7 +70,7 @@ void keyser::Peer::send(const Message& msg)
 
 void keyser::Peer::readHeader()
 {
-    boost::asio::async_read(_socket, boost::asio::buffer(&_msgTemporaryIn.header, sizeof(MessageHeader)),
+    boost::asio::async_read(_socket, boost::asio::buffer(&_msgTemporaryIn.header, sizeof(NetMessageHeader)),
         [this](std::error_code ec, size_t length)
         {
             if (!ec)
@@ -114,7 +114,7 @@ void keyser::Peer::readBody()
 
 void keyser::Peer::writeHeader()
 {
-    boost::asio::async_write(_socket, boost::asio::buffer(&_messagesOut.front().header, sizeof(MessageHeader)),
+    boost::asio::async_write(_socket, boost::asio::buffer(&_messagesOut.front().header, sizeof(NetMessageHeader)),
         [this](std::error_code ec, size_t length)
         {
             if (!ec)

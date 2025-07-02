@@ -20,7 +20,7 @@ namespace keyser
 
             void processBlock(Block& block);
 
-            void printMempool() const;
+            // void printMempool() const;
 
             std::unordered_map<std::string, Transaction>& pendingTransactions();
 

@@ -55,38 +55,38 @@ bool keyser::Wallet::createTransaction(int64_t amount, std::string recipient, Ac
     return true;
 }
 
-nlohmann::json keyser::Wallet::json() const
-{
-    nlohmann::json json = nlohmann::json::array();
+// nlohmann::json keyser::Wallet::json() const
+// {
+//     nlohmann::json json = nlohmann::json::array();
+//
+//     for (auto& account : _accounts)
+//         json.push_back(account.second.json());
+//
+//     return json;
+// }
+//
+// void keyser::Wallet::json(nlohmann::json json)
+// {
+//     for (auto accountJson : json)
+//     {
+//         Account account(accountJson);
+//         _accounts[account.getName()] = account;
+//     }
+// }
 
-    for (auto& account : _accounts)
-        json.push_back(account.second.json());
+// void keyser::Wallet::displayAccounts()
+// {
+//     if (count() == 0)
+//     {
+//         std::cout << "No accounts." << std::endl;
+//         return;
+//     }
 
-    return json;
-}
-
-void keyser::Wallet::json(nlohmann::json json)
-{
-    for (auto accountJson : json)
-    {
-        Account account(accountJson);
-        _accounts[account.getName()] = account;
-    }
-}
-
-void keyser::Wallet::displayAccounts()
-{
-    if (count() == 0)
-    {
-        std::cout << "No accounts." << std::endl;
-        return;
-    }
-
-    for (auto& account : _accounts)
-    {
-        std::cout << account.second << std::endl;
-    }
-}
+    // for (auto& account : _accounts)
+    // {
+    //     // std::cout << account.second << std::endl;
+    // }
+// }
 
 size_t keyser::Wallet::count() const
 {

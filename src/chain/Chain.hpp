@@ -4,7 +4,6 @@
 #include <vector>
 #include <memory>
 #include <thread>
-#include <list>
 #include <unordered_map>
 #include <map>
 
@@ -33,9 +32,9 @@ namespace keyser
             Block& getBlock(int index);
             Block& getBlock(std::string hash);
 
-            void printChain();
+            // void printChain();
 
-            void printHeaders();
+            // void printHeaders();
             
             uint calcDifficulty() const;
             uint calcReward() const;

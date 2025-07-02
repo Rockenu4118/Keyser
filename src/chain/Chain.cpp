@@ -18,24 +18,24 @@ void keyser::Chain::createGenesisBlock()
 {
     std::vector<Transaction> initialBalances{};
 
-    Transaction tx1(50000, addr1, 5);
-    tx1._time = 0;
+    // Transaction tx1(50000, addr1, 5);
+    // tx1._time = 0;
+    //
+    // Block genesisBlock = Block(0, 0, "None", tx1, initialBalances);
+    //
+    // genesisBlock._time = 0;
+    // genesisBlock._bodyHash = genesisBlock.bodyHash();
 
-    Block genesisBlock = Block(0, 0, "None", tx1, initialBalances);
-
-    genesisBlock._time = 0;
-    genesisBlock._bodyHash = genesisBlock.bodyHash();
-
-    _node->validationEngine()->validateBlock(genesisBlock);
+    // _node->validationEngine()->validateBlock(genesisBlock);
 }
 
 void keyser::Chain::processBlock(Block& block)
 {
-    _blockIndex.insert(std::pair(block._index, block.hash()));
-
-    _headers.insert(std::pair(block.hash(), block.getHeader()));
-
-    _blocks.insert(std::pair(block.hash(), block));
+    // _blockIndex.insert(std::pair(block._index, block.hash()));
+    //
+    // _headers.insert(std::pair(block.hash(), block.getHeader()));
+    //
+    // _blocks.insert(std::pair(block.hash(), block));
 }
 
 keyser::Block& keyser::Chain::getCurrBlock()
@@ -68,33 +68,33 @@ uint keyser::Chain::calcReward() const
     return 100;
 }
 
-void keyser::Chain::printChain()
-{
-    if (_blocks.size() == 0)
-    {
-        std::cout << "Chain empty." << std::endl;
-        return;
-    }
-
-    for (const auto&[index, hash] : _blockIndex)
-    {
-        std::cout << _blocks.at(hash) << std::endl;
-    }
-}
-
-void keyser::Chain::printHeaders()
-{
-    if (_headers.size() == 0)
-    {
-        std::cout << "Headers empty." << std::endl;
-        return;
-    }
-
-    for (const auto&[index, hash] : _blockIndex)
-    {
-        std::cout << _headers.at(hash) << std::endl;
-    }
-}
+// void keyser::Chain::printChain()
+// {
+//     if (_blocks.size() == 0)
+//     {
+//         std::cout << "Chain empty." << std::endl;
+//         return;
+//     }
+//
+//     for (const auto&[index, hash] : _blockIndex)
+//     {
+//         std::cout << _blocks.at(hash) << std::endl;
+//     }
+// }
+//
+// void keyser::Chain::printHeaders()
+// {
+//     if (_headers.size() == 0)
+//     {
+//         std::cout << "Headers empty." << std::endl;
+//         return;
+//     }
+//
+//     for (const auto&[index, hash] : _blockIndex)
+//     {
+//         std::cout << _headers.at(hash) << std::endl;
+//     }
+// }
 
 bool keyser::Chain::isValid() const
 {

@@ -24,12 +24,7 @@ namespace keyser
         // Constructor
         Settings() = default;
 
-        nlohmann::json json() const;
-
-        void json(nlohmann::json json);
-
         // General info
-
         std::string _alias;
 
         // Network

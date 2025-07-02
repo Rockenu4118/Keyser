@@ -5,12 +5,12 @@
 #include <string>
 #include <boost/asio.hpp>
 #include <unordered_map>
-#include <tsqueue.hpp>
+#include "../utils/tsqueue.hpp"
 
 #include "./Client.hpp"
 #include "./Server.hpp"
 #include "./Peer.hpp"
-#include "../net/Message.hpp"
+#include "../net/NetMessage.hpp"
 #include "../node/PeerInfo.hpp"
 #include "../chain/Chain.hpp"
 #include "../chain/Mempool.hpp"
@@ -32,8 +32,8 @@ namespace keyser
 
             void startServer();
 
-            void message(std::shared_ptr<Peer> peer, const Message& msg);
-            void messageNeighbors(const Message& msg, std::shared_ptr<Peer> ignorePeer = nullptr);
+            void message(std::shared_ptr<Peer> peer, const NetMessage& msg);
+            void messageNeighbors(const NetMessage& msg, std::shared_ptr<Peer> ignorePeer = nullptr);
             void managePeers();
 
             void ping();
@@ -66,12 +66,12 @@ namespace keyser
             void distributeTransaction(Transaction& transaction);
 
             void onDisconnect(std::shared_ptr<Peer> peer);
-            void onMessage(std::shared_ptr<Peer> peer, Message& msg);
+            void onMessage(std::shared_ptr<Peer> peer, NetMessage& msg);
 
-            void handlePing(std::shared_ptr<Peer> peer, Message& msg);
-            void handleDistributePeerInfo(std::shared_ptr<Peer> peer, Message& msg);
-            void handleDistributeBlock(std::shared_ptr<Peer> peer, Message& msg);
-            void handleDistributeTransaction(std::shared_ptr<Peer> peer, Message& msg);
+            void handlePing(std::shared_ptr<Peer> peer, NetMessage& msg);
+            void handleDistributePeerInfo(std::shared_ptr<Peer> peer, NetMessage& msg);
+            void handleDistributeBlock(std::shared_ptr<Peer> peer, NetMessage& msg);
+            void handleDistributeTransaction(std::shared_ptr<Peer> peer, NetMessage& msg);
 
             std::shared_ptr<Client>& client();
             std::shared_ptr<Server>& server();

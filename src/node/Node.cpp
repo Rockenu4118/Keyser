@@ -7,9 +7,8 @@ keyser::Node::Node(uint16_t port)
 
     _chain            = std::make_shared<Chain>(this);
     _mempool          = std::make_shared<Mempool>(this);
-    _txoSet           = std::make_shared<TxoSet>(this);
+    // _txoSet           = std::make_shared<TxoSet>(this);
     _network          = std::make_shared<NetInterface>(this, port);
-    _validationEngine = std::make_shared<ValidationEngine>(this);
     _wallet           = std::make_shared<Wallet>(this);
 }
 
@@ -70,11 +69,11 @@ void keyser::Node::stopMining()
 
 bool keyser::Node::submitTransaction(Transaction transaction)
 {
-    if (_validationEngine->validateTransaction(transaction))
-    {
-        _network->distributeTransaction(transaction);
-        return true;
-    }
+    // if (_validationEngine->validateTransaction(transaction))
+    // {
+    //     _network->distributeTransaction(transaction);
+    //     return true;
+    // }
     return false;
 }
 

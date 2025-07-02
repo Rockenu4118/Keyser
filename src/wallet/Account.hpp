@@ -5,7 +5,7 @@
 #include <iostream>
 #include <openssl/ec.h>
 #include <nlohmann/json.hpp>
-#include <keycrypto/Stealth.hpp>
+// #include <keycrypto/Stealth.hpp>
 
 
 namespace keyser
@@ -32,7 +32,7 @@ namespace keyser
 
             crypto::StealthKeys* getKeyPair() const;
 
-            nlohmann::json json() const;
+            // nlohmann::json json() const;
 
         private:
             std::string           _name;

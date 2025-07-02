@@ -8,6 +8,8 @@
 #include "./Peer.hpp"
 
 
+enum class DataTypes : uint8_t;
+
 namespace keyser
 {
     class Node;
@@ -35,11 +37,11 @@ namespace keyser
             void completedInitialBlockDownload();
 
             // Msg Handlers
-            void handleVerack(std::shared_ptr<Peer> peer, Message& msg);
-            void handlePeerInfo(std::shared_ptr<Peer> peer, Message& msg);
-            void handleHeaders(std::shared_ptr<Peer> peer, Message& msg);
-            void handleInv(std::shared_ptr<Peer> peer, Message& msg);
-            void handleBlock(std::shared_ptr<Peer> peer, Message& msg);
+            void handleVerack(std::shared_ptr<Peer> peer, NetMessage& msg);
+            void handlePeerInfo(std::shared_ptr<Peer> peer, NetMessage& msg);
+            void handleHeaders(std::shared_ptr<Peer> peer, NetMessage& msg);
+            void handleInv(std::shared_ptr<Peer> peer, NetMessage& msg);
+            void handleBlock(std::shared_ptr<Peer> peer, NetMessage& msg);
 
         private:
             void onOutgoingConnect(std::shared_ptr<Peer> peer);

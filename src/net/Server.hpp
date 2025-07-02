@@ -39,10 +39,10 @@ namespace keyser
             void sendBlock(std::shared_ptr<Peer> peer, std::string hash);
 
             // Msg Handlers
-            void handleVersion(std::shared_ptr<Peer> peer, Message& msg);
-            void handleGetNodeList(std::shared_ptr<Peer> peer, Message& msg);
-            void handleGetHeaders(std::shared_ptr<Peer> peer, Message& msg);
-            void handleGetData(std::shared_ptr<Peer> peer, Message& msg);
+            void handleVersion(std::shared_ptr<Peer> peer, NetMessage& msg);
+            void handleGetNodeList(std::shared_ptr<Peer> peer, NetMessage& msg);
+            void handleGetHeaders(std::shared_ptr<Peer> peer, NetMessage& msg);
+            void handleGetData(std::shared_ptr<Peer> peer, NetMessage& msg);
         
         private:
             bool allowConnect(std::shared_ptr<Peer> peer);

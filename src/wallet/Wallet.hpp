@@ -25,11 +25,11 @@ namespace keyser
 
             bool createTransaction(int64_t amount, std::string recipient, Account sender);
 
-            nlohmann::json json() const;
-
-            void json(nlohmann::json json);
-
-            void displayAccounts();
+            // nlohmann::json json() const;
+            //
+            // void json(nlohmann::json json);
+            //
+            // void displayAccounts();
 
             size_t count() const;
 

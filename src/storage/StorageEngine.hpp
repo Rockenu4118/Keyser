@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 #include <deque>
-#include <leveldb/db.h>
+// #include <leveldb/db.h>
 
 #include "../app/Settings.hpp"
 #include "../chain/Block.hpp"

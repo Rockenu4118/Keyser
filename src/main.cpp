@@ -11,16 +11,8 @@
 // #include "./storage/StorageEngine.hpp"
 // #include "./wallet/Account.hpp"
 
-#include <tests/ring.cpp>
-#include <tests/stealth.cpp>
-#include <tests/pcommitment.cpp>
-#include <string>
-#include <map>
-
 #include <openssl/aes.h>
 #include <openssl/evp.h>
-
-using namespace std;
 
 
 
@@ -31,8 +23,6 @@ int main()
     // ring_test();
     // commitment_test();
     // stealth_test();
-    
-
 
 
 

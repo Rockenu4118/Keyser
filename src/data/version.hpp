@@ -5,7 +5,7 @@
 
 // network protocol versioning
 
-static const std::string KEYSER_VERSION = "0.1";
+static constexpr uint64_t KEYSER_VERSION = 1;
 
 
 #endif

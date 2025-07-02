@@ -2,9 +2,9 @@
 #define PEER_H
 
 #include <boost/asio.hpp>
-#include <tsqueue.hpp>
+#include "../utils/tsqueue.hpp"
 
-#include "./Message.hpp"
+#include "./NetMessage.hpp"
 #include "./OwnedMessage.hpp"
 #include "../node/PeerInfo.hpp"
 
@@ -37,7 +37,7 @@ namespace keyser
             void disconnect();
 
             void listen();
-            void send(const Message& msg);
+            void send(const NetMessage& msg);
 
         private:
             void readHeader();
@@ -48,9 +48,9 @@ namespace keyser
 
             boost::asio::ip::tcp::socket _socket;
             boost::asio::io_context&     _context;
-            tsqueue<Message>             _messagesOut;
+            tsqueue<NetMessage>             _messagesOut;
             tsqueue<OwnedMessage>&       _messagesIn;
-            Message                      _msgTemporaryIn;
+            NetMessage                      _msgTemporaryIn;
 
             boost::asio::ip::tcp::endpoint _endpoint;
             PeerInfo _info;

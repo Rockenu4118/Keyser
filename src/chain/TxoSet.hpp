@@ -14,32 +14,32 @@ namespace keyser
 {
     class Node;
 
-    class TxoSet
-    {
-        public:
-            explicit TxoSet(Node* node);
-
-            ~TxoSet() = default;
-
-            void processBlock(Block& block);
-
-            std::vector<TXO> selectRingMembers(int numMembers, std::string realMember);
-
-            bool isTxoPresent(std::string txoHash) const;
-
-            uint64_t ownerTotalTxo(std::string privViewKey, std::string pubSpendKey) const;
-
-            uint64_t totalTxo() const;
-
-            void printTxoSet() const;
-
-            std::unordered_map<std::string, TXO>& txoSet();
-
-        private:
-            Node* _node;
-
-            std::unordered_map<std::string, TXO> _txoSet;
-    };
+    // class TxoSet
+    // {
+    //     public:
+    //         explicit TxoSet(Node* node);
+    //
+    //         ~TxoSet() = default;
+    //
+    //         void processBlock(Block& block);
+    //
+    //         std::vector<TXO> selectRingMembers(int numMembers, std::string realMember);
+    //
+    //         bool isTxoPresent(std::string txoHash) const;
+    //
+    //         uint64_t ownerTotalTxo(std::string privViewKey, std::string pubSpendKey) const;
+    //
+    //         uint64_t totalTxo() const;
+    //
+    //         void printTxoSet() const;
+    //
+    //         std::unordered_map<std::string, TXO>& txoSet();
+    //
+    //     private:
+    //         Node* _node;
+    //
+    //         std::unordered_map<std::string, TXO> _txoSet;
+    // };
 }
 
 #endif

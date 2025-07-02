@@ -3,13 +3,16 @@
 
 #include <memory>
 
-#include "../views/RootView.hpp"
 #include "../node/Node.hpp"
-#include "../rpc/rpc.hpp"
+#include "../views/MainMenu.hpp"
+
+// #include "../rpc/rpc.hpp"
 
 
 namespace keyser
 {
+    class MainMenu;
+
     class App
     {
         public:
@@ -18,10 +21,9 @@ namespace keyser
             void run();
 
         private:
-            Node* _node;
-            RPC*  _rpc;
-            cli::RootView* _view;
-
+            Node*     mNode;
+            MainMenu* mMenu;
+            // RPC*  _rpc;
     };
 }
 

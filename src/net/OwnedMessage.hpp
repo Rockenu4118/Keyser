@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "./Peer.hpp"
-#include "./Message.hpp"
+#include "./NetMessage.hpp"
 
 namespace keyser
 {
@@ -13,19 +13,14 @@ namespace keyser
 
     struct OwnedMessage
     {
-        friend std::ostream& operator<<(std::ostream& out, const OwnedMessage& msg) {
-            out << msg._msg;
-            return out;
-        }
-
-        OwnedMessage(std::shared_ptr<Peer> remote, Message msg)
+        OwnedMessage(std::shared_ptr<Peer> remote, NetMessage msg)
         {
             _remote = remote;
-            _msg    = msg;
+            _msg = msg;
         }
 
         std::shared_ptr<Peer> _remote = nullptr;
-        Message               _msg;
+        NetMessage            _msg;
     };
 }
 

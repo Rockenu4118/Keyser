@@ -7,7 +7,6 @@
 #include <string.h>
 #include <ctime>
 #include <algorithm>
-#include <cryptography.hpp>
 #include <nlohmann/json.hpp>
 
 #include "./utils.hpp"
@@ -16,24 +15,66 @@
 #include "../chain/Block.hpp"
 #include "../node/PeerInfo.hpp"
 
+//
+// std::string keyser::utils::pubKeytoAddress(const std::string& uPublicKey)
+// {
+//     // Step 1: Convert the raw hex characters of the uncompressed public key to a string.
+//     std::string unhashed = hexToString(uPublicKey);
+//     std::string hashed = "";
+//
+//     // Step 2: Generate a sha256 hash of the uncompressed public key.
+//     crypto::hash::SHA256(unhashed, hashed);
+//
+//     // Step 3: Extract last 32 (hex) characters, 16 bytes, of the sha256 hash.
+//     std::string address = hashed.substr(32, 32);
+//
+//     // Step 4: Prepend "0x" to indicate that the address is in hex format.
+//     std::string publicAddress = "0x" + address;
+//
+//     return publicAddress;
+// }
 
-std::string keyser::utils::pubKeytoAddress(const std::string& uPublicKey)
-{   
-    // Step 1: Convert the raw hex characters of the uncompressed public key to a string.
-    std::string unhashed = hexToString(uPublicKey);
-    std::string hashed = "";
+std::vector<std::string> keyser::utils::parse_cmd(const std::string input)
+{
+    std::vector<std::string> args;
+    std::string current;
+    bool in_quotes = false;
+    char quote_char = '\0';
 
-    // Step 2: Generate a sha256 hash of the uncompressed public key.
-    cryptography::SHA256(unhashed, hashed);
+    for (size_t i = 0; i < input.size(); ++i) {
+        char c = input[i];
 
-    // Step 3: Extract last 32 (hex) characters, 16 bytes, of the sha256 hash.
-    std::string address = hashed.substr(32, 32);
+        if (in_quotes) {
+            if (c == quote_char) {
+                in_quotes = false;
+            } else if (c == '\\' && i + 1 < input.size()) {
+                // Handle escaped characters
+                current += input[++i];
+            } else {
+                current += c;
+            }
+        } else {
+            if (std::isspace(c)) {
+                if (!current.empty()) {
+                    args.push_back(current);
+                    current.clear();
+                }
+            } else if (c == '"' || c == '\'') {
+                in_quotes = true;
+                quote_char = c;
+            } else {
+                current += c;
+            }
+        }
+    }
 
-    // Step 4: Prepend "0x" to indicate that the address is in hex format.
-    std::string publicAddress = "0x" + address;
+    if (!current.empty()) {
+        args.push_back(current);
+    }
 
-    return publicAddress;
+    return args;
 }
+
 
 std::string keyser::utils::hexToString(const std::string& input)
 {
@@ -68,7 +109,7 @@ bool keyser::utils::isValidHash(std::string hash, uint8_t difficulty)
 std::string keyser::utils::localTimestamp()
 {
     time_t t = time(NULL);
-    struct tm *tmp = localtime(&t);
+    tm *tmp = localtime(&t);
 
     std::string hourStr = std::to_string(tmp->tm_hour);
     std::string minStr  = std::to_string(tmp->tm_min);
@@ -81,14 +122,14 @@ std::string keyser::utils::localTimestamp()
     std::string timestamp = "[" + 
                             std::string(2 - std::min(2, hourStrLen), '0') + hourStr + ":" +
                             std::string(2 - std::min(2, minStrLen), '0')  + minStr  + ":" +
-                            std::string(2 - std::min(2, secStrLen), '0')  + secStr  + "] ";
+                            std::string(2 - std::min(2, secStrLen), '0')  + secStr  + "]";
 
     return timestamp;
 }
 
 std::string keyser::utils::localTime(time_t time)
 {
-    struct tm *tmp = localtime(&time);
+    const tm *tmp = localtime(&time);
 
     std::string hourStr = std::to_string(tmp->tm_hour);
     std::string minStr  = std::to_string(tmp->tm_min);
@@ -101,6 +142,8 @@ std::string keyser::utils::localTime(time_t time)
     std::string localTime = std::string(2 - std::min(2, hourStrLen), '0') + hourStr + ":" +
                             std::string(2 - std::min(2, minStrLen), '0')  + minStr  + ":" +
                             std::string(2 - std::min(2, secStrLen), '0')  + secStr;
+
+    delete tmp;
 
     return localTime;
 }

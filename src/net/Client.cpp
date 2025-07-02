@@ -66,41 +66,41 @@ bool keyser::Client::allowConnect(Endpoint endpoint) const
 void keyser::Client::version(std::shared_ptr<Peer> peer)
 {
     // Send self info as well as their external address
-    Message msg(MsgTypes::Version);
-    msg.json()["Outbound version"] = _network->selfInfo().version;
-    msg.json()["Outbound port"]    = _network->selfInfo().endpoint.port;
-    msg.json()["address"]          = peer->getEndpoint().address().to_string();
-    
-    msg.preparePayload();
+    NetMessage msg;
+    // msg.json()["Outbound version"] = _network->selfInfo().version;
+    // msg.json()["Outbound port"]    = _network->selfInfo().endpoint.port;
+    // msg.json()["address"]          = peer->getEndpoint().address().to_string();
+    //
+    // msg.preparePayload();
     _network->message(peer, msg);
 }
 
 void keyser::Client::getNodeList()
 {
-    Message msg(MsgTypes::GetNodeList);
+    NetMessage msg;
     _network->message(_network->syncNode(), msg);
 }
 
 void keyser::Client::getHeaders()
 {
-    Message msg(MsgTypes::GetHeaders);
+    NetMessage msg;
 
     std::string hash = std::prev(_node->chain()->blockIndex().end())->second;
 
-    msg.json()["latestHash"] = hash;
+    // msg.json()["latestHash"] = hash;
 
-    msg.preparePayload();
+    // msg.preparePayload();
 
     _network->message(_network->syncNode(), msg);
 }
 
 void keyser::Client::getData(DataTypes type, std::string hash)
 {
-    Message msg(MsgTypes::GetData);
-    msg.json()["type"] = type;
-    msg.json()["hash"] = hash;
+    NetMessage msg;
+    // msg.json()["type"] = type;
+    // msg.json()["hash"] = hash;
 
-    msg.preparePayload();
+    // msg.preparePayload();
     _network->message(_network->syncNode(), msg);
 }
 
@@ -109,50 +109,50 @@ void keyser::Client::completedInitialBlockDownload()
     _node->status(Node::Status::Online);
 }
 
-void keyser::Client::handleVerack(std::shared_ptr<Peer> peer, Message& msg)
+void keyser::Client::handleVerack(std::shared_ptr<Peer> peer, NetMessage& msg)
 {    
-    msg.unpackPayload();
-
-    // Save external address
-    _network->selfInfo().endpoint.address = msg.json()["address"];
-
-    // unpackPayload incoming node info
-    peer->info().version = msg.json()["Outbound version"];
-    
-    getHeaders();
+    // msg.unpackPayload();
+    //
+    // // Save external address
+    // _network->selfInfo().endpoint.address = msg.json()["address"];
+    //
+    // // unpackPayload incoming node info
+    // peer->info().version = msg.json()["Outbound version"];
+    //
+    // getHeaders();
     
     // getNodeList();
 }
 
-void keyser::Client::handlePeerInfo(std::shared_ptr<Peer> peer, Message& msg)
+void keyser::Client::handlePeerInfo(std::shared_ptr<Peer> peer, NetMessage& msg)
 {
-    msg.unpackPayload();
-
-    for (const auto& info : msg.json())
-    {
-        PeerInfo peerInfo(info);
-        _network->listeningNodes()[peerInfo.endpoint.string()] = peerInfo;
-    }
-
-    _network->managePeers();
+    // msg.unpackPayload();
+    //
+    // for (const auto& info : msg.json())
+    // {
+    //     PeerInfo peerInfo(info);
+    //     _network->listeningNodes()[peerInfo.endpoint.string()] = peerInfo;
+    // }
+    //
+    // _network->managePeers();
 }
 
-void keyser::Client::handleHeaders(std::shared_ptr<Peer> peer, Message& msg)
+void keyser::Client::handleHeaders(std::shared_ptr<Peer> peer, NetMessage& msg)
 {
-    msg.unpackPayload();
-
-    for (const auto& headerJson : msg.json())
-    {
-        BlockHeader header(headerJson);
-        
-        if (_node->validationEngine()->validateHeader(header))
-            getData(DataTypes::Block, header.hash());
-    }
+    // msg.unpackPayload();
+    //
+    // for (const auto& headerJson : msg.json())
+    // {
+    //     BlockHeader header(headerJson);
+    //
+    //     if (_node->validationEngine()->validateHeader(header))
+    //         getData(DataTypes::Block, header.hash());
+    // }
 }
 
-void keyser::Client::handleInv(std::shared_ptr<Peer> peer, Message& msg)
+void keyser::Client::handleInv(std::shared_ptr<Peer> peer, NetMessage& msg)
 {
-    msg.unpackPayload();
+    // msg.unpackPayload();
 
     // if (msg.json()["blockIndexes"].size() == 0)
     // {
@@ -168,13 +168,13 @@ void keyser::Client::handleInv(std::shared_ptr<Peer> peer, Message& msg)
     // getData();
 }
 
-void keyser::Client::handleBlock(std::shared_ptr<Peer> peer, Message& msg)
+void keyser::Client::handleBlock(std::shared_ptr<Peer> peer, NetMessage& msg)
 {
-    msg.unpackPayload();
+    // msg.unpackPayload();
+    //
+    // Block block();
 
-    Block block(msg.json());
-
-    _node->validationEngine()->validateBlock(block);
+    // _node->validationEngine()->validateBlock(block);
 }
 
 void keyser::Client::onOutgoingConnect(std::shared_ptr<Peer> peer)

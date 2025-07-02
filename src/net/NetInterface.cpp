@@ -42,14 +42,14 @@ void keyser::NetInterface::startServer()
     _server->start();
 }
 
-void keyser::NetInterface::message(std::shared_ptr<Peer> peer, const Message& msg)
+void keyser::NetInterface::message(std::shared_ptr<Peer> peer, const NetMessage& msg)
 {
     // Send message if peer is connected
     if (validateConnection(peer))
         peer->send(msg);
 }
 
-void keyser::NetInterface::messageNeighbors(const Message& msg, std::shared_ptr<Peer> ignorePeer)
+void keyser::NetInterface::messageNeighbors(const NetMessage& msg, std::shared_ptr<Peer> ignorePeer)
 {
     // Iterate through connections
     for (auto& peer : _peers)
@@ -76,7 +76,7 @@ void keyser::NetInterface::managePeers()
 
 void keyser::NetInterface::ping()
 {
-    Message msg(MsgTypes::Ping);
+    NetMessage msg;
     messageNeighbors(msg);
 }
 
@@ -189,7 +189,7 @@ std::vector<keyser::PeerInfo> keyser::NetInterface::getConnections() const
 
 void keyser::NetInterface::inv(std::shared_ptr<Peer> peer)
 {
-    Message msg(MsgTypes::Inv);
+    NetMessage msg;
 
     // if (startingBlock == _node->chain()->getHeight() - 1)
     // {
@@ -202,128 +202,128 @@ void keyser::NetInterface::inv(std::shared_ptr<Peer> peer)
     //     msg.json()["blockIndexes"].push_back(i);
     // }
 
-    msg.preparePayload();
+    // msg.preparePayload();
 
     message(peer, msg);
 }
 
 void keyser::NetInterface::distributePeerInfo(PeerInfo& peerInfo)
 {
-    Message msg(MsgTypes::DistributeNodeInfo);
-    msg.json() = peerInfo.json();
-    msg.preparePayload();
+    NetMessage msg;
+    // msg.json() = peerInfo.json();
+    // msg.preparePayload();
     messageNeighbors(msg);
 }
 
 void keyser::NetInterface::distributeTransaction(Transaction& transaction)
 {
-    Message msg(MsgTypes::DistributeTransaction);
-    msg.json() = transaction.json();
-    msg.preparePayload();
+    NetMessage msg;
+    // msg.json() = transaction.json();
+    // msg.preparePayload();
     messageNeighbors(msg);
 }
 
 void keyser::NetInterface::distributeBlock(Block& block)
 {
-    Message msg(MsgTypes::DistributeBlock);
-    msg.json() = block.json();
-    msg.preparePayload();
+    NetMessage msg;
+    // msg.json() = block.json();
+    // msg.preparePayload();
     messageNeighbors(msg);
 }
 
 void keyser::NetInterface::onDisconnect(std::shared_ptr<Peer> peer)
 {}
 
-void keyser::NetInterface::onMessage(std::shared_ptr<Peer> peer, Message& msg)
+void keyser::NetInterface::onMessage(std::shared_ptr<Peer> peer, NetMessage& msg)
 {
-    switch (msg.header.id)
-    {
-        case MsgTypes::Generic:
-            std::cout << "[NODE] Generic msg" << std::endl;
-            break;
-        case MsgTypes::Ping:
-            handlePing(peer, msg);
-            break;
-        case MsgTypes::DistributeNodeInfo:
-            handleDistributePeerInfo(peer, msg);
-            break;
-        case MsgTypes::DistributeBlock:
-            handleDistributeBlock(peer, msg);
-            break;
-        case MsgTypes::DistributeTransaction:
-            handleDistributeTransaction(peer, msg);
-            break;
-        case MsgTypes::Version:
-            _server->handleVersion(peer, msg);
-            break;
-        case MsgTypes::Verack:
-            _client->handleVerack(peer, msg);
-            break;
-        case MsgTypes::Inv:
-            _client->handleInv(peer, msg);
-            break;
-        case MsgTypes::GetData:
-            _server->handleGetData(peer, msg);
-            break;
-        case MsgTypes::Block:
-            _client->handleBlock(peer, msg);
-            break;
-        case MsgTypes::GetNodeList:
-            _server->handleGetNodeList(peer, msg);
-            break;
-        case MsgTypes::NodeInfoList:
-            _client->handlePeerInfo(peer, msg);
-            break;
-        case MsgTypes::GetHeaders:
-            _server->handleGetHeaders(peer, msg);
-            break;
-        case MsgTypes::Headers:
-            _client->handleHeaders(peer, msg);
-            break;
-        default:
-            std::cout << "[NODE] Unknown Msg Type" << std::endl;
-            break;
-    }
+    // switch (msg.header.id)
+    // {
+    //     case MsgTypes::Generic:
+    //         std::cout << "[NODE] Generic msg" << std::endl;
+    //         break;
+    //     case MsgTypes::Ping:
+    //         handlePing(peer, msg);
+    //         break;
+    //     case MsgTypes::DistributeNodeInfo:
+    //         handleDistributePeerInfo(peer, msg);
+    //         break;
+    //     case MsgTypes::DistributeBlock:
+    //         handleDistributeBlock(peer, msg);
+    //         break;
+    //     case MsgTypes::DistributeTransaction:
+    //         handleDistributeTransaction(peer, msg);
+    //         break;
+    //     case MsgTypes::Version:
+    //         _server->handleVersion(peer, msg);
+    //         break;
+    //     case MsgTypes::Verack:
+    //         _client->handleVerack(peer, msg);
+    //         break;
+    //     case MsgTypes::Inv:
+    //         _client->handleInv(peer, msg);
+    //         break;
+    //     case MsgTypes::GetData:
+    //         _server->handleGetData(peer, msg);
+    //         break;
+    //     case MsgTypes::Block:
+    //         _client->handleBlock(peer, msg);
+    //         break;
+    //     case MsgTypes::GetNodeList:
+    //         _server->handleGetNodeList(peer, msg);
+    //         break;
+    //     case MsgTypes::NodeInfoList:
+    //         _client->handlePeerInfo(peer, msg);
+    //         break;
+    //     case MsgTypes::GetHeaders:
+    //         _server->handleGetHeaders(peer, msg);
+    //         break;
+    //     case MsgTypes::Headers:
+    //         _client->handleHeaders(peer, msg);
+    //         break;
+    //     default:
+    //         std::cout << "[NODE] Unknown Msg Type" << std::endl;
+    //         break;
+    // }
 }
 
-void keyser::NetInterface::handlePing(std::shared_ptr<Peer> peer, Message& msg)
+void keyser::NetInterface::handlePing(std::shared_ptr<Peer> peer, NetMessage& msg)
 {
     std::cout << utils::localTimestamp() << "Ping: " << peer->getId() << std::endl;
 }
 
-void keyser::NetInterface::handleDistributePeerInfo(std::shared_ptr<Peer> peer, Message& msg)
+void keyser::NetInterface::handleDistributePeerInfo(std::shared_ptr<Peer> peer, NetMessage& msg)
 {
-    msg.unpackPayload();
-    PeerInfo peerInfo(msg.json());
-
-    auto iter = _listeningNodes.find(peerInfo.endpoint.string());
-
-    if (iter != nullptr)
-        return;
-
-    _listeningNodes.insert(std::pair(peerInfo.endpoint.string(), peerInfo));
-
-    managePeers();
-
-    messageNeighbors(msg, peer);
+    // msg.unpackPayload();
+    // PeerInfo peerInfo(msg.json());
+    //
+    // auto iter = _listeningNodes.find(peerInfo.endpoint.string());
+    //
+    // if (iter != nullptr)
+    //     return;
+    //
+    // _listeningNodes.insert(std::pair(peerInfo.endpoint.string(), peerInfo));
+    //
+    // managePeers();
+    //
+    // messageNeighbors(msg, peer);
 }
 
-void keyser::NetInterface::handleDistributeTransaction(std::shared_ptr<Peer> peer, Message& msg)
+void keyser::NetInterface::handleDistributeTransaction(std::shared_ptr<Peer> peer, NetMessage& msg)
 {
-    msg.unpackPayload();
-    Transaction transaction(msg.json());
+    // msg.unpackPayload();
+    // Transaction transaction(msg.json());
 
-    if (_node->validationEngine()->validateTransaction(transaction))
-        messageNeighbors(msg, peer);
+    // if (_node->validationEngine()->validateTransaction(transaction))
+    //     messageNeighbors(msg, peer);
 }
 
-void keyser::NetInterface::handleDistributeBlock(std::shared_ptr<Peer> peer, Message& msg)
+void keyser::NetInterface::handleDistributeBlock(std::shared_ptr<Peer> peer, NetMessage& msg)
 {
-    msg.unpackPayload();
-    Block block = Block(msg.json());
-
-    if (_node->validationEngine()->validateBlock(block))
-        messageNeighbors(msg, peer);
+    // msg.unpackPayload();
+    // Block block = Block(msg.json());
+    //
+    // if (_node->validationEngine()->validateBlock(block))
+    //     messageNeighbors(msg, peer);
 }
 
 std::shared_ptr<keyser::Client>& keyser::NetInterface::client()

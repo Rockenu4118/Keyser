@@ -12,54 +12,36 @@ namespace keyser
 {
     struct BlockHeader
     {
-        friend std::ostream& operator<<(std::ostream& out, const BlockHeader& data);
-
-        BlockHeader() = default;
-
-        explicit BlockHeader(nlohmann::json json);
-
-        [[nodiscard]] nlohmann::json json() const;
-
-        [[nodiscard]] std::string hash() const;
-
-        uint        _index{};
-        std::string _version;
-        std::string _prevHash;
-        std::string _bodyHash;
-        Transaction _reward;
-        time_t      _time{};
-        uint64_t    _nonce = 0;
+        uint          mIndex{};
+        uint64_t      mVersion{};
+        unsigned char mPrevHash[SHA256_DIGEST_LENGTH];
+        unsigned char mMerkleRoot[SHA256_DIGEST_LENGTH];
+        Transaction   mReward{};
+        time_t        mTime{};
+        uint64_t      mNonce{};
     };
 
-    class Block : public BlockHeader
+    void hashHeader(BlockHeader& header, char hash[]);
+
+
+
+    struct Block : BlockHeader
     {
         // IO Stream operators
         friend std::ostream& operator<<(std::ostream& out, const Block& data);
 
-        public:
-            // Json parsing
-            explicit Block(nlohmann::json json);
+        // Main block constructor miners will use to form a block
+        Block(uint index, time_t time, unsigned char prevHash[], Transaction reward, std::vector<Transaction> transactions);
 
-            // Main block constructor miners will use to form a block
-            Block(uint index, time_t time, std::string prevHash, Transaction reward, std::vector<Transaction> transactions);
-
-            ~Block() = default;
-
-            [[nodiscard]] BlockHeader getHeader() const;
-
-            [[nodiscard]] std::string bodyHash() const;
-
+        BlockHeader getHeader() const;
             // Validate all transactions within block
-            bool hasValidTransactions();
+            // bool hasValidTransactions();
 
-            [[nodiscard]] nlohmann::json json() const;
-
-            // Print all transactions within block
-            void printTransactions();
-
-            // Body of transactions
-            std::vector<Transaction> _transactions;
+        // Body of transactions
+        std::vector<Transaction> mTransactions;
     };
+
+    void calcMerkleRoot(std::vector<Transaction>& transactions, unsigned char merkleRoot[]);
 }
 
 #endif

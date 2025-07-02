@@ -22,26 +22,26 @@ std::vector<keyser::Transaction> keyser::Mempool::leadingTransactions()
 
 void keyser::Mempool::processBlock(Block& block)
 {
-    for (auto tx : block._transactions)
-    {
-        auto iter = _pendingTransactions.find(tx.hash());
-
-        if (iter != _pendingTransactions.end())
-            _pendingTransactions.erase(iter);
-    }
+    // for (auto tx : block._transactions)
+    // {
+    //     auto iter = _pendingTransactions.find(tx.hash());
+    //
+    //     if (iter != _pendingTransactions.end())
+    //         _pendingTransactions.erase(iter);
+    // }
 }
 
-void keyser::Mempool::printMempool() const
-{
-    if (_pendingTransactions.size() == 0)
-    {
-        std::cout << "Mempool empty." << std::endl;
-        return;
-    }
-
-    for (auto tx : _pendingTransactions)
-        std::cout << tx.second << std::endl;
-}
+// void keyser::Mempool::printMempool() const
+// {
+//     if (_pendingTransactions.size() == 0)
+//     {
+//         std::cout << "Mempool empty." << std::endl;
+//         return;
+//     }
+//
+//     for (auto tx : _pendingTransactions)
+//         std::cout << tx.second << std::endl;
+// }
 
 std::unordered_map<std::string, keyser::Transaction>& keyser::Mempool::pendingTransactions()
 {
