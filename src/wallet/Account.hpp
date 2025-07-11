@@ -5,7 +5,7 @@
 #include <iostream>
 #include <openssl/ec.h>
 #include <nlohmann/json.hpp>
-// #include <keycrypto/Stealth.hpp>
+#include <keycrypto/Stealth.hpp>
 
 
 namespace keyser

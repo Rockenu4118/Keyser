@@ -9,8 +9,8 @@
 #include <unordered_map>
 #include <keycrypto/Stealth.hpp>
 
-#include "../chain/Block.hpp"
-#include "../chain/Transaction.hpp"
+#include "../primitives/Block.hpp"
+#include "../primitives/Transaction.hpp"
 #include "../node/Node.hpp"
 
 

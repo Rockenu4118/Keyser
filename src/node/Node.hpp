@@ -5,25 +5,23 @@
 #include <ctime>
 
 #include "../chain/TxoSet.hpp"
-#include "../chain/Chain.hpp"
+#include "../chain/ChainIndex.hpp"
 #include "../chain/Miner.hpp"
 #include "../chain/Mempool.hpp"
 #include "../net/NetInterface.hpp"
 #include "../validation/ValidationEngine.hpp"
 #include "../wallet/Wallet.hpp"
-#include "../chain/Transaction.hpp"
+#include "../primitives/Transaction.hpp"
 
 
 namespace keyser
 {
     // Forward declare
     class TxoSet;
-    class Chain;
-    class Miner;
+    class ChainIndex;
     class Mempool;
     class NetInterface;
-    class ValidationEngine;
-    class Wallet;
+    class MainMenu;
 
     class Node
     {
@@ -35,55 +33,21 @@ namespace keyser
             Online
         };
 
-        explicit Node(uint16_t port);
-
-        ~Node();
-
-        void run();
-
-        void shutdown();
-
         Status status() const;
 
         void status(Status status);
 
         time_t getUptime() const;
 
-        bool shutdownFlag() const;
-
-        void beginMining(uint numBlocks = -1);
-
-        void stopMining();
-
         bool submitTransaction(Transaction transaction);
 
-        std::shared_ptr<Chain>& chain();
-
-        std::shared_ptr<Miner>& miner();
-
-        std::shared_ptr<Mempool>& mempool();
-
-        std::shared_ptr<TxoSet>& txoSet();
-
-        std::shared_ptr<NetInterface>& network();
-
-        std::shared_ptr<ValidationEngine>& validationEngine();
-
-        std::shared_ptr<Wallet>& wallet();
-
+        // std::shared_ptr<TxoSet> _txoSet;
+        std::shared_ptr<ChainIndex> mChain;
+        // std::shared_ptr<Mempool> _mempool;
+        std::shared_ptr<NetInterface> mNetwork;
     private:
         Status _status = Status::Offline;
         time_t _startTime;
-
-        std::shared_ptr<TxoSet> _txoSet;
-        std::shared_ptr<Chain> _chain;
-        std::shared_ptr<Miner> _miner;
-        std::shared_ptr<Mempool> _mempool;
-        std::shared_ptr<NetInterface> _network;
-        std::shared_ptr<ValidationEngine> _validationEngine;
-        std::shared_ptr<Wallet> _wallet;
-
-        bool _shutdownNode = false;
     };
 }
 

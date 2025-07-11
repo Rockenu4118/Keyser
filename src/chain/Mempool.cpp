@@ -4,46 +4,26 @@
 #include "./Mempool.hpp"
 
 
-keyser::Mempool::Mempool(Node* node) : _node(node)
-{}
-
-std::vector<keyser::Transaction> keyser::Mempool::leadingTransactions()
-{
-    // TODO - priortize gas fees
-    std::vector<keyser::Transaction> transactions;
-
-    for (auto tx : _pendingTransactions)
-    {
-        transactions.push_back(tx.second);
-    }
-    
-    return transactions;
-}
-
-void keyser::Mempool::processBlock(Block& block)
-{
-    // for (auto tx : block._transactions)
-    // {
-    //     auto iter = _pendingTransactions.find(tx.hash());
-    //
-    //     if (iter != _pendingTransactions.end())
-    //         _pendingTransactions.erase(iter);
-    // }
-}
-
-// void keyser::Mempool::printMempool() const
+// std::vector<keyser::Transaction> keyser::Mempool::leadingTransactions()
 // {
-//     if (_pendingTransactions.size() == 0)
-//     {
-//         std::cout << "Mempool empty." << std::endl;
-//         return;
-//     }
+//     // TODO - priortize gas fees
+//     std::vector<keyser::Transaction> transactions;
 //
 //     for (auto tx : _pendingTransactions)
-//         std::cout << tx.second << std::endl;
+//     {
+//         transactions.push_back(tx.second);
+//     }
+//
+//     return transactions;
 // }
-
-std::unordered_map<std::string, keyser::Transaction>& keyser::Mempool::pendingTransactions()
-{
-    return _pendingTransactions;
-}
+//
+// void keyser::Mempool::processBlock(Block& block)
+// {
+//     // for (auto tx : block._transactions)
+//     // {
+//     //     auto iter = _pendingTransactions.find(tx.hash());
+//     //
+//     //     if (iter != _pendingTransactions.end())
+//     //         _pendingTransactions.erase(iter);
+//     // }
+// }

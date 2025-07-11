@@ -27,6 +27,8 @@ namespace keyser
 
             ~Peer();
 
+            std::string toString();
+
             uint16_t getId() const;
             bool isConnected() const;
             boost::asio::ip::tcp::endpoint getEndpoint() const;
@@ -48,9 +50,9 @@ namespace keyser
 
             boost::asio::ip::tcp::socket _socket;
             boost::asio::io_context&     _context;
-            tsqueue<NetMessage>             _messagesOut;
+            tsqueue<NetMessage>          _messagesOut;
             tsqueue<OwnedMessage>&       _messagesIn;
-            NetMessage                      _msgTemporaryIn;
+            NetMessage                   _msgTemporaryIn;
 
             boost::asio::ip::tcp::endpoint _endpoint;
             PeerInfo _info;

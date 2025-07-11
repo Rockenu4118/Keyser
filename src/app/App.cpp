@@ -1,31 +1,27 @@
 #include "./App.hpp"
 
-keyser::App::App() : mNode(nullptr)
+keyser::App::App()
 {}
 
-void keyser::App::run()
+void keyser::App::init(int argc, char* argv[])
 {
-    // Prompt for port to run on
-    // int  port;
-    // char selection;
+    int port = 6000;
 
-    // std::cout << "Port: ";
-    // std::cin  >> port;
-    
+    if (argc == 2)
+    {
+        port = std::stoi(argv[1]);
+    }
+
     // Startup node
-    mNode = new Node(6000);
-    mNode->run();
-
-    // Startup RPC API
-    // _rpc = new keyser::RPC(_node, port + 2080);
-    // _rpc->run();
-
-    // Initialize CLI
-    // _view = new cli::RootView(_node);
+    mNode = new Node();
     mMenu = new MainMenu(mNode);
+
+    // mNode->mChain = std::make_shared<Chain>();
+    mNode->mNetwork = std::make_shared<NetInterface>(mNode, mMenu, port);
+
+
     mMenu->start();
 
     delete mNode;
     delete mMenu;
-    // delete _rpc;
 }

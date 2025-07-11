@@ -6,29 +6,11 @@
 //
 
 #include "./app/App.hpp"
-// #include "./chain/Block.hpp"
-// #include "./chain/Transaction.hpp"
-// #include "./storage/StorageEngine.hpp"
-// #include "./wallet/Account.hpp"
 
-#include <openssl/aes.h>
-#include <openssl/evp.h>
-
-
-
-int main()
-{   
-    std::cout << "Running..." << std::endl;
-
-    // ring_test();
-    // commitment_test();
-    // stealth_test();
-
-
-
-
-    keyser::App app;
-    app.run();
+int main(int argc, char* argv[])
+{
+    auto* app = new keyser::App();
+    app->init(argc, argv);
 
     return 0;
 }

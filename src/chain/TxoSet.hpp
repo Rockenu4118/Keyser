@@ -3,16 +3,16 @@
 
 #include <string>
 #include <vector>
-#include <unordered_map>
+// #include <unordered_map>
 
-#include "../node/Node.hpp"
-#include "./Transaction.hpp"
-#include "./Block.hpp"
+// #include "../node/Node.hpp"
+// #include "./Transaction.hpp"
+// #include "../primitives/Block.hpp"
 
 
-namespace keyser
-{
-    class Node;
+// namespace keyser
+// {
+//     class Node;
 
     // class TxoSet
     // {
@@ -40,6 +40,6 @@ namespace keyser
     //
     //         std::unordered_map<std::string, TXO> _txoSet;
     // };
-}
+// }
 
 #endif

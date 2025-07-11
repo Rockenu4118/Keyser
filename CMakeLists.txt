@@ -4,7 +4,7 @@ set(PROJECT_NAME "Keyser")
 
 project(${PROJECT_NAME})
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 file(GLOB SOURCES "src/*.cpp"
                   "src/app/*.cpp"
@@ -13,16 +13,19 @@ file(GLOB SOURCES "src/*.cpp"
                   "src/chain/*.cpp"
                   "src/net/*.cpp"
                   "src/node/*.cpp"
+                  "src/primitives/*.cpp"
                   "src/rpc/*.cpp"
                   "src/storage/*.cpp"
 #                  "src/validation/*.cpp"
                   "src/wallet/*.cpp")
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES}
+        src/chain/BlockIndex.cpp
+        src/chain/BlockIndex.h)
 
 #add_subdirectory(libs/keycrypto)
 
-#target_link_libraries(${PROJECT_NAME} ssl crypto leveldb snappy keycrypto cryptography net_core cli_core)
+#target_link_libraries(${PROJECT_NAME} ssl crypto ncurses keycrypto)
 target_link_libraries(${PROJECT_NAME} ssl crypto ncurses)
 
 

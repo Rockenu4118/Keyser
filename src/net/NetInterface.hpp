@@ -7,37 +7,43 @@
 #include <unordered_map>
 #include "../utils/tsqueue.hpp"
 
-#include "./Client.hpp"
-#include "./Server.hpp"
 #include "./Peer.hpp"
 #include "../net/NetMessage.hpp"
 #include "../node/PeerInfo.hpp"
-#include "../chain/Chain.hpp"
+#include "../chain/ChainIndex.hpp"
 #include "../chain/Mempool.hpp"
 #include "../utils/utils.hpp"
+#include "../views/MainMenu.hpp"
 
 
 namespace keyser
 {
-    class Client;
-    class Server;
+    class MainMenu;
     class Peer;
 
     class NetInterface
     {
-        public:
-            NetInterface(Node* node, uint16_t port);
+    public:
+        NetInterface(Node* node, MainMenu* menu, uint16_t port);
             
-            ~NetInterface();
+        ~NetInterface();
 
-            void startServer();
+        bool connect(const Endpoint endpoint);
 
-            void message(std::shared_ptr<Peer> peer, const NetMessage& msg);
-            void messageNeighbors(const NetMessage& msg, std::shared_ptr<Peer> ignorePeer = nullptr);
-            void managePeers();
+        bool allowConnect(Endpoint endpoint) const;
 
-            void ping();
-            void pong();
+        bool start();
+
+        void stop();
+
+        void acceptConnection();
+
+        void message(std::shared_ptr<Peer> peer, const NetMessage& msg);
+        void messageNeighbors(const NetMessage& msg, std::shared_ptr<Peer> ignorePeer = nullptr);
+        void managePeers();
+
+        void ping();
+        void pong();
 
             // Handle incoming messages
             void update(uint8_t maxMessages = -1, bool wait = true);
@@ -50,10 +56,6 @@ namespace keyser
             std::shared_ptr<Peer> syncNode();
 
             uint16_t assignId();
-
-            void displayPeers();
-            void displayListeningNodes();
-            void displaySelfInfo();
 
             std::vector<PeerInfo> getConnections() const;
 
@@ -73,42 +75,41 @@ namespace keyser
             void handleDistributeBlock(std::shared_ptr<Peer> peer, NetMessage& msg);
             void handleDistributeTransaction(std::shared_ptr<Peer> peer, NetMessage& msg);
 
-            std::shared_ptr<Client>& client();
-            std::shared_ptr<Server>& server();
+        void onOutgoingConnect(std::shared_ptr<Peer> peer);
+        bool allowConnect(std::shared_ptr<Peer> peer);
+        void onIncomingConnect(std::shared_ptr<Peer> peer);
 
-            std::deque<std::shared_ptr<Peer>>& peers();
+
+
+        // Thread safe queue for incoming messages
+        tsqueue<OwnedMessage> mMessagesIn;
+
+        // Container for active peers
+        std::deque<std::shared_ptr<Peer>> mPeers;
+
+
+        // Container for listening nodes
+        std::unordered_map<std::string, NodeInfo> _listeningNodes;
+
+        // Asio context and thread to run in
+        boost::asio::io_context _context;
+        std::thread _contextThr;
+
+        // Asio acceptor
+        boost::asio::ip::tcp::acceptor _acceptor;
             
-            std::unordered_map<std::string, NodeInfo>& listeningNodes();
+        // Thread for handling incoming messages
+        std::thread _responseThread;
 
-            tsqueue<OwnedMessage>& messagesIn();
+        // Info of active nodes on network, info of connected nodes, self info
+        PeerInfo _selfInfo;
 
-        private:
-            Node* _node;
+        // Connections will be identified in the system by an id
+        uint16_t _idCounter = 10000;
 
-            std::shared_ptr<Client> _client;
-            std::shared_ptr<Server> _server;
-            
-            // Thread safe queue for incoming messages
-            tsqueue<OwnedMessage> _messagesIn;
-
-            // Container for active peers
-            std::deque<std::shared_ptr<Peer>> _peers;
-
-            // Container for listening nodes
-            std::unordered_map<std::string, NodeInfo> _listeningNodes;
-
-            // Asio context and thread to run in
-            boost::asio::io_context _context;
-            std::thread _contextThr;
-            
-            // Thread for handling incoming messages
-            std::thread _responseThread;
-
-            // Info of active nodes on network, info of connected nodes, self info
-            PeerInfo _selfInfo;
-
-            // Connections will be identified in the system by an id
-            uint16_t _idCounter = 10000;
+    private:
+        Node* mNode;
+        MainMenu* mMenu;
     };
 }
 

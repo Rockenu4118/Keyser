@@ -6,13 +6,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctime>
-#include <algorithm>
-#include <nlohmann/json.hpp>
+// #include <algorithm>
 
 #include "./utils.hpp"
 #include "../wallet/Wallet.hpp"
-#include "../chain/Transaction.hpp"
-#include "../chain/Block.hpp"
+#include "../primitives/Block.hpp"
 #include "../node/PeerInfo.hpp"
 
 //
@@ -91,19 +89,6 @@ std::string keyser::utils::hexToString(const std::string& input)
         output.push_back(static_cast<unsigned char>(s));
     }
     return output;
-}
-
-bool keyser::utils::isValidHash(std::string hash, uint8_t difficulty)
-{
-    for (uint i = 0 ; i < difficulty ; i++)
-    {
-        if (hash[i] != '0') 
-        {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 std::string keyser::utils::localTimestamp()

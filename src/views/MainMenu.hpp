@@ -16,6 +16,13 @@
 
 namespace keyser
 {
+    enum Mode
+    {
+        LOG,
+        CONNECTIONS,
+        BLOCKS
+    };
+
     struct LogMessage
     {
         std::string time;
@@ -33,6 +40,8 @@ namespace keyser
         void handleInput(const std::string& text);
     private:
         Node* mNode = nullptr;
+
+        Mode mMode = LOG;
 
         const int TITLE_HEIGHT = 1;
         const int INPUT_HEIGHT = 3;

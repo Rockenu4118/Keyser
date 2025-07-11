@@ -7,7 +7,7 @@
 // #include <leveldb/db.h>
 
 #include "../app/Settings.hpp"
-#include "../chain/Block.hpp"
+#include "../primitives/Block.hpp"
 #include "../wallet/Wallet.hpp"
 
 

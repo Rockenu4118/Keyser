@@ -28,7 +28,6 @@ namespace keyser
         std::string _alias;
 
         // Network
-
         uint16_t _tcpPort = 6000;
         uint16_t _httpPort = 8080;
 

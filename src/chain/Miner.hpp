@@ -13,18 +13,13 @@ namespace keyser
     class Miner
     {
         public:
-            explicit Miner(Node* node);
-
             ~Miner();
 
             void start(uint numBlocks = -1);
 
             void stop();
 
-            Block constructBlock(std::string rewardRecipient);
-
-        private:
-            Node* _node;
+            static bool isValidHash(std::string hash, uint8_t difficulty);
 
             std::thread _miningThr;
 

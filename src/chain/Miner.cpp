@@ -1,8 +1,7 @@
 #include "./Miner.hpp"
 
+#include "../app/App.hpp"
 
-keyser::Miner::Miner(Node* node) : _node(node)
-{}
 
 keyser::Miner::~Miner()
 {
@@ -26,19 +25,21 @@ void keyser::Miner::start(uint numBlocks)
 
         uint blocksMined = 0;
 
-        while (!_node->shutdownFlag() && _minerActive && (blocksMined < numBlocks))
+        while (!mShutdown && _minerActive && (blocksMined < numBlocks))
         {
-            Block newBlock = constructBlock("0xc6d8a2c830495d07318212e9f2cad16f");
+            Transaction reward{};
+
+            // Block block = newBlock(_node->chain()->getTip().index + 1, time(nullptr), nullptr, reward);
 
             while (true)
             {
-                if (_node->shutdownFlag() || !_minerActive)
+                if (mShutdown || !_minerActive)
                     return;
 
-                // if (utils::isValidHash(newBlock.hash(), _node->chain()->calcDifficulty()))
+                // if (isValidHash(newBlock.hash(), _node->chain()->calcDifficulty()))
                 //     break;
 
-                newBlock.mNonce++;
+                // block.nonce++;
             }
 
             blocksMined++;
@@ -61,16 +62,15 @@ void keyser::Miner::stop()
         _miningThr.join();
 }
 
-keyser::Block keyser::Miner::constructBlock(std::string rewardRecipient)
+bool keyser::Miner::isValidHash(std::string hash, uint8_t difficulty)
 {
-    int currBlockI = _node->chain()->getCurrBlock().mIndex;
+    for (uint i = 0 ; i < difficulty ; i++)
+    {
+        if (hash[i] != '0')
+        {
+            return false;
+        }
+    }
 
-    Transaction blockReward(0x00, 0x00, 100);
-    // Transaction blockReward()
-
-    Block block = Block(currBlockI + 1, time(nullptr), nullptr, blockReward, _node->mempool()->leadingTransactions());
-    //
-    // block._bodyHash = block.bodyHash();
-
-    return block;
+    return true;
 }

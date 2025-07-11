@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/keyser.iml" filepath="$PROJECT_DIR$/.idea/keyser.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Keyser.iml" filepath="$PROJECT_DIR$/.idea/Keyser.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Keyser2.iml" filepath="$PROJECT_DIR$/.idea/Keyser2.iml" />
     </modules>
   </component>
 </project>

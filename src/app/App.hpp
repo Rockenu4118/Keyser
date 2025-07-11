@@ -1,29 +1,26 @@
 #ifndef APP_H
 #define APP_H
 
-#include <memory>
-
 #include "../node/Node.hpp"
 #include "../views/MainMenu.hpp"
-
-// #include "../rpc/rpc.hpp"
 
 
 namespace keyser
 {
-    class MainMenu;
+    static std::atomic mShutdown = false;
 
     class App
     {
-        public:
-            App();
+    public:
+        App();
 
-            void run();
+        void init(int argc, char* argv[]);
 
-        private:
-            Node*     mNode;
-            MainMenu* mMenu;
-            // RPC*  _rpc;
+    private:
+        Node* mNode;
+        MainMenu* mMenu;
+        Miner* mMiner;
+        Wallet* mWallet;
     };
 }
 

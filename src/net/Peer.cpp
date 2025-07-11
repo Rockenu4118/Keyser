@@ -23,6 +23,15 @@ keyser::Peer::~Peer()
     disconnect();
 }
 
+std::string keyser::Peer::toString()
+{
+    std::stringstream out;
+    out << "[" << getId() << "] ";
+    out << getEndpoint() << ", ";
+    out << "Direction: " << (info().direction == PeerInfo::Direction::Outbound ? "Outbound" : "Inbound");
+    return out.str();
+}
+
 uint16_t keyser::Peer::getId() const
 {
     return _info.id;

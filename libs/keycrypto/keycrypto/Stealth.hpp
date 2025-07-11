@@ -7,7 +7,6 @@
 #include <unistd.h>
 
 #include "./ec.hpp"
-#include "./sha.hpp"
 
 namespace crypto
 {

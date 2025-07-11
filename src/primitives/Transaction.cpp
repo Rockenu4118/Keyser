@@ -12,7 +12,7 @@ keyser::Transaction newTransaction(unsigned char recipient[], unsigned char send
 
 void keyser::hashTransaction(Transaction& tx, unsigned char hash[])
 {
-    constexpr size_t bufsize = 4*sizeof(uint64_t) + sizeof(time_t) + 128*sizeof(char);
+    constexpr size_t bufsize = 4*sizeof(uint64_t) + sizeof(time_t) + 128*sizeof(unsigned char);
     unsigned char buf[bufsize];
     size_t offset = 0;
 

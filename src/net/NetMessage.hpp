@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "../chain/Transaction.hpp"
+// #include "../chain/Transaction.hpp"
 
 
 
@@ -12,8 +12,8 @@ namespace keyser
     struct NetMessageHeader
     {
         uint8_t magic;
-        char command[16];
-        size_t size = 0;
+        char    command[16];
+        size_t  size = 0;
     };
 
     struct NetMessage
